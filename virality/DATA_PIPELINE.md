@@ -403,3 +403,22 @@ Every stage above is implemented and tested; `README.md` has the commands.
 | Labels, pairs, splits | `labels.py`, `splits.py` | pairs equal to a brute-force enumeration |
 | Baseline and leak control | `baseline.py` | shuffled-label control at chance |
 | Media, ASR, encoders, SIDs, neighbours | `media/`, `embed/`, `features/neighbors.py` | ffmpeg sampling on a real clip; encoder inputs identical to `mm_encoder.py`; neighbour leakage test. Model weights run only on the GPU box |
+
+---
+
+## 13. Measured on real data (2026-11-07)
+
+Topic gate with Qwen3-Embedding-0.6B on CPU (`topic_margin` = best target-topic similarity minus best off-target similarity).
+
+| Corpus slice | Originals scored | margin > 0 | margin > 0.05 | margin > 0.1 | What passes at 0.1 |
+|---|---|---|---|---|---|
+| USC, 12 chunks May to November 2024, after the political pre-thin | 135,630 (18,443 after pre-thin) | 1.64% | 0.39% | 0.09% | spam bots, memecoin "launches", political posts; essentially no target content |
+| Community Archive, 4,996 posts from 1 June 2025 | 2,281 | 24.4% | 10.8% | 5.0% | ML infrastructure, benchmark repos, startup news, AI tooling |
+
+Consequences:
+
+1. **USC is not a source of target-audience data.** It is an election crawl. Extrapolated to the full corpus, it would yield a few thousand relevant posts mixed with noise. It stays supported by the code, and useful only as a scale test and for generic author statistics; it should not receive GPU time.
+2. **The Community Archive is the audience.** At a 0.05 margin it implies on the order of 500k relevant originals from 2023 on (22.2M tweets, roughly 46% originals, roughly 11% passing), from accounts kept whole by the account rule. It has likes and reposts but no views, so it trains the pairwise and per-author objectives.
+3. **Views for the target audience come from the tech scrape and analytics exports.** No free public corpus found has both views and this audience. The scrape's 250k to 450k rows are therefore the primary view-labeled set after all; the free corpora add depth (author histories, same-author pairs, donor graphs and likes), not view labels.
+4. **Stand-in seeds do not work in an off-topic corpus.** Accounts with tech-sounding bios in USC posted 24 on-topic posts among them. Seeds must come from the scrape or from a handle list of known accounts.
+5. **The default margin is 0.05**, between the permissive 0 (many off-topic posts) and the strict 0.1 (high precision on the CA sample). The manual audit replaces it.

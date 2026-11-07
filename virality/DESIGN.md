@@ -240,7 +240,7 @@ Video and launch content are rare in every corpus. They are never dropped by the
 | Bluesky open API | Very large; tech community is sizable | Filtered the same way | No (likes, reposts) | Optional pretraining of the content tower; skipped unless the X corpus is too small |
 | Customer accounts (post-launch) | Grows | All relevant | Yes, rich | Flywheel and the compliant commercial retrain |
 
-The honest expectation: after filtering, the unified view-labeled corpus is likely in the high hundreds of thousands, not millions, with a larger pairwise-only slice from the Community Archive. That is enough for the design in section 3 because the heavy capacity is frozen and the trainable part is sized to the data. Phase 0 produces the real counts.
+The honest expectation, revised after measuring real data (DATA_PIPELINE.md section 13): the USC corpus contains essentially no target-audience posts, so the view-labeled corpus for this audience is the tech scrape (250k to 450k rows) plus analytics exports, and the Community Archive adds roughly 500k relevant originals with likes but no views, used for pairwise and per-author training. That is enough for the design in section 3 because the heavy capacity is frozen and the trainable part is sized to the data, but it makes the scrape and connected-account analytics the critical inputs.
 
 ### 5.4 Why this will not repeat last year's result
 

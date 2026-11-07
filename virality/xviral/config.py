@@ -103,7 +103,7 @@ class RelevanceCfg(BaseModel):
     )
     """Cheap pre-thin applied to the USC corpus only, before the embedding pass."""
     blocklist_min_hits: int = 1
-    topic_margin_min: float = 0.0
+    topic_margin_min: float = 0.05
     """Keep a post only if it is closer to a target-topic description than to any off-target one."""
     heldout_negative_fraction: float = 0.1
 

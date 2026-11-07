@@ -119,3 +119,41 @@ def test_analytics_unknown_layout_fails(tmp_path):
     pl.DataFrame([{"foo": 1, "bar": 2}]).write_csv(p)
     with pytest.raises(ValueError):
         analytics.read_export(p)
+
+
+class _FakeCA:
+    """PostgREST stand-in for the tweets table: honours order, gte on created_at, and limit."""
+
+    def __init__(self, rows):
+        self.rows = sorted(rows, key=lambda r: (r["created_at"], r["tweet_id"]))
+        self.headers = {}
+
+    def get(self, url, params=None, timeout=None):
+        start = params["created_at"].split(".", 1)[1]
+        out = [r for r in self.rows if r["created_at"] >= start][: int(params["limit"])]
+
+        class R:
+            status_code = 200
+
+            def raise_for_status(self):
+                pass
+
+            def json(self_inner):
+                return out
+
+        return R()
+
+
+def test_ca_time_keyset_pagination_has_no_gaps_or_duplicates(tmp_path, monkeypatch):
+    from xviral.config import CommunityArchiveCfg
+    from xviral.sources.community_archive import RestDownloader
+
+    monkeypatch.setenv("CA_ANON_KEY", "x")
+    # 23 tweets over 7 distinct timestamps, with ties straddling page boundaries (page size 4).
+    rows = [{"tweet_id": str(1000 + i), "created_at": f"2025-01-0{1 + i // 4}T00:00:0{i % 2}+00:00", "account_id": "1",
+             "full_text": "t", "retweet_count": 0, "favorite_count": 0, "reply_to_tweet_id": None,
+             "reply_to_user_id": None, "archive_upload_id": 1} for i in range(23)]
+    cfg = CommunityArchiveCfg(page_size=4, requests_per_second=1e6, min_created="2025-01-01")
+    n = RestDownloader(cfg, tmp_path, session=_FakeCA(rows)).download("tweets", flush_rows=5)
+    got = pl.read_parquet(tmp_path / "tweets" / "*.parquet")["tweet_id"].to_list()
+    assert n == 23 and sorted(got) == sorted(r["tweet_id"] for r in rows) and len(set(got)) == 23

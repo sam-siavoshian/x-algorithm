@@ -113,11 +113,15 @@ class RestDownloader:
         raise RuntimeError(f"CA {table}: giving up after retries")
 
     def download(self, table: str, flush_rows: int = 100_000, max_rows: int | None = None) -> int:
-        key = KEYSET[table]
+        """Keyset pagination. `tweets` pages by created_at (indexed; combining a date filter with
+        ordering by tweet_id times out on the live API, verified 2026-11-07), using >= on the last
+        timestamp and dropping tweets already seen at that timestamp. Other tables page by their key."""
+        by_time = table == "tweets"
+        key = "created_at" if by_time else KEYSET[table]
         tdir = self.out / table
         tdir.mkdir(parents=True, exist_ok=True)
         state_path = tdir / "_state.json"
-        state = json.loads(state_path.read_text()) if state_path.exists() else {"last": None, "part": 0, "rows": 0, "done": False}
+        state = json.loads(state_path.read_text()) if state_path.exists() else {"last": None, "part": 0, "rows": 0, "done": False, "seen_at_last": []}
         if state["done"]:
             return state["rows"]
         buf: list[dict] = []
@@ -132,21 +136,32 @@ class RestDownloader:
 
         while True:
             params = {"select": SELECT[table], "order": f"{key}.asc", "limit": str(self.cfg.page_size)}
-            if state["last"] is not None:
+            if by_time:
+                start = state["last"] or f"{self.cfg.min_created}T00:00:00+00:00"
+                params[key] = f"gte.{start}"
+            elif state["last"] is not None:
                 params[key] = f"gt.{state['last']}"
-            if table == "tweets":
-                params["created_at"] = f"gte.{self.cfg.min_created}"
             rows = self._get(table, params)
+            n_page = len(rows)
+            if by_time and state["last"] is not None:
+                seen = set(state["seen_at_last"])
+                rows = [r for r in rows if not (r["created_at"] == state["last"] and r["tweet_id"] in seen)]
             if not rows:
+                if n_page == self.cfg.page_size and by_time:
+                    raise RuntimeError(f"CA {table}: a full page shares one timestamp; increase page_size")
                 break
             buf.extend(rows)
-            state["last"] = rows[-1][key]
+            new_last = rows[-1][key]
+            if by_time:
+                at_last = [r["tweet_id"] for r in rows if r["created_at"] == new_last]
+                state["seen_at_last"] = (state["seen_at_last"] + at_last) if new_last == state["last"] else at_last
+            state["last"] = new_last
             state["rows"] += len(rows)
             if len(buf) >= flush_rows:
                 flush()
             if max_rows and state["rows"] >= max_rows:
                 break
-            if len(rows) < self.cfg.page_size:
+            if n_page < self.cfg.page_size:
                 break
         flush()
         state["done"] = not (max_rows and state["rows"] >= max_rows)
