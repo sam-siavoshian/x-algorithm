@@ -99,16 +99,17 @@ def seed_authors(posts: pl.DataFrame, seed_handles: list[str] | None) -> pl.Data
     return by_source
 
 
-def embed_texts(df: pl.DataFrame, store: EmbeddingStore, embedder, batch: int = 4096) -> None:
+def embed_texts(df: pl.DataFrame, store: EmbeddingStore, embedder, shard: int = 2048) -> None:
+    """Resumable: each shard is written as it completes, and finished posts are skipped on rerun."""
     todo = store.missing(df["post_id"].to_list())
     if not todo:
         return
     sub = df.filter(pl.col("post_id").is_in(todo)).select("post_id", "text")
-    for i in range(0, sub.height, batch * 8):
-        chunk = sub.slice(i, batch * 8)
-        vecs = embedder.encode(chunk["text"].fill_null("").to_list(), batch_size=256)
+    for i in range(0, sub.height, shard):
+        chunk = sub.slice(i, shard)
+        vecs = embedder.encode(chunk["text"].fill_null("").to_list(), batch_size=64)
         store.write(chunk["post_id"].to_numpy(), vecs)
-        log.info("relevance embed %d/%d", min(i + batch * 8, sub.height), sub.height)
+        log.info("relevance embed %d/%d", min(i + shard, sub.height), sub.height)
 
 
 def score(df: pl.DataFrame, cfg: RelevanceCfg, work: Path, seed_handles: list[str] | None = None,

@@ -40,6 +40,10 @@ class HashingEmbedder:
 
 
 class SentenceEmbedder:
+    MAX_TOKENS = 512
+    """Relevance and policy decisions need the opening of a post, not all of it. Without a cap,
+    Qwen3-Embedding accepts 32k tokens and a few long-form posts pad whole batches."""
+
     def __init__(self, model_id: str, device: str = "cuda"):
         try:
             from sentence_transformers import SentenceTransformer
@@ -47,7 +51,8 @@ class SentenceEmbedder:
             raise RuntimeError("install the 'encoders' extra (sentence-transformers, torch) on the GPU box") from e
         kwargs = {"model_kwargs": {"dtype": "float32"}} if device == "cpu" else {}
         self.model = SentenceTransformer(model_id, device=device, **kwargs)
-        self.dim = self.model.get_sentence_embedding_dimension()
+        self.model.max_seq_length = self.MAX_TOKENS
+        self.dim = self.model.get_embedding_dimension() if hasattr(self.model, "get_embedding_dimension") else self.model.get_sentence_embedding_dimension()
 
     def encode(self, texts: list[str], batch_size: int = 256, query: bool = False) -> np.ndarray:
         """query=True applies the model's query prompt (Qwen3-Embedding is instruction-tuned for queries)."""
