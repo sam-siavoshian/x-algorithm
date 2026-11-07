@@ -37,7 +37,12 @@ def reference_module(name: str):
     spec = importlib.util.spec_from_file_location(f"xreference_{name}", path)
     mod = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = mod  # dataclasses resolve annotations through sys.modules
-    spec.loader.exec_module(mod)
+    prev = sys.dont_write_bytecode
+    sys.dont_write_bytecode = True  # leave no __pycache__ inside phoenix/reference
+    try:
+        spec.loader.exec_module(mod)
+    finally:
+        sys.dont_write_bytecode = prev
     return mod
 
 

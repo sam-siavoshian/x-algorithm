@@ -21,7 +21,7 @@ from xviral.authors import follower_tier_expr
 from xviral.config import Config
 from xviral.constants import FOLLOWER_TIER_NAMES
 from xviral.features import audience, content, suppression
-from xviral.util.core import scan_dir, write_parquet
+from xviral.util.core import scan_dir, stable_hash64, write_parquet
 
 log = logging.getLogger(__name__)
 
@@ -374,10 +374,13 @@ def embed_siglip(cfg: Config) -> None:
     if (m / "images").exists():
         im = scan_dir(m / "images").filter(pl.col("status") == 200).select("post_id", "media_idx", "jpeg").collect()
         st = EmbeddingStore(cfg.paths.stage("emb") / "siglip_images")
+        # Keyed by a stable 63-bit hash of (post_id, media_idx); post_id * k would overflow int64.
+        im = im.with_columns(pl.struct("post_id", "media_idx").map_elements(
+            lambda r: stable_hash64("img", r["post_id"], r["media_idx"]), return_dtype=pl.Int64).alias("key"))
+        write_parquet(im.select("key", "post_id", "media_idx"), cfg.paths.stage("emb") / "siglip_images_keys.parquet")
         for i in range(0, im.height, 4096):
             c = im.slice(i, 4096)
-            # Image rows are keyed by post_id * 8 + media_idx so up to 8 media per post fit one key space.
-            st.write((c["post_id"] * 8 + c["media_idx"]).to_numpy(), enc.encode(c["jpeg"].to_list()))
+            st.write(c["key"].to_numpy(), enc.encode(c["jpeg"].to_list()))
     if (m / "videos").exists():
         vids = scan_dir(m / "videos").filter(pl.col("status") == "ok").select("post_id", "temporal_frames", "thumb").collect()
         st_f = EmbeddingStore(cfg.paths.stage("emb") / "siglip_thumbs")
