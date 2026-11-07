@@ -180,42 +180,47 @@ What makes this hard to copy: the exact content encoder and codebook recipe from
 
 ---
 
-## 5. Data plan (zero cash; your dataset is the primary corpus)
+## 5. Data plan: one unified, audience-filtered corpus
 
-### 5.1 Primary: your tech/startup dataset
+### 5.1 Principle
 
-About 250k to 450k posts (to be counted) scraped through Dec 2025 from the accounts you care about: tech startups, ML, YC, SF. Per post: text, created_at, likes, **impressions**, media URL, author screen name, followers, following, post count, media count, blue-verified flag, an `is_viral` label, and three 768-d embeddings (text, image, image description). A prior feature set of 433 columns exists.
+Every source is poured into one schema, then filtered hard for **audience relevance** and **recency** before a single GPU-hour is spent on it. Old posts, posts outside the tech, startup, ML, YC and SF world, and post types the current algorithm distributes differently (replies, reposts) are dropped at ingestion. Compute goes only to posts that look like what customers will submit.
 
-Why this is the right primary corpus:
+Unified post schema: post id, author id, created_at, text, media URLs and types, like, reply, repost, quote, bookmark and view counts where present (null otherwise), author followers and following at the nearest known time, verified flag, source tag, snapshot time. Labels are derived, never copied, from the source.
 
-- **It has impressions.** That is the label the whole design is built on, and it is the one thing the free public corpora mostly lack.
-- **It is the customer's distribution.** A model trained on politics or on random accounts and applied to a YC launch post is out of distribution. This is in distribution.
-- **Many posts per author.** The scrape follows a fixed account set over time, so same-author pairwise training (the strongest content-only signal in the literature) works directly.
+### 5.2 The filter, and your dataset's real job
 
-What it lacks, and what we do about it:
+Your 2025 scrape is the cleanest available sample of the target audience. Its account list and its posts become the **positive seed** for a relevance classifier: embed everything with the same encoder, train a small classifier on "from your account set" versus a random sample of the public corpora, and keep public posts above a threshold, with a manual check of 500 borderline cases to set it. Author-level rules on top: accounts whose recent posts are majority-relevant stay as whole accounts, so author histories remain intact for the trailing-rate features.
 
-| Gap | Effect | Mitigation |
-|---|---|---|
-| No reply, repost, quote or bookmark counts | Cannot decompose X's value score by action | Primary target becomes reach ratio (impressions / followers), secondary likes per impression. The value-score decomposition returns when donated analytics and customer data arrive. |
-| Counts are a snapshot at scrape time, not at 24h | Posts scraped young are under-counted | Keep posts at least 48h old at scrape time (95% of impressions land inside 24h). Use post age as a feature for the rest or drop them. |
-| Follower counts are at scrape time, not at post time | Reach ratio slightly biased for fast-growing accounts | Minor; the Community Archive histories let us check the bias on overlapping authors. |
-| `is_viral` label of unknown definition | Cannot be the target as-is | Redefine on reach ratio tiers (1x, 10x, 100x followers) and author-relative percentile. Keep the old label as a sanity check. |
-| 768-d embeddings from an unknown encoder | Not what Phoenix sees | Re-embed everything with `Qwen3-VL-Embedding-8B` using X's rendering and prompt, then train our codebook. About 15 GPU-hours. Keep the old embeddings as extra inputs for the baseline. |
-| Pre-2026 data; Phoenix and the weights changed in 2026 | Distribution mechanics shifted | Content-to-engagement relationships are far more stable than ranking mechanics. The algorithm-derived levers come from current code, and recalibration happens on donated analytics and customer data. |
-| No trajectories | The live forecaster cannot be trained from this set | Deferred. Trajectories come from connected accounts (customers and donors) once the product is live, or from a small API spend later. |
+Recency: views exist on X only for posts after December 2022, and the current ranker and weights date from 2026. Keep 2023 onward, weight 2025 onward higher in training, and run a final calibration pass on the newest slice available.
 
-Data-quality steps in phase 0: count rows, dedupe by post id, verify the merge against V1, V2 and V4, drop replies and reposts (they are distributed differently; see section 2.4), drop posts under 48h old at scrape, and split by time with author overlap removed from validation.
+Post type: originals and quotes only. Replies and reposts are filtered or crippled by the current pipeline (section 2.4), so they are the wrong training signal for a product about original posts and launches.
 
-### 5.2 Supporting sources, all free
+Video and launch content are rare in every corpus. They are never dropped by the filter, get oversampled in training, and get their own validation slice so a weak video result cannot hide behind a strong text result.
 
-| Source | Use |
-|---|---|
-| **Community Archive** (donated X archives, tech-skewed) | Long author histories for the trailing-rate features; extra same-author pairs; check of follower-count drift. |
-| **Your own analytics export and any donors** | Per-post impressions, profile clicks, link clicks, new follows. The only source for the click and follow heads. Even ten accounts matter. |
-| **USC X 2024 corpus** (46M posts with views, CC BY-NC-SA) | Optional pretraining of the fusion model before fine-tuning on your corpus. Research only, never in the shipped model. Skipped if phase 0 shows your corpus is sufficient. |
-| **Customer analytics** (post-launch) | The flywheel, and the compliant source for the commercial retrain. |
+### 5.3 Sources after filtering
 
-Media: fetch images for posts in your dataset from the stored URLs, rate-limited, bounded, and store SigLIP and Qwen3-VL embeddings plus sampled frames rather than raw files.
+| Source | Raw size | Expected yield after the audience filter | Carries views | Role |
+|---|---|---|---|---|
+| USC X 2024 corpus (CC BY-NC-SA, research only) | ~46M posts | Unknown until audited; politics-collected, so plausibly a few hundred thousand relevant posts, mostly from accounts that post about both | Yes | Largest view-labeled slice for the research model |
+| Community Archive | Millions of posts, tech-skewed donors | High fraction relevant; filtered to 2023+ originals | No | Author histories, same-author pairs, media via archive URLs |
+| Your 2025 scrape | 250k to 450k | All relevant by construction | Yes | Audience seed, validation anchor, and training rows once deduped against the rest |
+| Your analytics exports and donors | Small | All relevant | Yes, plus clicks and follows | Calibration and the click and follow heads |
+| Bluesky open API | Very large; tech community is sizable | Filtered the same way | No (likes, reposts) | Optional pretraining of the content tower; skipped unless the X corpus is too small |
+| Customer accounts (post-launch) | Grows | All relevant | Yes, rich | Flywheel and the compliant commercial retrain |
+
+The honest expectation: after filtering, the unified view-labeled corpus is likely in the high hundreds of thousands, not millions, with a larger pairwise-only slice from the Community Archive. That is enough for the design in section 3 because the heavy capacity is frozen and the trainable part is sized to the data. Phase 0 produces the real counts.
+
+### 5.4 Why this will not repeat last year's result
+
+Your XGBoost ensemble had the right instinct and four structural problems the new design removes:
+
+1. **Target.** An absolute `is_viral` label is mostly a follower-count detector. The new target is reach relative to followers on X's own exploration curve, plus author-relative percentiles.
+2. **Confounding.** Rows were independent. The new training pairs posts from the same author within a week, so the model is forced to learn what differed in the content, not who posted.
+3. **Content representation.** Unknown 768-d embeddings compressed to 128 dims through PCA. The new representation is the exact Qwen3-VL embedding X's ranker sees, plus our codebook, plus SigLIP-2 for images and video frames, read by a transformer rather than a tree over PCA components.
+4. **Evaluation.** Random splits leak authors and time. The new splits hold out authors and a later time window, and the product reports calibrated odds rather than a binary label.
+
+Trees stay in the system as the phase-0 baseline and as a member of the final ensemble. They are not the model.
 
 ---
 
@@ -225,13 +230,13 @@ Hardware: AWS credits for the GPU steps, the RTX 2060 for overnight work (SigLIP
 
 | Phase | Weeks | What ships | Compute | Credits |
 |---|---|---|---|---|
-| 0. Data audit + baseline | 1 | Row counts, dedupe, label definitions, time and author splits, LightGBM on your existing 433 features plus the old embeddings, pairwise objective, first AUROC and pairwise numbers. **This is the go/no-go gate.** | CPU and 2060 | $0 |
-| 1. Faithful embeddings + predictor v1 | 3 | Qwen3-VL-Embedding-8B over the corpus with X's rendering, our 6×256 codebook, SigLIP-2 image embeddings, fusion transformer (150 to 300M) with all heads, calibration, pre-flight checker | g6e.xlarge spot (L40S) ~15h for embeddings; g6.xlarge spot (L4) ~40h for sweeps | $20 + $20 |
+| 0. Unified corpus + baseline | 2 | Ingest all sources into one schema, dedupe, audience relevance classifier seeded from your account set, recency and post-type filters, label definitions, author and time splits, LightGBM baseline with pairwise objective. Outputs the real corpus counts and the first AUROC and pairwise numbers. **This is the go/no-go gate.** | CPU and 2060; one L4 spot day for embedding the candidate pool for the relevance filter | $10 |
+| 1. Faithful embeddings + predictor v1 | 3 | Qwen3-VL-Embedding-8B over the filtered corpus with X's rendering, our 6×256 codebook, SigLIP-2 image embeddings, fusion transformer (150 to 300M) with all heads, calibration, pre-flight checker | g6e.xlarge spot (L40S) ~15h for embeddings; g6.xlarge spot (L4) ~40h for sweeps | $20 + $20 |
 | 2. Teacher + distillation | 2 | Qwen3-VL-8B QLoRA on ~200k examples, same heads; score corpus; distill into v1 | g6e.xlarge spot ~30h training + ~10h scoring | $55 |
 | 3. Optimizer v1 | 2 | Algorithm levers, best-of-N rewriter (Qwen3-8B generation) with dual-model agreement, timing recommendation, API | g6.xlarge spot ~40h | $20 |
 | Storage, S3, EBS | | | | $25 |
 | Reserve for reruns and spot interruptions | | | | $100 |
-| **Total** | **8 weeks** | | | **$240 to $260, ceiling $360 with reserve** |
+| **Total** | **9 weeks** | | | **$240 to $260, ceiling $360 with reserve** |
 
 That leaves $140 or more unspent against a $500 ceiling for the first RL editor cycle (DPO on observed pairs, GRPO against the predictor with KL and agreement constraints) once live outcomes exist.
 
@@ -267,12 +272,12 @@ If phase 1 misses the pairwise target by more than 5 points, the honest conclusi
 
 ---
 
-## 9. Decisions needed from you
+## 9. What I need to start phase 0
 
-1. **Hand over the dataset.** The 13 GB merged file plus the V1, V2, V4 raw files so the merge can be verified, and whatever code produced `is_viral` and the 433 features. If a model was trained on it before, its accuracy number is a useful anchor.
-2. **Media stance.** Bounded, rate-limited fetching of images from the stored URLs, or embeddings-only for media.
-3. **Your X analytics export**, and ask anyone in the network for theirs.
-4. **Go for phase 0.** It costs nothing and produces the first real accuracy numbers within a week.
+1. **Your dataset files** (the 13 GB merge and the V1, V2, V4 raws) and the account list behind them. They seed the audience filter.
+2. **Media stance.** Bounded, rate-limited image and video-frame fetching from stored URLs, or embeddings-only for media.
+3. **Your X analytics export**, and anyone else's you can get.
+4. **A go.** Phase 0 touches about $10 of credits and ends with real corpus counts and the first accuracy numbers.
 
 ## Appendix: research reports
 
