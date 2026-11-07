@@ -180,49 +180,62 @@ What makes this hard to copy: the exact content encoder and codebook recipe from
 
 ---
 
-## 5. Data plan (zero cash; AWS credits only)
+## 5. Data plan (zero cash; your dataset is the primary corpus)
 
-Constraint: no money for X API reads. Everything below is free to obtain. The compute to process it comes out of AWS credits.
+### 5.1 Primary: your tech/startup dataset
 
-| Source | What it gives | License / terms | Use |
-|---|---|---|---|
-| **USC X 2024 election dataset** (~46M posts, May to Nov 2024) | Full post objects with `viewCount`, like, reply, repost, quote counts, media fields, author metrics | CC BY-NC-SA: **research and prototyping only** | The only free corpus with views at scale. Trains and validates every component in phases 0 to 2. Topically skewed to politics, so we sample 1 to 2M posts weighted away from pure political content and toward accounts that also post product, tech, business and creator material. |
-| **Community Archive** (donated X archives) | Per-author longitudinal histories with like and repost counts and media URLs; no views | Donated under the project's open terms | Same-author pairwise training (the strongest content signal in the literature) and author-history features. Donors skew toward tech and startup accounts, which matches the first customers. |
-| **Your own accounts and anyone who will donate** | X analytics export: per-post impressions, engagements, profile clicks, link clicks, detail expands, new follows | First-party | The richest labels that exist, and they map onto Phoenix heads directly. Even 10 accounts with full histories is a valuable calibration set. Ask friends, founders, and the first design partners. |
-| **Bluesky firehose / open API** (235M+ posts) | Text, images, like, repost, reply counts; fully open | Open | Auxiliary pretraining of the content tower on "engagement given content and author" in general. Different platform, so it is a pretraining signal and a regularizer, never a label for X. |
-| **Media for the above** | Images and video frames via media URLs in the datasets | X's terms restrict automated collection from its services; fetching referenced media is a gray area | Sample, do not sweep: pull media for a bounded subset (about 300k posts with images, 30k with video), rate-limited, and store SigLIP and Qwen3-VL embeddings plus sampled frames rather than raw files. If you want zero exposure here, media coverage comes from Community Archive donors and your own accounts only. |
-| **Customers' analytics** (post-launch) | Impressions, clicks, follows per post | Consented | The flywheel. This is also the only compliant path to a commercial model, because the USC corpus cannot ship in a product. |
+About 250k to 450k posts (to be counted) scraped through Dec 2025 from the accounts you care about: tech startups, ML, YC, SF. Per post: text, created_at, likes, **impressions**, media URL, author screen name, followers, following, post count, media count, blue-verified flag, an `is_viral` label, and three 768-d embeddings (text, image, image description). A prior feature set of 433 columns exists.
 
-**What changes without views in part of the data.** Community Archive posts have no impression counts. For those, the reach proxy is likes relative to followers and the training signal is pairwise (which of two posts from the same account within 7 days did better). On X, likes per impression run roughly 1 to 3%, so the proxy is noisy but consistent, and the literature's best content-only results come from exactly this pairwise setup. The USC set carries the absolute view targets and the live-trajectory data.
+Why this is the right primary corpus:
 
-**Licensing consequence, stated once.** The USC data is non-commercial. The research model (phases 0 to 2) uses it. The model that ships to paying customers is retrained on Community Archive, donated analytics, Bluesky pretraining and customer data once those exist. The architecture, code and codebook are identical, so the retrain is a job, not a project.
+- **It has impressions.** That is the label the whole design is built on, and it is the one thing the free public corpora mostly lack.
+- **It is the customer's distribution.** A model trained on politics or on random accounts and applied to a YC launch post is out of distribution. This is in distribution.
+- **Many posts per author.** The scrape follows a fixed account set over time, so same-author pairwise training (the strongest content-only signal in the literature) works directly.
 
-## 6. Compute, time, size and budget
+What it lacks, and what we do about it:
 
-Hardware ranking for this project: **AWS credits first, the RTX 2060 second (free, useful), Mac mini last.** A 2060 handles SigLIP embeddings, tabular baselines and dataloading overnight. The 8B embedding encoder and the 8B teacher need 24 to 80 GB cards. A Mac mini can run the fusion model and a 2 to 4B VLM pilot but is 10 to 30x slower than an A100 for the big steps. If the credits can only be spent on AWS, the single-GPU `g6e.xlarge` (L40S 48 GB, about $1.32/h spot) does everything; otherwise an A100 80 GB on a marketplace at about $1.05/h is 2 to 3x cheaper for the teacher.
+| Gap | Effect | Mitigation |
+|---|---|---|
+| No reply, repost, quote or bookmark counts | Cannot decompose X's value score by action | Primary target becomes reach ratio (impressions / followers), secondary likes per impression. The value-score decomposition returns when donated analytics and customer data arrive. |
+| Counts are a snapshot at scrape time, not at 24h | Posts scraped young are under-counted | Keep posts at least 48h old at scrape time (95% of impressions land inside 24h). Use post age as a feature for the rest or drop them. |
+| Follower counts are at scrape time, not at post time | Reach ratio slightly biased for fast-growing accounts | Minor; the Community Archive histories let us check the bias on overlapping authors. |
+| `is_viral` label of unknown definition | Cannot be the target as-is | Redefine on reach ratio tiers (1x, 10x, 100x followers) and author-relative percentile. Keep the old label as a sanity check. |
+| 768-d embeddings from an unknown encoder | Not what Phoenix sees | Re-embed everything with `Qwen3-VL-Embedding-8B` using X's rendering and prompt, then train our codebook. About 15 GPU-hours. Keep the old embeddings as extra inputs for the baseline. |
+| Pre-2026 data; Phoenix and the weights changed in 2026 | Distribution mechanics shifted | Content-to-engagement relationships are far more stable than ranking mechanics. The algorithm-derived levers come from current code, and recalibration happens on donated analytics and customer data. |
+| No trajectories | The live forecaster cannot be trained from this set | Deferred. Trajectories come from connected accounts (customers and donors) once the product is live, or from a small API spend later. |
 
-| Phase | Weeks | What ships | Compute | Dollars |
-|---|---|---|---|---|
-| 0. Data + baselines | 2 | USC and Community Archive ingestion, analytics-export importer, bounded media pipeline, Qwen3-VL embeddings for the corpus, SigLIP and Whisper features, train/val/test by time and author, LightGBM baseline with pairwise objective, metrics dashboard | 2060 for SigLIP/Whisper; one 24 to 48 GB GPU for ~30 h of Qwen3-VL-Embedding-8B inference | GPU $20 to $50 |
-| 1. Predictor v1 + pre-flight | 3 | Fusion transformer (150 to 300M) over cached embeddings, all heads, calibration, component A, live forecaster v1 from trajectory polls | A10G or L4 spot, 6 to 10 sweep runs of 5 to 10 h | $50 to $80 |
-| 2. Teacher + distillation | 3 | Qwen3-VL-8B QLoRA on 300 to 500k examples with the same heads; score the corpus; distill into v1 to get v2 | L40S spot (g6e.xlarge) ~50 h | $100 to $150 |
-| 3. Optimizer v1 | 3 | Deterministic levers, best-of-N rewriter with dual-model agreement, timing bandit, product API | A10G/L4 spot for generation and scoring | $50 to $100 |
-| 4. RL editor + flywheel | ongoing | DPO on observed pairs, GRPO against B with KL and agreement constraints, customer analytics ingestion, weekly retrain | L40S spot, periodic | $100 to $200 per cycle |
+Data-quality steps in phase 0: count rows, dedupe by post id, verify the merge against V1, V2 and V4, drop replies and reposts (they are distributed differently; see section 2.4), drop posts under 48h old at scrape, and split by time with author overlap removed from validation.
 
-Totals for phases 0 to 3: about **11 weeks** and **$250 to $450 of AWS credits** including storage. Everything runs inside AWS. The teacher phase uses `g6e.xlarge` (L40S 48 GB, about $1.32/h spot) rather than a marketplace A100, which costs about $60 more than the cheapest route but needs no cash.
+### 5.2 Supporting sources, all free
 
-How the plan scales with the credit balance:
-
-| Credits available | What we do |
+| Source | Use |
 |---|---|
-| Under $150 | Phases 0 and 1 in full (embeddings for 1M posts, fusion predictor, pre-flight, live forecaster). Skip the 8B teacher; use a 4B Qwen3-VL teacher on 150k examples if $40 remains. |
-| $150 to $300 | Phases 0 to 2 with the 8B teacher on 300k examples on L40S spot. Optimizer v1 (deterministic levers and best-of-N) uses the same predictor so it costs little extra. |
-| $300 to $500 | Full plan including sweeps, a second predictor backbone for the agreement guard, and corpus-wide teacher scoring for distillation. |
-| Above $500 | Teacher on the full labeled corpus, the Bluesky pretraining pass, and the first DPO cycle of the RL editor. |
+| **Community Archive** (donated X archives, tech-skewed) | Long author histories for the trailing-rate features; extra same-author pairs; check of follower-count drift. |
+| **Your own analytics export and any donors** | Per-post impressions, profile clicks, link clicks, new follows. The only source for the click and follow heads. Even ten accounts matter. |
+| **USC X 2024 corpus** (46M posts with views, CC BY-NC-SA) | Optional pretraining of the fusion model before fine-tuning on your corpus. Research only, never in the shipped model. Skipped if phase 0 shows your corpus is sufficient. |
+| **Customer analytics** (post-launch) | The flywheel, and the compliant source for the commercial retrain. |
 
-The 2060 and a Mac mini, if available, take the overnight jobs (SigLIP embeddings, Whisper, LightGBM, data packing) and stretch the credits by roughly a third.
+Media: fetch images for posts in your dataset from the stored URLs, rate-limited, bounded, and store SigLIP and Qwen3-VL embeddings plus sampled frames rather than raw files.
 
-Model size at the end of phase 2: about 9B frozen encoder parameters (Qwen3-VL-Embedding-8B, SigLIP-2 So400m, Whisper turbo), an 8B LoRA teacher used offline, and a 150 to 300M fusion model that serves. Serving cost: under $0.01 per 1,000 predictions on an L4 for the fusion model; about $0.03 to $0.10 per 1,000 if the teacher is used as a reranker on the top candidates.
+---
+
+## 6. Compute, time and budget, pinned to $300 to $500 of AWS credits
+
+Hardware: AWS credits for the GPU steps, the RTX 2060 for overnight work (SigLIP embeddings, Whisper, LightGBM, data packing). Everything on spot instances with checkpoints every 15 minutes.
+
+| Phase | Weeks | What ships | Compute | Credits |
+|---|---|---|---|---|
+| 0. Data audit + baseline | 1 | Row counts, dedupe, label definitions, time and author splits, LightGBM on your existing 433 features plus the old embeddings, pairwise objective, first AUROC and pairwise numbers. **This is the go/no-go gate.** | CPU and 2060 | $0 |
+| 1. Faithful embeddings + predictor v1 | 3 | Qwen3-VL-Embedding-8B over the corpus with X's rendering, our 6×256 codebook, SigLIP-2 image embeddings, fusion transformer (150 to 300M) with all heads, calibration, pre-flight checker | g6e.xlarge spot (L40S) ~15h for embeddings; g6.xlarge spot (L4) ~40h for sweeps | $20 + $20 |
+| 2. Teacher + distillation | 2 | Qwen3-VL-8B QLoRA on ~200k examples, same heads; score corpus; distill into v1 | g6e.xlarge spot ~30h training + ~10h scoring | $55 |
+| 3. Optimizer v1 | 2 | Algorithm levers, best-of-N rewriter (Qwen3-8B generation) with dual-model agreement, timing recommendation, API | g6.xlarge spot ~40h | $20 |
+| Storage, S3, EBS | | | | $25 |
+| Reserve for reruns and spot interruptions | | | | $100 |
+| **Total** | **8 weeks** | | | **$240 to $260, ceiling $360 with reserve** |
+
+That leaves $140 or more unspent against a $500 ceiling for the first RL editor cycle (DPO on observed pairs, GRPO against the predictor with KL and agreement constraints) once live outcomes exist.
+
+Model size at the end of phase 2: ~9B frozen encoder parameters, an 8B LoRA teacher used offline, a 150 to 300M fusion model that serves at under $0.01 per 1,000 predictions.
 
 ---
 
@@ -245,7 +258,7 @@ If phase 1 misses the pairwise target by more than 5 points, the honest conclusi
 
 ## 8. Risks, stated plainly
 
-- **The free corpus with views is non-commercial and topically skewed.** The USC set builds and validates the system but cannot ship in the product, and its political skew means the research metrics will be optimistic for political content and conservative for product launches. Community Archive, donated analytics and customer data are what the shipping model trains on.
+- **Your corpus is a 2025 snapshot without action breakdown or trajectories.** It is the right corpus for the cold-start predictor and the optimizer. The live forecaster and the per-action value-score heads wait for connected-account data. The 2026 algorithm change is handled by taking mechanics from current code and recalibrating on new data.
 - **The repo shows the structure, not the weights.** Our predictor learns from audience outcomes, not from Phoenix. It will disagree with Phoenix on individual posts. The value score and the normalization are X's; the probabilities are ours.
 - **Weights drift.** `param.rs` is re-synced by cron and the reply boost changed twice in July 2026. We read weights from a config pinned to the repo commit and re-pull weekly.
 - **Goodhart in the optimizer.** Mitigated by the dual-model agreement constraint, meaning-preservation constraint, KL penalty and, above all, measuring real outcomes through customer analytics.
@@ -256,10 +269,10 @@ If phase 1 misses the pairwise target by more than 5 points, the honest conclusi
 
 ## 9. Decisions needed from you
 
-1. **Credit balance.** Tell me the approximate AWS credit amount so I pin the plan to one row of the table in section 6.
-2. **Media collection stance.** Bounded, rate-limited fetching of media referenced by the datasets, or donor and first-party media only.
-3. **Donated analytics.** Export your own X analytics and ask anyone you can for theirs. Each account is a free, high-quality calibration set.
-4. **Go for phase 0.** On approval I lay out the code: `virality/` package with ingestion for the USC and Community Archive formats, the faithful post renderer and embedding pipeline reusing `phoenix/reference/mm_encoder.py` and `sid_codebook.py`, the feature store, the baseline trainer and the evaluation harness.
+1. **Hand over the dataset.** The 13 GB merged file plus the V1, V2, V4 raw files so the merge can be verified, and whatever code produced `is_viral` and the 433 features. If a model was trained on it before, its accuracy number is a useful anchor.
+2. **Media stance.** Bounded, rate-limited fetching of images from the stored URLs, or embeddings-only for media.
+3. **Your X analytics export**, and ask anyone in the network for theirs.
+4. **Go for phase 0.** It costs nothing and produces the first real accuracy numbers within a week.
 
 ## Appendix: research reports
 
