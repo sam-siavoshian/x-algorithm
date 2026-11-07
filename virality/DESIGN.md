@@ -203,11 +203,11 @@ Hardware ranking for this project: **AWS credits first, the RTX 2060 second (fre
 
 | Phase | Weeks | What ships | Compute | Dollars |
 |---|---|---|---|---|
-| 0. Data + baselines | 2 | API pull, media pipeline, Qwen3-VL embeddings for the corpus, SigLIP and Whisper features, train/val/test by time and author, LightGBM baseline with pairwise objective, metrics dashboard | 2060 for SigLIP/Whisper; one 24 to 48 GB GPU for ~30 h of Qwen3-VL-Embedding-8B inference | GPU $20 to $50 |
+| 0. Data + baselines | 2 | USC and Community Archive ingestion, analytics-export importer, bounded media pipeline, Qwen3-VL embeddings for the corpus, SigLIP and Whisper features, train/val/test by time and author, LightGBM baseline with pairwise objective, metrics dashboard | 2060 for SigLIP/Whisper; one 24 to 48 GB GPU for ~30 h of Qwen3-VL-Embedding-8B inference | GPU $20 to $50 |
 | 1. Predictor v1 + pre-flight | 3 | Fusion transformer (150 to 300M) over cached embeddings, all heads, calibration, component A, live forecaster v1 from trajectory polls | A10G or L4 spot, 6 to 10 sweep runs of 5 to 10 h | $50 to $80 |
-| 2. Teacher + distillation | 3 | Qwen3-VL-8B QLoRA on 300 to 500k examples with the same heads; score the corpus; distill into v1 to get v2 | A100/H100 marketplace ~35 h, or L40S spot ~50 h | $100 to $150 |
+| 2. Teacher + distillation | 3 | Qwen3-VL-8B QLoRA on 300 to 500k examples with the same heads; score the corpus; distill into v1 to get v2 | L40S spot (g6e.xlarge) ~50 h | $100 to $150 |
 | 3. Optimizer v1 | 3 | Deterministic levers, best-of-N rewriter with dual-model agreement, timing bandit, product API | A10G/L4 spot for generation and scoring | $50 to $100 |
-| 4. RL editor + flywheel | ongoing | DPO on observed pairs, GRPO against B with KL and agreement constraints, customer analytics ingestion, weekly retrain | A100 marketplace, periodic | $100 to $200 per cycle |
+| 4. RL editor + flywheel | ongoing | DPO on observed pairs, GRPO against B with KL and agreement constraints, customer analytics ingestion, weekly retrain | L40S spot, periodic | $100 to $200 per cycle |
 
 Totals for phases 0 to 3: about **11 weeks** and **$250 to $450 of AWS credits** including storage. Everything runs inside AWS. The teacher phase uses `g6e.xlarge` (L40S 48 GB, about $1.32/h spot) rather than a marketplace A100, which costs about $60 more than the cheapest route but needs no cash.
 
