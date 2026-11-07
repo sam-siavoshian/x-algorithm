@@ -12,7 +12,7 @@ Evidence: seven research reports in `virality/research/` (five on this repo's co
 | Component | What it answers | Method | Why this method |
 |---|---|---|---|
 | **A. Pre-flight suppression check** | "Will X refuse to distribute this at all?" | Rules + small classifiers that mirror `visibility-filtering/` | X's visibility filtering is binary (show or drop, never rank-penalized). Rules are known from code. No learning needed for most of it. |
-| **B. Phoenix-mirror predictor** (the core) | "Given this draft and this account, what reach will it get, and what are the odds it goes viral?" | Supervised multi-task transformer over the *exact* content representation X uses, plus author and context | Every state-of-the-art engagement predictor is supervised. The repo tells us the inputs and the objective X optimizes, so we copy both. |
+| **B. Phoenix surrogate inside a ported X pipeline** (the core) | "Given this draft and this account, what reach will it get, and what are the odds it goes viral?" | X's own filters, value model, post-fusion and reranker ported as code; one supervised transformer stands in for Phoenix and emits Phoenix's action heads | The only thing X learned is Phoenix. Everything else is code in this repo. We port the code and train only the surrogate, with its interface fixed by the algorithm. |
 | **C. Live reach forecaster** | "It has been up 30 minutes. Where will it land at 24 hours?" | Small sequence model over early engagement counts conditioned on B's prior | With one hour of signal, final reach is predictable to within roughly 25%. This is the piece that makes the product provably accurate to customers. |
 | **D. Optimizer** | "How do I change it to do better?" | (1) Deterministic levers from the algorithm, (2) best-of-N rewriting scored by B with an independent check, (3) later: an RL-trained editor (DPO then GRPO) with B as reward | This is where RL belongs: the policy that *edits* content, not the model that *predicts* reach. |
 
@@ -84,84 +84,115 @@ No trained weights. No real data. No user-action aggregator. The shipped synthet
 
 ---
 
-## 3. Architecture in detail
+## 3. Architecture: X's pipeline as code, with one learned function
+
+### 3.1 The governing principle
+
+X's For You pipeline is a chain of deterministic stages wrapped around one learned function. The deterministic stages are in this repo as code: filters, visibility rules, the value model, the post-fusion multipliers, the cold-start slot, the DPP reranker, retrieval eligibility, the popular-posts projection, the content encoder and the codebook. The one learned function is Phoenix: given a viewer and a post, the probability of each action.
+
+So the system is built the same way. **Everything that is code in X stays code here, ported from this repo. The only thing we train is a surrogate for Phoenix, and it is trained to produce exactly the outputs Phoenix produces, so that X's own downstream code can run on them unchanged.** The learned part is as small as the problem allows, and its interface is dictated by the algorithm, not by us.
 
 ```
-                       ┌──────────────────────────────────────────────┐
-  draft post ───────►  │ A. PRE-FLIGHT  (rules + classifiers)          │──► drop risks, fixes
-  (text, media,        └──────────────────────────────────────────────┘
-   account)                               │ passes
-                                          ▼
-  ┌────────────────────────────────────────────────────────────────────┐
-  │ B. PHOENIX-MIRROR PREDICTOR                                        │
-  │                                                                    │
-  │  content tokens                 author tokens        context       │
-  │  ├ Qwen3-VL-Embedding-8B (1024) ├ followers, age     ├ local hour  │
-  │  │  + our 6×256 semantic ID     ├ trailing per-post  ├ day         │
-  │  ├ SigLIP-2 image emb (per img) │  rate distribution ├ original /  │
-  │  ├ SigLIP-2 ×8 video frames     ├ posting cadence    │  reply /    │
-  │  ├ Whisper transcript (in text) ├ author centroid    │  quote      │
-  │  ├ scalars: has_url, text len,  │  (SimClusters      ├ k nearest   │
-  │  │  newlines, media count,      │   proxy)           │  recent     │
-  │  │  video secs, language        └ credibility proxy  │  posts +    │
-  │  └ safety scores from A                              │  outcomes   │
-  │                                                                    │
-  │  ──► fusion transformer (150–300M trainable) ──► heads:            │
-  │        per-impression rate: like, reply, repost, quote, bookmark   │
-  │        log(views / followers)   [Huber]                            │
-  │        exceed 1x / 10x / 100x followers  [BCE, calibrated]         │
-  │        same-author pairwise "B beats A"  [logistic]                │
-  │        X value score = Σ w_i · rate_i  (weights from param.rs)     │
-  │                                                                    │
-  │  teacher (phase 3): Qwen3-VL-8B QLoRA reading the rendered post,   │
-  │  same heads; distilled into the fusion model for serving           │
-  └────────────────────────────────────────────────────────────────────┘
-                 │ prior                                  ▲
-                 ▼                                        │
-  ┌──────────────────────────────┐        ┌──────────────────────────────┐
-  │ C. LIVE FORECASTER            │        │ D. OPTIMIZER                 │
-  │ counts at 5/15/30/60/120 min  │        │ 1. deterministic levers      │
-  │ + prior ──► 24h reach, CI     │        │ 2. best-of-N rewrite, scored │
-  └──────────────────────────────┘        │    by B + independent model  │
-                                          │ 3. DPO/GRPO editor (later)   │
-                                          │ 4. posting-time bandit       │
-                                          └──────────────────────────────┘
+                 draft post + account
+                         │
+   ┌─────────────────────▼───────────────────────────────┐
+   │ LAYER 0: PORTED X CODE (no training)                 │
+   │  content token   phoenix/reference/mm_encoder.py     │
+   │                  + sid_codebook.py / sid_assign.py   │
+   │  pre-flight      visibility-filtering rules          │
+   │  eligibility     thunder, phoenix-rankall gates,     │
+   │                  cold pool, cold-start slot,         │
+   │                  popular-posts formula, 48h age      │
+   │  post-type       OON reply/repost filters            │
+   └─────────────────────┬───────────────────────────────┘
+                         │ candidate features in Phoenix's own layout
+   ┌─────────────────────▼───────────────────────────────┐
+   │ LAYER 1: PHOENIX SURROGATE (the only trained model)  │
+   │  candidate side: Phoenix's feature prep, verbatim    │
+   │  viewer side:    audience tokens instead of one      │
+   │                  viewer's 1022-event history         │
+   │  outputs:        Phoenix's action heads              │
+   │                  P(like) P(reply) P(repost) P(quote) │
+   │                  P(bookmark) P(click) P(follow) ...  │
+   │                  masked where no label exists        │
+   └─────────────────────┬───────────────────────────────┘
+                         │ per-action probabilities
+   ┌─────────────────────▼───────────────────────────────┐
+   │ LAYER 2: PORTED X CODE AGAIN (no training)           │
+   │  value model     xai-value-model/scoring.rs with     │
+   │                  home-mixer/params/param.rs weights  │
+   │  post-fusion     offset, OON ×0.75, author-diversity │
+   │                  decay, cold-start lift              │
+   │  reranker        vm-ranker DPP, theta 0.65, top 50   │
+   │  placement       rank against a reference pool of    │
+   │                  real competing posts                │
+   └─────────────────────┬───────────────────────────────┘
+                         │ rank distribution
+   ┌─────────────────────▼───────────────────────────────┐
+   │ LAYER 3: CALIBRATION + PRODUCT                       │
+   │  rank → reach mapping fit on observed views          │
+   │  odds per tier, score breakdown by action × weight   │
+   │  solver over deterministic levers + surrogate        │
+   │  live forecaster once trajectories exist             │
+   └─────────────────────────────────────────────────────┘
 ```
 
-### 3.1 Component B: the predictor
+### 3.2 Layer 0 and Layer 2: what gets ported, from where
 
-**Content representation (mirrors Phoenix exactly, then adds what Phoenix throws away).**
+| X stage | Repo location | What we do with it |
+|---|---|---|
+| Content token | `phoenix/reference/mm_encoder.py`, `sid_codebook.py`, `sid_assign.py` | Run as-is: Qwen3-VL-Embedding-8B, X's prompt and rendering, truncate to 1024, our RQ-KMeans codebook trained with their trainer. |
+| Candidate feature prep | `phoenix/xrex/models/recsys_feature_prep.py`, `data/recsys/feature_config.py` | Reuse the age buckets (hourly to 80h), log2 count MLP input, SID tables, stale flag, follow-bit tables. Our surrogate consumes the same tensors Phoenix consumes. |
+| Pre-scoring filters | `home-mixer/filters/*.rs` | Port the ones a submitted post can trip: age, reply/repost out-of-network, video exclusion, NSFW SimClusters, muted-keyword exposure estimate. |
+| Visibility filtering | `visibility-filtering/rules/levels.rs`, `tweet_rules.rs`, `author_rules.rs`, `botmaker-rules/`, `scarecrow/` | Port the rule logic for For You and For You recommendations. Classifiers that produce labels (NSFW, gore, bait, link reputation) are replaced by open models at X's documented thresholds. |
+| Retrieval eligibility | `phoenix-rankall-strato/.../phoenixRankAllCandidateProcessor.strato`, `phoenix/xrex/data/cold_pool_filter.py`, `home-mixer/util/popular_posts.rs`, `simclusters/` thresholds | Port as a timeline simulator: when the post enters each index, the cold pool, the popular list; which gates it must clear. |
+| Exploration label | `phoenix/xrex/data/recsys/recsys_batch.py:105-135` | Port verbatim; it defines our reach normalization. |
+| Value model | `xai-value-model/scoring.rs`, `home-mixer/params/param.rs` | Port verbatim, weights read from a pinned copy of `param.rs` and refreshed from upstream weekly. |
+| Post-fusion | `xai-value-model/scoring.rs:239-406`, `home-mixer/scorers/author_cold_start.rs` | Port verbatim: offset, OON multiplier, author diversity, cold-start Thompson lift. |
+| DPP reranker | `vm-ranker/scoring/dpp.rs`, `dpp_model.rs` | Port verbatim; run over our 1024-d embeddings, which are the same embeddings X feeds it. |
+| Selection | `home-mixer/selectors/top_k_score_selector.rs`, pool size 2800, top 50, result 35 | Port the constants; use a sampled reference pool of real posts with their own surrogate scores as competitors. |
 
-1. Render the post the way `mm_encoder.py` does: author line, text with t.co links stripped, card and article titles, quoted post, image pads, up to 4 uniformly sampled video frames, `Transcript:` from Whisper (X's grox pipeline transcribes audio and appends it; report 04 section 5). Encode with `Qwen3-VL-Embedding-8B`, X's instruction, truncate to 1024, normalize. This is the token Phoenix sees.
-2. Train a 6×256 RQ-KMeans codebook on our corpus with the shipped `sid_codebook.py`. Feed prefix codes as learned embeddings, as Phoenix does. This gives the model the same "topic neighborhood" generalization that lets Phoenix score a brand-new post.
-3. Add what Phoenix cannot use but which we know matters for cold start: SigLIP-2 So400m embeddings per image and per video frame (aesthetics, text-in-image, faces), and the scalar features home-mixer computes but the ranker ignores (`weighted_text_len`, `has_url`, `newline_count`, `media_count`, video duration, language). Phoenix doesn't need these because it has a 100M-row post-ID table memorizing each post's popularity. We don't, so content detail has to work harder.
+Rust can be compiled and called through FFI where the file is self-contained (`scoring.rs`, `dpp.rs`); the rest is a line-by-line Python port with the repo file and line cited in a comment, and a test that reproduces the repo's own unit tests where they exist.
 
-**Author representation.** Followers, following, account age, verification, posting cadence, the trailing distribution (median, p90) of per-impression like/reply/repost/quote rates over the author's last 50 posts, the author's content centroid in embedding space, and the author's trailing reach ratio distribution. In the literature, author history moves R² from under 0.05 to 0.42 to 0.48. In Phoenix, author identity is a hashed embedding and the viewer-author follow bits; this is our stand-in.
+### 3.3 Layer 1: the Phoenix surrogate
 
-**Context.** Local hour and weekday of the author's audience (Phoenix uses the viewer's local hour), original/reply/quote flag (replies and reposts have crippled reach, section 2.4), and retrieved neighbors: the k most similar recent posts in embedding space and how they performed. Retrieval-augmented popularity prediction (RAGTrans, SKAPP) is the strongest recent gain in the literature and models trend saturation.
+**What Phoenix is.** A transformer over `[viewer tokens | viewer's last 1022 engagements | candidates]`, candidate-isolated, outputting 64 sigmoid action heads and continuous dwell heads. Candidate inputs: hashed post ID, hashed author ID, semantic ID, age bucket, surface, timezone, local hour, follow bits, log2 counts, stale flag. Trained on billions of impressions with in-batch negatives and log-Q correction (report 01).
 
-**Fusion.** A transformer over the token set, 8 to 12 layers, width 1024, roughly 150 to 300M trainable parameters, with ~9B frozen encoder parameters in front of it. Multi-task heads as drawn. Losses: Huber on log reach ratio, BCE on exceedance thresholds, pairwise logistic on same-author pairs posted within 7 days of each other (the standard confound control from Tan 2014, Hessel 2017, RePALM), and a distillation term from the teacher in phase 3.
+**What we can and cannot copy.**
 
-**Why not simply "go big" on the trainable part.** We will have 0.5 to 2M labeled posts. Phoenix trains on billions of impressions. With our label budget a from-scratch multi-billion-parameter model overfits; the capacity that helps is *frozen* capacity that already understands images, video and language. The 8B embedding encoder plus an 8B fine-tuned teacher is the right place for size. The trainable fusion model is sized to the data, and it is the model that serves at under a cent per thousand predictions.
+| Phoenix element | Surrogate | Why |
+|---|---|---|
+| Candidate-side feature prep | Identical, reusing their code | It is in the repo and needs no data we lack. |
+| Semantic ID + content token | Identical encoder, our codebook | Encoder is public; codebook is trained with their trainer on our corpus. |
+| Hashed post-ID table (100M rows memorizing each post) | Dropped | We score unseen posts, which is exactly the case where Phoenix itself falls back to the semantic ID. |
+| Hashed author-ID table | Author embedding learned on our corpus plus explicit author statistics | Same role, learnable from our data. |
+| One viewer with 1022-event history | Audience tokens: the author's follower population described by aggregate statistics, plus an out-of-network audience token from the semantic-ID neighborhood | Public counts are averages over the real audience, so the target is audience-average probability, and the input must describe the audience, not one person. |
+| 64 action heads | Same head names and indices; heads without labels are masked | Keeps the output contract identical so Layer 2 code runs unchanged. As connected-account data arrives, more heads unmask (clicks, profile clicks, follows, link opens). |
+| Continuous dwell heads (CREAD) | Masked until trajectory or analytics data exists | No public label. |
+| Negative-feedback heads (report, mute, block, not interested) | Predicted from a proxy trained on the pre-flight classifiers and later on connected-account data | These carry the largest weights, so even a coarse estimate matters. |
+| In-batch negatives, log-Q | Replaced by same-author pairwise loss and impression-weighted BCE | Our rows are posts with rates, not impressions with binary outcomes. |
+| Trunk | Same block design as `home_direct_packed` at reduced width: 8 layers, width 1024, candidate isolation kept | Same shape, sized to our label budget. |
 
-**Targets and the definition of viral.** Primary scale: reach ratio r = views at 24h / followers at post time. Tiers: r ≥ 1 ("broke out of followers"), r ≥ 10, r ≥ 100, plus "top 1% of this author's trailing year." Secondary: absolute view tiers for brand accounts whose follower count is not the right denominator. All heads calibrated by isotonic regression on held-out authors, with conformal intervals.
+**Training target.** For each post, per-impression rates: likes / views, replies / views, and so on, which are the audience-average of the probabilities Phoenix predicts. Losses: impression-weighted BCE per head, Huber on log reach ratio as an auxiliary, same-author pairwise logistic on the X value score. The teacher in phase 2 (Qwen3-VL-8B QLoRA) is trained on the same heads and distilled in.
 
-### 3.2 Component C: the live forecaster
+**What the surrogate adds beyond Phoenix's inputs.** SigLIP-2 image and frame embeddings and the content scalars (text length, links, newlines, media count, video duration) that home-mixer computes and Phoenix ignores. Phoenix can ignore them because its post-ID table memorizes outcomes; we cannot, so they are inputs. They are additive and can be ablated to measure how far "pure Phoenix inputs" get.
 
-Inputs: B's prior, plus views, likes, replies, reposts, quotes, bookmarks at each checkpoint, plus the derived cold-pool state (under 8 likes and under 500 views, under 2h). A small GRU or temporal transformer with a Hawkes-style intensity head, trained on the same corpus with trajectory snapshots. Output: 24h and 48h reach with a confidence interval, and "cold-start slot still eligible" status. Trajectory data requires polling posts after publication, which the data plan in section 5 covers.
+### 3.4 Layer 3: from X's rank to reach and odds
 
-### 3.3 Component D: the optimizer
+X's code gives a rank in a feed, not a view count. The mapping from "expected rank and eligibility timeline" to "views at 24h" is fit on observed data: a monotone calibration per follower tier, with conformal intervals, on held-out authors. This is a small, well-posed regression, and it is the only place the product converts X's internal quantities into the numbers a customer reads.
 
-Ordered by evidence and cost:
+Product outputs, all traceable to a repo file:
 
-1. **Deterministic levers from the algorithm**, each scored by B as a counterfactual: move the external link to a reply; post as original instead of quote or reply; cut to one post per hour so author-diversity decay does not apply; switch video to a photo plus text if the video is under 10 seconds (video weights are zero today anyway); adjust posting hour to audience local time; remove engagement-bait phrasing (which risks a drop, not just a penalty).
-2. **Best-of-N rewriting.** An open LLM (Qwen3-32B class) generates 32 to 64 variants under a meaning-preservation constraint (embedding cosine to the original above a threshold). B scores them. A second predictor with a different backbone must agree, and we discount variants where the two disagree. This is the Goodhart guard; without it, optimizing against a single learned predictor produces posts the predictor loves and humans do not (Gao et al. 2023; Meta's CharacterFlywheel, where reward-model win rate rose while real engagement fell).
-3. **The RL editor (your transformer trained through RL).** Once we have observed same-author pairs and customer A/B outcomes, train the rewriter with DPO on real pairs, then GRPO against B with a KL penalty to the base model and the agreement filter as a hard constraint. This is the correct, bounded use of RL here. It is phase 4 because it needs B to exist first and needs live outcomes to stay honest.
-4. **Posting-time bandit.** Thompson sampling over hour-of-day per account, exactly the family X uses for its cold-start slot. Cheap and deployed in industry since 2015.
+- Pre-flight verdict and the rule that fired.
+- Eligibility timeline: when the post can enter out-of-network retrieval, cold-pool window, cold-start slot eligibility, popular-posts eligibility.
+- X value score with its breakdown: each predicted probability times its weight from `param.rs`.
+- Expected rank distribution against real competitors, after OON multiplier, author diversity and DPP.
+- Reach odds per tier with intervals.
+- Levers: a solver enumerates the deterministic choices (original versus quote, link placement, post spacing to avoid author-diversity decay, posting hour, media type) and re-runs Layers 0 to 3; content rewrites go through best-of-N scored by the surrogate with a second model as the agreement check.
 
-### 3.4 Component A: the pre-flight check
+### 3.5 The live forecaster and the RL editor
 
-URL expansion and domain reputation (several open blocklists plus a learned domain-quality score), open NSFW and gore classifiers run with X's documented thresholds (image precision ≥ 0.95, gore precision > 0.6, video raw ≥ 0.95), an engagement-bait and farming classifier (LLM-labeled training set over the policy categories named in `grox/`), copypasta detection against the author's own history, and the behavioral flags (reply bursts, posting cadence). Output: probability of an out-of-network drop and a plain-language fix.
+Unchanged from the earlier draft and deferred until the data for them exists: the live forecaster needs trajectory samples from connected accounts; the RL editor (DPO on observed pairs, then GRPO against the surrogate with KL and agreement constraints) needs the surrogate first and live outcomes to stay honest.
 
 ---
 
