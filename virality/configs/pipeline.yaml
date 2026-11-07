@@ -1,0 +1,21 @@
+# xviral pipeline configuration. Every field has a default in xviral/config.py;
+# only paths normally need setting. Relative paths resolve from where you run xviral.
+
+paths:
+  work: data/work
+  usc_root: ../../sinking8/usc-x-24-us-election     # git clone of sinking8/usc-x-24-us-election
+  community_archive: data/raw/community_archive     # filled by `xviral ca-download`
+  user_scrape:                                       # the 2025 tech scrape, newest first
+    - data/raw/user_scrape/dataset_with_embeddings.jsonl
+  analytics: []                                      # X analytics CSV exports, one per account
+  seed_accounts: null                                # optional extra handles defining the audience
+
+workers: 4
+
+relevance:
+  embedder: Qwen/Qwen3-Embedding-0.6B                # 'hashing' runs a CPU fallback for smoke tests
+  threshold: null                                    # set from the manual audit (audit_labeled.csv)
+
+embed:
+  device: cuda
+  mm_backend: transformers

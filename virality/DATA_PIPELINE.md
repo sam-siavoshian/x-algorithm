@@ -11,8 +11,8 @@ Rule used throughout: **Phoenix's inputs are reproduced exactly; everything we a
 | Source | Format | Fields that matter | Views | Role |
 |---|---|---|---|---|
 | **Your 2025 tech scrape** | JSONL, ~13 GB with embeddings; raw V1/V2/V4 | text, created_at, likes, impressions, media_url_https, screen_name, followers_count, following_count, posts_count, media_count, is_blue_verified | yes | Audience seed for the relevance filter; training rows; validation anchor |
-| **USC X 2024 corpus** | 46 `part_n/` dirs, each 20 gzip CSV chunks of 50k rows | `id`, `text`/`rawContent`, `date`, `epoch`, `lang`, `user` (nested), `user_id`, `media`, `links`, `hashtags`, `mentionedUsers`, `viewCount`, `likeCount`, `retweetCount`, `replyCount`, `quoteCount`, `retweetedTweetID`, `quotedTweet`, `conversationId`, `in_reply_to_status_id_str` | yes | Largest view-labeled slice after audience filtering; research model only (CC BY-NC-SA) |
-| **Community Archive** | Parquet release of donated X archives (`tweets.js` schema), plus `follower.js` / `following.js` ID lists, `account.js`, `profile.js`, `note-tweet.js` for long posts | `id_str`, `full_text`, `created_at`, `favorite_count`, `retweet_count`, `lang`, `entities.urls/user_mentions/hashtags`, `in_reply_to_*`, note-tweet text, follower and following ID lists per donor | no | Long per-author histories, same-author pairs, **real follow-graph edges among donors** (mutual-follow estimation), long-post text |
+| **USC X 2024 corpus** | 883 gzip CSV chunks of 50k rows in `part_n/` (part 36 removed). At least five header layouts; nested fields are Python reprs with `datetime.datetime(...)` calls; some layouts store `id` as a float, which destroys it, so the ID comes from the status URL | `url` (exact ID and handle), `user` (followers, following, posts, media count, created, verified, bio), `media` (type, URL, mp4 variants, duration), `links` (expanded URLs), `viewCount`, `likeCount`, `retweetCount`, `replyCount`, `quoteCount`, `quotedTweet` (boolean only), reply fields or `inReplyToTweetId`; the "octobergap" layout has the placeholder `PW` instead of views and reply data | yes, except "octobergap" | Largest view-labeled slice after audience filtering; research model only (CC BY-NC-SA). About 27% of rows are originals or quotes; the rest are replies |
+| **Community Archive** | Public REST API (PostgREST), paginated by keyset into Parquet; the bulk export pointer was down on 2026-11-07. 474 donor uploads, 22.2M tweets, 22.7M donor likes, 897k account rows | `tweets` (text, created, likes, reposts, reply-to), `all_account` (followers, following, tweets, created, snapshot time), `profile` (bio, website), `tweet_media`, `tweet_urls`, `quote_tweets`, `followers` and `following` per donor, `likes` (the donor's own likes) | no | Long per-author histories, same-author pairs, **real follow-graph edges** (exact mutual-follow share for donors), and the only per-viewer engagement data available outside X: donors' likes, which feed the viewer-level research track |
 | **Analytics exports** (yours and donors) | CSV from X analytics | per post: impressions, engagements, detail expands, profile clicks, link clicks, new follows, replies, reposts, likes, bookmarks, shares | yes, plus clicks | The only labels for click, profile-click, link-open, follow and share heads; calibration set |
 | **Live media** | fetched from media URLs in the above | image bytes, video bytes | n/a | Embedded once, then discarded; only embeddings and sampled frames are stored |
 
@@ -60,7 +60,7 @@ source_file          string
 Counts are only meaningful relative to when they were read.
 
 - **Your scrape:** the file's scrape timestamp per row if present, else the file date.
-- **USC:** no per-row snapshot. The collection is a rolling timeline crawl, so the snapshot of a row is bounded below by its `date` and above by the newest `date` in the same chunk. We set `snapshot_at_ms` to the chunk's newest `epoch` and keep only rows at least 72 h older than it (section 4.3). This throws away the youngest rows per chunk, which is the price of not having snapshot times.
+- **USC:** no per-row snapshot. Measured on real chunks: within a 2.7-hour chunk, the rank correlation between posting time and views per follower is about 0.0 (range −0.04 to +0.06 across eleven chunks from May to November). Counts read minutes after posting would show a strong negative trend, so USC counts are mature. Rows are marked `assumed_mature`, and the ingester re-runs this audit on every chunk; a chunk with |rho| > 0.1 is dropped by the maturity filter.
 - **Community Archive:** the donor's archive generation date from the manifest.
 - **Analytics:** the export date; impressions in exports are effectively final after a few days.
 
@@ -117,12 +117,13 @@ Goal: keep posts that look like what customers will submit, from accounts that l
 
 Procedure:
 
-1. **Seed set.** Every account in your 2025 scrape is a positive account. Every post from those accounts is a positive post. Community Archive donors are scored, not assumed.
-2. **Cheap pre-pass.** A 0.6B text embedding model (Qwen3-Embedding-0.6B) over `text` for the entire candidate pool. This is 100× cheaper than the VLM encoder and good enough for a relevance decision. About one GPU-day on an L4 for 46M rows; cheaper if USC is first thinned by a keyword blocklist of obviously political terms, which is allowed here because it only removes rows that would be removed anyway.
-3. **Classifier.** Logistic regression on the 0.6B embedding, positives = seed posts, negatives = a uniform random 500k sample of USC. Threshold set so that a manually labeled 500-post sample at the boundary has ≥ 85% precision for "a tech, startup, ML, product, founder or SF-life post."
-4. **Account-level decision.** An account is kept whole if ≥ 60% of its last 50 originals pass; this preserves author histories for the trailing-rate features. Accounts between 30% and 60% contribute only their passing posts. Below 30% the account is dropped.
-5. **Topic quotas.** Among kept posts, cap any single near-duplicate cluster at 50 rows and any single account at 2,000 rows, so a few prolific accounts do not define the corpus.
-6. **Audit.** 1,000 random kept rows and 1,000 random dropped rows are sampled for a manual pass before phase 1 spends GPU time on embeddings.
+1. **Seed set.** Every account in your 2025 scrape is a positive account, plus an optional handle list. Community Archive donors are scored, not assumed.
+2. **Cheap pre-pass.** Qwen3-Embedding-0.6B over `text` for the candidate pool, about 100× cheaper per post than the 8B multimodal encoder. USC is first thinned by a political-term blocklist (any one hit drops the post). Measured: about 200 short posts per second on a 4-core CPU, so this stage does not need a GPU at all for a few million posts.
+3. **Topic gate.** Each post is compared, as a retrieval document, against 20 short descriptions of target topics (launches, demo videos, fundraising, YC, ML research, LLMs and agents, developer tools, open source, SF tech) and 13 off-target ones (elections, partisan politics, war, sports, celebrity, religion, daily life, crime, memecoins). `topic_margin` = best target similarity minus best off-target similarity. Found on real data: even tech accounts post heavily about politics in election season, so a classifier trained on everything seed accounts post learns politics. Only on-topic seed posts become positives, and only on-topic posts are kept.
+4. **Classifier.** Logistic regression on the 0.6B embedding: positives = on-topic posts from 80% of seed accounts; negatives = a random sample of non-seed posts, with 10% of the corpus held out. The default threshold keeps 90% of on-topic posts from the 20% of seed accounts held out of training, which measures how an unseen relevant account scores rather than how well the model memorises the seed accounts. After the manual audit, the threshold is reset to the lowest score that keeps ≥ 85% precision.
+5. **Account-level decision.** An account is kept whole if ≥ 60% of its last 50 originals pass both the gate and the threshold; between 30% and 60% it contributes only its passing posts; below 30% it is dropped. Seed accounts are kept whole.
+6. **Caps.** At most 2,000 rows per account and 50 per near-duplicate cluster.
+7. **Audit.** 1,000 kept, 1,000 dropped and 1,000 boundary posts are written to `audit_to_label.csv` for a manual pass before any GPU time is spent on embeddings. The report records held-out AUC (unseen seed accounts against unseen corpus posts) and the held-out corpus pass rate.
 
 ### 4.7 Account hygiene
 
@@ -381,3 +382,24 @@ Embeddings are stored as fp16 memmaps keyed by `post_id`; media bytes are delete
 4. Label distributions: reach ratio histograms by follower tier, exceedance base rates, pairwise pair counts per author.
 5. The feature store with sections 7.2, 7.3, 7.4, 7.6 and 7.8 populated (7.1, 7.5 and 7.7 need the embedding runs in phase 1).
 6. The LightGBM baseline with the pairwise objective on the available features, reported on the time-forward test split, plus the shuffled-label control.
+
+---
+
+## 12. Implementation status (code in `xviral/`)
+
+Every stage above is implemented and tested; `README.md` has the commands.
+
+| Stage | Module | Verified on |
+|---|---|---|
+| USC ingest, all layouts | `sources/usc.py` | 12 real chunks across May to November: zero missing authors or follower counts, zero ID-time mismatches, maturity rho within ±0.06 |
+| Community Archive download and join | `sources/community_archive.py` | live REST schema, synthetic tables in that schema |
+| Tech scrape | `sources/user_scrape.py` | nested and flat layouts, rows with and without IDs |
+| Analytics exports | `sources/analytics.py` | both known X export layouts; unknown layouts fail loudly |
+| Merge and dedup | `unify.py`, `dedup.py` | priority rules, synthetic-ID reconciliation, MinHash clusters |
+| Filters | `filters.py` | each rule, analytics exemptions, per-source filter log |
+| Author features | `authors.py` | leakage test: changing every later post leaves earlier features unchanged |
+| Relevance | `relevance.py` | real USC data with Qwen3-Embedding-0.6B on CPU |
+| Content, audience, suppression features | `features/` | the X repository's own weighted-length test cases |
+| Labels, pairs, splits | `labels.py`, `splits.py` | pairs equal to a brute-force enumeration |
+| Baseline and leak control | `baseline.py` | shuffled-label control at chance |
+| Media, ASR, encoders, SIDs, neighbours | `media/`, `embed/`, `features/neighbors.py` | ffmpeg sampling on a real clip; encoder inputs identical to `mm_encoder.py`; neighbour leakage test. Model weights run only on the GPU box |

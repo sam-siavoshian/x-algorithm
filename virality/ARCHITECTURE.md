@@ -319,3 +319,18 @@ The "probability distribution" you asked for is `reach`: a full distribution ove
 10. **It is cheap to run.** Under a cent per thousand predictions for the surrogate; the expensive encoders run once per draft; the teacher is optional. A marketing team can score every draft and every variant.
 
 Where it will be weakest, so nobody is surprised: share-type heads until connected-account data arrives; negative-feedback heads until the same; the extreme tail; and calibration for accounts far outside the tech niche the corpus covers.
+
+---
+
+## 12. Simulating an audience, and the viewer-level track
+
+**Question considered:** instead of training a predictor, show the post to 10,000 Phoenix agents and simulate.
+
+Phoenix is per viewer: its input is one viewer's last 1,022 engagements and profile, its output is that viewer's action probabilities. Running it across many viewers is exactly how X works. It is not available to us for two reasons: the repository ships no trained weights, and no public dataset contains the viewer histories (what each person saw and did) that a viewer-level model needs. An untrained Phoenix shown to 10,000 synthetic agents returns noise; the shipped synthetic world draws outcomes from random affinities.
+
+What the design does instead, in two parts:
+
+1. **Audience segments (in S4, uses aggregate data).** The surrogate predicts per-action probabilities for K latent audience segments (for example ML researchers, founders, investors, general tech), and an account's audience is a mixture over them. Training constrains the mixture average to reproduce observed per-post rates, which is all public data can identify. At inference the post is "shown" to N viewers sampled from the account's segment mixture plus the out-of-network audience its semantic-ID neighbourhood implies, and the ported value model and placement (S5) run per sampled viewer. Output: the reach distribution plus which segments engage and which do not.
+2. **A real viewer-level model (research track, uses donor data).** The Community Archive holds 474 donor archives with 22.7M of those donors' own likes and their follow lists, mostly tech accounts. That is per-viewer engagement data from the target audience: positives only, with likely-seen negatives derived from posts by accounts each donor follows. It supports training a small viewer-conditional Phoenix (same feature prep, real histories) and validating the segment model against real individuals. It does not support a population of 10,000 distinct simulated people; it does support checking that simulated segments behave like real ones.
+
+LLM personas are not used as agents: zero-shot LLMs score at chance on engagement prediction (research/06_literature.md, section C), and they do not reproduce X's ranking.
