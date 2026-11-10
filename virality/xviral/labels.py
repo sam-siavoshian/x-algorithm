@@ -88,8 +88,14 @@ def reach(df: pl.DataFrame) -> pl.DataFrame:
 
 
 def row_weights(df: pl.DataFrame, cfg: LabelCfg) -> pl.DataFrame:
+    """Recency weight, times how many impressions back the label when views are known.
+
+    Rows without views (like-only sources) keep full weight on that factor: their label is a count
+    over an unknown number of impressions, and zeroing them would discard the source.
+    """
     full = math.log1p(cfg.full_weight_views)
-    w_views = (pl.col("views").fill_null(0).cast(pl.Float64).log1p() / full).clip(upper_bound=1.0)
+    w_views = pl.when(pl.col("views").is_null()).then(1.0).otherwise(
+        (pl.col("views").cast(pl.Float64).clip(lower_bound=0).log1p() / full).clip(upper_bound=1.0))
     w = recency_weight_expr(cfg) * w_views
     w = pl.when(pl.col("source") == "analytics").then(w * cfg.analytics_weight_multiplier).otherwise(w)
     return df.with_columns(w.alias("w_row"))

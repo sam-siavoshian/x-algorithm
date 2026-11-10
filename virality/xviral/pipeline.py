@@ -406,7 +406,8 @@ def neighbors_stage(cfg: Config) -> None:
     df = _read(cfg.paths.work / "dataset" / "rows.parquet")
     st = EmbeddingStore(cfg.paths.work / "emb" / "mm")
     vecs, found = st.get(df["post_id"].to_list(), fill_nan=False)
-    meta = df.filter(pl.Series(found)).select("post_id", "author_id", "created_at_ms", "log_reach_ratio", "rate_fav", "rate_reply", "follower_tier_idx")
+    cols = ["post_id", "author_id", "created_at_ms", "log_reach_ratio", "log_like_ratio", "rate_fav", "rate_reply", "follower_tier_idx"]
+    meta = df.filter(pl.Series(found)).select([c for c in cols if c in df.columns])
     vecs = vecs[found]
     nb = global_neighbors(meta, vecs)
     cent, ss = author_centroid_and_selfsim(meta, vecs, window=cfg.labels.trailing_window)

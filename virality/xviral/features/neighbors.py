@@ -29,32 +29,39 @@ def _unit(x: np.ndarray) -> np.ndarray:
 
 def global_neighbors(meta: pl.DataFrame, emb: np.ndarray, k: int = 16, window_days: int = 7,
                      density_cos: float = 0.85) -> pl.DataFrame:
-    """meta rows align with emb rows. Needs post_id, author_id, created_at_ms, and outcome columns
-    log_reach_ratio, rate_fav, rate_reply, follower_tier_idx (nullable).
+    """meta rows align with emb rows. Needs post_id, author_id, created_at_ms; outcome columns
+    log_reach_ratio, log_like_ratio, rate_fav, rate_reply, follower_tier_idx are optional and nullable.
 
-    Returns per post: nbr_post_id, nbr_cos, nbr_log_reach, nbr_rate_fav, nbr_rate_reply,
-    nbr_tier, nbr_age_h (lists of length <= k), nbr_density_7d, nbr_best_reach_7d.
+    Neighbours are chosen on content alone, whether or not their outcome is known: the model reads
+    outcomes itself and hides immature ones. Returns per post: nbr_post_id, nbr_cos, nbr_log_reach,
+    nbr_rate_fav, nbr_rate_reply, nbr_tier, nbr_age_h (lists of length <= k), nbr_density_7d,
+    nbr_best_reach_7d, nbr_best_like_7d.
     """
     e = _unit(np.nan_to_num(emb.astype(np.float32)))
     day = (meta["created_at_ms"].to_numpy() // DAY_MS).astype(np.int64)
     authors = meta["author_id"].to_numpy()
     ts = meta["created_at_ms"].to_numpy()
-    outcome = meta["log_reach_ratio"].to_numpy(allow_copy=True).astype(np.float64)
-    has_outcome = ~np.isnan(outcome)
-    cols = {c: meta[c].to_numpy(allow_copy=True).astype(np.float64) for c in ("rate_fav", "rate_reply", "follower_tier_idx")}
+    def col(name: str) -> np.ndarray:
+        if name not in meta.columns:
+            return np.full(len(meta), np.nan)
+        return meta[name].cast(pl.Float64).to_numpy(allow_copy=True).astype(np.float64)
+
+    outcome = col("log_reach_ratio")
+    like_outcome = col("log_like_ratio")
+    cols = {c: col(c) for c in ("rate_fav", "rate_reply", "follower_tier_idx")}
     order = np.argsort(day, kind="stable")
     days = np.unique(day)
     n = len(meta)
     res = {name: [None] * n for name in ("nbr_post_id", "nbr_cos", "nbr_log_reach", "nbr_rate_fav", "nbr_rate_reply", "nbr_tier", "nbr_age_h")}
     density = np.zeros(n, dtype=np.int32)
     best = np.full(n, np.nan)
+    best_like = np.full(n, np.nan)
     ids = meta["post_id"].to_numpy()
     day_sorted = day[order]
     for d in days:
         q_idx = order[np.searchsorted(day_sorted, d, "left"):np.searchsorted(day_sorted, d, "right")]
         lo, hi = np.searchsorted(day_sorted, d - window_days, "left"), np.searchsorted(day_sorted, d, "left")
         cand = order[lo:hi]
-        cand = cand[has_outcome[cand]]
         if cand.size == 0:
             continue
         sims = e[q_idx] @ e[cand].T
@@ -76,12 +83,16 @@ def global_neighbors(meta: pl.DataFrame, emb: np.ndarray, k: int = 16, window_da
             close = sims[row] >= density_cos
             density[qi] = int(close.sum())
             if close.any():
-                best[qi] = float(np.nanmax(outcome[cand[close]]))
+                for arr, src in ((best, outcome), (best_like, like_outcome)):
+                    v = src[cand[close]]
+                    if not np.isnan(v).all():
+                        arr[qi] = float(np.nanmax(v))
     out = pl.DataFrame({"post_id": ids})
     for name, vals in res.items():
         dtype = pl.List(pl.Int64) if name == "nbr_post_id" else pl.List(pl.Float32)
         out = out.with_columns(pl.Series(name, vals, dtype=dtype))
-    return out.with_columns(pl.Series("nbr_density_7d", density), pl.Series("nbr_best_reach_7d", best).fill_nan(None))
+    return out.with_columns(pl.Series("nbr_density_7d", density), pl.Series("nbr_best_reach_7d", best).fill_nan(None),
+                            pl.Series("nbr_best_like_7d", best_like).fill_nan(None))
 
 
 def author_centroid_and_selfsim(meta: pl.DataFrame, emb: np.ndarray, window: int = 50, selfsim_hours: float = 48.0) -> tuple[np.ndarray, pl.DataFrame]:

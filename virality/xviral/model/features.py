@@ -43,7 +43,7 @@ NUM_SPEC: list[tuple[str, str]] = [
     ("trailing_rate_reply_p50", "id"), ("trailing_media_share", "id"), ("trailing_video_share", "id"), ("trailing_link_share", "id"),
     # duplicates, suppression proxies, retrieval summaries (3, 7.5, 7.6)
     ("near_dup_rank", "log1p"), ("near_dup_cluster_size", "log1p"), ("is_self_repeat", "bool"), ("copypasta_events", "log1p"),
-    ("url_blocked", "bool"), ("self_sim_48h", "id"), ("nbr_density_7d", "log1p"), ("nbr_best_reach_7d", "id"),
+    ("url_blocked", "bool"), ("self_sim_48h", "id"), ("nbr_density_7d", "log1p"), ("nbr_best_reach_7d", "id"), ("nbr_best_like_7d", "id"),
     ("audience_zone_known", "bool"),
     # media and speech scalars (present after the media stages)
     ("frame_motion", "id"), ("speech_ratio", "id"), ("speech_in_first_3s", "bool"), ("transcript_len", "log1p"),
@@ -83,7 +83,7 @@ def build(rows: pl.DataFrame, out_dir: str | Path, emb=None, sid: pl.DataFrame |
     if extra is not None:
         rows = rows.join(extra, on="post_id", how="left")
     if neighbors is not None:
-        keep = [c for c in ("post_id", "nbr_post_id", "nbr_cos", "nbr_density_7d", "nbr_best_reach_7d", "self_sim_48h") if c in neighbors.columns]
+        keep = [c for c in ("post_id", "nbr_post_id", "nbr_cos", "nbr_density_7d", "nbr_best_reach_7d", "nbr_best_like_7d", "self_sim_48h") if c in neighbors.columns]
         rows = rows.join(neighbors.select(keep), on="post_id", how="left")
     rows = rows.sort("author_id", "created_at_ms", "post_id")
     n = rows.height

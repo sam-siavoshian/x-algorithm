@@ -209,3 +209,13 @@ def test_neighbors_are_strictly_from_earlier_days_and_other_authors():
     order = meta.with_row_index("i").sort("author_id", "created_at_ms")
     first_rows = order.group_by("author_id", maintain_order=True).first()["i"].to_list()
     assert np.isnan(cent[first_rows]).all()
+
+
+def test_neighbors_work_without_views():
+    rng = np.random.default_rng(1)
+    n = 200
+    meta = pl.DataFrame({"post_id": np.arange(n), "author_id": rng.integers(0, 20, n), "created_at_ms": T0 + rng.integers(0, 15 * DAY, n),
+                         "log_reach_ratio": pl.Series([None] * n, dtype=pl.Float64), "log_like_ratio": rng.random(n)})
+    nb = global_neighbors(meta, rng.normal(size=(n, 8)).astype(np.float32), k=4, density_cos=-1.0)
+    assert nb.filter(pl.col("nbr_post_id").list.len() > 0).height > 150
+    assert nb["nbr_best_reach_7d"].null_count() == n and nb["nbr_best_like_7d"].null_count() < 50

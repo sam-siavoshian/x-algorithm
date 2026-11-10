@@ -189,3 +189,13 @@ def test_near_duplicates_and_copypasta():
     cp = dedup.author_copypasta(df)
     rep = {r["post_id"] & 0x3FFFFF: r["is_self_repeat"] for r in cp.to_dicts()}
     assert rep[5] is True and rep[1] is False
+
+
+def test_like_only_rows_keep_weight_and_get_like_labels():
+    rows = [make_post(snowflake(T0 + i * DAY, i), 1, T0 + i * DAY, views=None, likes=10 * (i + 1), source="community_archive") for i in range(4)]
+    df = frame(rows).with_columns(pl.lit(1000).alias("followers_at_post"), pl.lit(None, dtype=pl.Float64).alias("trailing_views_p90"),
+                                  pl.lit(None, dtype=pl.Float64).alias("trailing_views_p99"), pl.lit(25.0).alias("trailing_likes_p90"))
+    out = labels.build(df, LabelCfg())
+    assert (out["w_row"] > 0).all()
+    assert out["y_reach_10x"].null_count() == 4 and out["log_like_ratio"].null_count() == 0
+    assert out["y_likes_beat_own_p90"].to_list() == [False, False, True, True]

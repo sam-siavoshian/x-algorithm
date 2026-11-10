@@ -67,6 +67,28 @@ After `relevance`, label `relevance/audit_to_label.csv` (fill the `relevant` col
 Phase 1 runs on the GPU box, in this order: `media-select`, `fetch-images`, `fetch-videos`,
 `asr`, `embed-mm`, `sid-train`, `sid-assign`, `embed-siglip`, `neighbors`.
 
+## Model
+
+Design: [MODEL.md](MODEL.md). After the embedding stages:
+
+```bash
+.venv/bin/xviral model-prepare --config configs/pipeline.yaml
+```
+
+```bash
+.venv/bin/xviral model-train --config configs/pipeline.yaml --preset base --device cuda
+```
+
+```bash
+.venv/bin/xviral model-eval --config configs/pipeline.yaml --device cuda
+```
+
+To compare the model with its ablations and the baselines on the time-forward test split:
+
+```bash
+.venv/bin/python scripts/compare_models.py --table data/work/model/table --out data/work/model/compare --preset base --device cuda
+```
+
 ## Test
 
 ```bash
