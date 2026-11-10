@@ -422,3 +422,18 @@ Consequences:
 3. **Views for the target audience come from the tech scrape and analytics exports.** No free public corpus found has both views and this audience. The scrape's 250k to 450k rows are therefore the primary view-labeled set after all; the free corpora add depth (author histories, same-author pairs, donor graphs and likes), not view labels.
 4. **Stand-in seeds do not work in an off-topic corpus.** Accounts with tech-sounding bios in USC posted 24 on-topic posts among them. Seeds must come from the scrape or from a handle list of known accounts.
 5. **The default margin is 0.05**, between the permissive 0 (many off-topic posts) and the strict 0.1 (high precision on the CA sample). The manual audit replaces it.
+
+---
+
+## 14. Community Archive: two kinds of row, and donor-account download (2026-11-10)
+
+Checked against the live API:
+
+- **Archive rows** (`archive_upload_id` set) come from a donor's uploaded archive. Counts are as of `archive_upload.archive_at`. 404 donor accounts have completed uploads.
+- **Stream rows** (`archive_upload_id` null) are captured by the archive's browser extension as posts appear in timelines, often seconds after posting. Counts are as of `updated_at`. They are about 80% of recent rows, spread over roughly 750k accounts with a few rows each.
+
+The pipeline now takes the snapshot time per row (archive date or capture time), and the 72-hour maturity filter removes posts whose counts were read too early. Before this fix a stream post captured five seconds after posting would have been trained on with zero likes.
+
+This revises section 13's estimate. The archive's usable, mature, deep-history data is the donor accounts: `RestDownloader.download_account_tweets` pulls a list of accounts' posts through the account index (about 0.8 s per 1,000 rows). All 404 donors since 2023: 1.78M posts, of which 417k are originals, 372k mature, 358k English, from 392 accounts with a median of 735 posts each. The same call serves any account list, including your seed accounts if they are in the archive.
+
+Added for like-only sources: `trailing_likes_p50/p90` and `trailing_like_ratio_p50` (strictly-earlier author history on likes), labels `log_like_ratio` and `y_likes_beat_own_p90`, and `relevance.enabled: false` to pass an already on-audience corpus through.

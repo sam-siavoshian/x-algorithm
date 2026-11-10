@@ -55,6 +55,7 @@ class ModelCfg(BaseModel):
     use_history_outcomes: bool = True
     use_content: bool = True
     use_neighbors: bool = True
+    use_hist_knn: bool = True
 
 
 PRESETS: dict[str, dict] = {

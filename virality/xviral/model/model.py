@@ -163,6 +163,40 @@ class NeighborPool(nn.Module):
         return (w[..., None] * self.v(nbr)).sum(-2)
 
 
+class HistoryKNN(nn.Module):
+    """Explicit in-context estimate: how the account's most similar earlier posts performed.
+
+    For each candidate, cosine similarity to every visible history post on the raw post embedding,
+    softmax at two temperatures, and the similarity-weighted mean of those posts' outcomes relative
+    to the account's own median. The trunk's attention can learn this; handing it the estimate
+    directly makes the account-specific signal available from the first training step.
+    """
+
+    TEMPS = (0.05, 0.2)
+
+    def __init__(self, d: int):
+        super().__init__()
+        self.mlp = nn.Sequential(nn.Linear(8, 64), nn.GELU(approximate="tanh"), nn.Linear(64, d))
+
+    def forward(self, e_c: torch.Tensor, e_h: torch.Tensor, counts_h: torch.Tensor, visible: torch.Tensor,
+                med_like: torch.Tensor, med_view: torch.Tensor) -> torch.Tensor:
+        sim = F.normalize(e_c, dim=-1) @ F.normalize(e_h, dim=-1).transpose(1, 2)        # [B, C, H]
+        feats = []
+        for idx, med in ((I_LIKES, med_like), (I_VIEWS, med_view)):
+            ok = visible & (counts_h[..., idx] >= 0)                                      # [B, H]
+            rel = (torch.log10(counts_h[..., idx].clamp(min=0).float() + 1.0) - med[:, None]) * ok
+            any_ok = ok.any(-1)[:, None, None]
+            for temp in self.TEMPS:
+                w = (sim / temp).masked_fill(~ok[:, None, :], float("-inf")).softmax(-1)
+                w = torch.where(any_ok, w, torch.zeros_like(w))
+                feats.append((w * rel[:, None, :]).sum(-1))
+            feats.append(any_ok.expand(-1, sim.shape[1], 1).squeeze(-1).float())
+        vis_sim = sim.masked_fill(~visible[:, None, :], -1.0)
+        feats.append(vis_sim.max(-1).values * visible.any(-1)[:, None])
+        feats.append((sim * visible[:, None, :]).sum(-1) / visible.sum(-1).clamp(min=1)[:, None])
+        return self.mlp(torch.stack(feats, dim=-1))
+
+
 class Surrogate(nn.Module):
     def __init__(self, cfg: ModelCfg, action_index: list[int]):
         super().__init__()
@@ -172,6 +206,7 @@ class Surrogate(nn.Module):
         self.post = PostEncoder(cfg)
         self.outcome = OutcomeEncoder(d)
         self.nbr_pool = NeighborPool(d)
+        self.hist_knn = HistoryKNN(d)
         self.ctx = nn.Sequential(nn.Linear(cfg.n_ctx, d), nn.GELU(approximate="tanh"), nn.Linear(d, d))
         self.age_emb = nn.Embedding(POST_AGE_NUM_BUCKETS, d)
         self.gap_emb = nn.Embedding(TIME_GAP_CARDINALITY, d)
@@ -205,6 +240,10 @@ class Surrogate(nn.Module):
             nbr = (self.post(t, ep.nbr_rows) + self.outcome(counts[ep.nbr_rows], ep.nbr_visible, followers[ep.nbr_rows])
                    + self.nbr_pool.feat(nfeat) + self.role[2])
             cand = cand + self.nbr_pool(cand_content, nbr, ep.nbr_mask)
+
+        if cfg.use_hist_knn and cfg.use_history_outcomes and cfg.use_content and "emb" in t:
+            cand = cand + self.hist_knn(t["emb"][ep.cand_rows].float(), t["emb"][ep.hist_rows].float(), counts[ep.hist_rows],
+                                        ep.hist_visible & t["has_emb"][ep.hist_rows], ep.ctx[:, 3], ep.ctx[:, 5])
 
         ctx = ep.ctx if cfg.use_history_outcomes else torch.cat([ep.ctx[:, :1], torch.zeros_like(ep.ctx[:, 1:])], dim=1)
         x = torch.cat([self.ctx(ctx)[:, None], hist, cand], dim=1)
