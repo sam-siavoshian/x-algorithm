@@ -22,9 +22,18 @@ Tables (REST, verified 2026-11-07):
   liked_tweets  tweet_id, full_text, author_account_id, is_tombstone
   archive_upload id, ...  (474 donor uploads)
 
-Counts are likes and reposts at archive time. There are no views. Donors are
-the viewers: their likes and follow lists are the only per-viewer engagement
-data available outside X, and they feed the viewer-level research track.
+Counts are likes and reposts; there are no views. Two kinds of tweet row exist
+(verified 2026-11-10):
+- archive rows (`archive_upload_id` set): from a donor's uploaded archive, counts
+  as of `archive_upload.archive_at`. About 408 donor accounts.
+- stream rows (`archive_upload_id` null): captured by the archive's browser
+  extension as posts appear in timelines, often seconds after posting, counts as
+  of `updated_at`. About 80% of recent rows, from ~750k accounts with few rows each.
+So the snapshot time is per row: `archive_at` for archive rows, `updated_at` for
+stream rows, and the pipeline's maturity filter then drops rows read too early.
+
+Donors are the viewers: their likes and follow lists are the only per-viewer
+engagement data available outside X, and they feed the viewer-level research track.
 """
 
 from __future__ import annotations
@@ -62,7 +71,7 @@ KEYSET = {
 }
 
 SELECT = {
-    "tweets": "tweet_id,account_id,created_at,full_text,retweet_count,favorite_count,reply_to_tweet_id,reply_to_user_id,archive_upload_id",
+    "tweets": "tweet_id,account_id,created_at,full_text,retweet_count,favorite_count,reply_to_tweet_id,reply_to_user_id,archive_upload_id,updated_at",
     "all_account": "account_id,username,created_at,account_display_name,num_tweets,num_following,num_followers,num_likes,updated_at,is_tombstone",
     "profile": "account_id,bio,website,location",
     "tweet_media": "media_id,tweet_id,media_url,media_type,width,height",
@@ -170,6 +179,72 @@ class RestDownloader:
         return state["rows"]
 
 
+    def donor_accounts(self) -> pl.DataFrame:
+        """Completed donor uploads: account_id, username, archive_at (latest per account)."""
+        rows = self._get("archive_upload", {"select": "id,account_id,username,archive_at,upload_phase", "order": "id.asc", "limit": "5000"})
+        df = pl.DataFrame(rows).filter(pl.col("upload_phase") == "completed")
+        write_parquet(pl.DataFrame(rows, infer_schema_length=None), self.out / "archive_upload" / "part-00000.parquet")
+        return df.sort("archive_at").unique("account_id", keep="last")
+
+    def download_account_tweets(self, account_ids: list[str], max_rows_per_account: int = 5000, flush_accounts: int = 25) -> int:
+        """Tweets of specific accounts since cfg.min_created, newest first, by the account index.
+
+        Used for donor accounts and for seed accounts: it yields deep per-author histories without
+        paging the whole table. Resumable per account.
+        """
+        tdir = self.out / "tweets"
+        tdir.mkdir(parents=True, exist_ok=True)
+        state_path = tdir / "_accounts_state.json"
+        state = json.loads(state_path.read_text()) if state_path.exists() else {"done": [], "part": 0, "rows": 0}
+        done = set(state["done"])
+        buf: list[dict] = []
+        pending: list[str] = []
+
+        def flush():
+            if buf:
+                write_parquet(pl.DataFrame(buf, infer_schema_length=None), tdir / f"acct-{state['part']:05d}.parquet")
+                state["part"] += 1
+                buf.clear()
+            state["done"].extend(pending)
+            pending.clear()
+            state_path.write_text(json.dumps(state))
+
+        for aid in account_ids:
+            if aid in done:
+                continue
+            before = None
+            got = 0
+            while got < max_rows_per_account:
+                params = {"select": SELECT["tweets"], "account_id": f"eq.{aid}", "order": "created_at.desc",
+                          "limit": str(self.cfg.page_size)}
+                # PostgREST: two bounds on one column go through and=()
+                lo = f"{self.cfg.min_created}T00:00:00+00:00"
+                params["and"] = f"(created_at.gte.{lo},created_at.lt.{before})" if before else f"(created_at.gte.{lo})"
+                rows = self._get("tweets", params)
+                if not rows:
+                    break
+                buf.extend(rows)
+                got += len(rows)
+                before = rows[-1]["created_at"]
+                if len(rows) < self.cfg.page_size:
+                    break
+            state["rows"] += got
+            pending.append(aid)
+            if len(pending) >= flush_accounts:
+                flush()
+                log.info("CA account tweets: %d/%d accounts, %d rows", len(state["done"]), len(account_ids), state["rows"])
+        flush()
+        return state["rows"]
+
+    def download_accounts_meta(self, account_ids: list[str], batch: int = 100) -> int:
+        rows: list[dict] = []
+        for i in range(0, len(account_ids), batch):
+            ids = ",".join(account_ids[i:i + batch])
+            rows.extend(self._get("all_account", {"select": SELECT["all_account"], "account_id": f"in.({ids})", "limit": "1000"}))
+        write_parquet(pl.DataFrame(rows, infer_schema_length=None), self.out / "all_account" / "part-00000.parquet")
+        return len(rows)
+
+
 def _read(ca_dir: Path, table: str) -> pl.DataFrame | None:
     d = ca_dir / table
     if not d.exists() or not any(d.glob("*.parquet")):
@@ -197,7 +272,9 @@ def to_unified(ca_dir: str | Path) -> dict[str, pl.DataFrame]:
     urls = _read(ca_dir, "tweet_urls")
     quotes = _read(ca_dir, "quote_tweets")
 
-    t = tweets.select(
+    uploads = _read(ca_dir, "archive_upload")
+    has_upd = "updated_at" in tweets.columns
+    t = tweets.unique("tweet_id").select(
         _i64("tweet_id").alias("post_id"),
         _i64("account_id").alias("author_id"),
         _ts("created_at").alias("created_at_src_ms"),
@@ -205,7 +282,19 @@ def to_unified(ca_dir: str | Path) -> dict[str, pl.DataFrame]:
         pl.col("favorite_count").cast(pl.Int64, strict=False).alias("likes"),
         pl.col("retweet_count").cast(pl.Int64, strict=False).alias("reposts"),
         _i64("reply_to_tweet_id").alias("in_reply_to_post_id"),
+        pl.col("archive_upload_id").cast(pl.Int64, strict=False).alias("_upload_id"),
+        (_ts("updated_at") if has_upd else pl.lit(None, dtype=pl.Int64)).alias("_updated_ms"),
     ).with_columns(snowflake_ms_expr("post_id").alias("created_at_ms"))
+    # Per-row snapshot time: archive date for donor-archive rows, capture time for stream rows.
+    if uploads is not None and "archive_at" in uploads.columns:
+        up = uploads.select(pl.col("id").cast(pl.Int64).alias("_upload_id"), _ts("archive_at").alias("_archive_ms")).unique("_upload_id")
+        t = t.join(up, on="_upload_id", how="left")
+    else:
+        t = t.with_columns(pl.lit(None, dtype=pl.Int64).alias("_archive_ms"))
+    t = t.with_columns(
+        pl.when(pl.col("_upload_id").is_not_null()).then(pl.coalesce("_archive_ms", "_updated_ms")).otherwise(pl.col("_updated_ms")).alias("_row_snapshot_ms"),
+        pl.when(pl.col("_upload_id").is_not_null()).then(pl.lit("archive")).otherwise(pl.lit("stream")).alias("_ca_kind"),
+    )
 
     if quotes is not None:
         q = quotes.select(_i64("tweet_id").alias("post_id"), _i64("quoted_tweet_id").alias("quoted_post_id")).unique("post_id")
@@ -259,14 +348,17 @@ def to_unified(ca_dir: str | Path) -> dict[str, pl.DataFrame]:
             pl.col("num_followers").cast(pl.Int64, strict=False).alias("author_followers"),
             pl.col("num_following").cast(pl.Int64, strict=False).alias("author_following"),
             pl.col("num_tweets").cast(pl.Int64, strict=False).alias("author_posts_count"),
-            _ts("updated_at").alias("snapshot_at_ms"),
+            _ts("updated_at").alias("_acct_snapshot_ms"),
         ).unique("author_id")
         if prof is not None:
             a = a.join(prof.select(_i64("account_id").alias("author_id"), pl.col("bio").alias("author_bio")).unique("author_id"), on="author_id", how="left")
         t = t.join(a, on="author_id", how="left")
 
+    if "_acct_snapshot_ms" not in t.columns:
+        t = t.with_columns(pl.lit(None, dtype=pl.Int64).alias("_acct_snapshot_ms"))
     t = t.with_columns(
-        pl.lit("file_date").alias("snapshot_kind"),
+        pl.col("_row_snapshot_ms").alias("snapshot_at_ms"),
+        pl.when(pl.col("_row_snapshot_ms").is_not_null()).then(pl.lit("exact")).otherwise(pl.lit("unknown")).alias("snapshot_kind"),
         pl.lit("absent").alias("views_state"),
         pl.lit("community_archive").alias("source"),
         pl.lit(str(ca_dir.name)).alias("source_file"),
@@ -275,8 +367,9 @@ def to_unified(ca_dir: str | Path) -> dict[str, pl.DataFrame]:
     posts = conform(t)
 
     accounts = (
-        posts.select(
-            "author_id", "author_handle", "snapshot_at_ms",
+        posts.join(t.select("post_id", "_acct_snapshot_ms"), on="post_id", how="left")
+        .select(
+            "author_id", "author_handle", pl.col("_acct_snapshot_ms").alias("snapshot_at_ms"),
             pl.col("author_followers").alias("followers"), pl.col("author_following").alias("following"),
             pl.col("author_posts_count").alias("posts_count"), pl.col("author_created_at_ms").alias("created_at_ms"),
             pl.lit(None, dtype=pl.Boolean).alias("verified"), pl.lit("community_archive").alias("source"),

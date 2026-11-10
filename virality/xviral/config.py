@@ -82,6 +82,8 @@ class HygieneCfg(BaseModel):
 
 
 class RelevanceCfg(BaseModel):
+    enabled: bool = True
+    """False passes every post through: for corpora that are already on-audience (a seed-account scrape)."""
     embedder: str = "Qwen/Qwen3-Embedding-0.6B"
     """Cheap text encoder for the relevance pre-pass. 'hashing' uses a CPU fallback (tests)."""
     negatives_sample: int = 500_000

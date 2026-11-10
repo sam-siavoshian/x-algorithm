@@ -132,6 +132,11 @@ def dedup_stage(cfg: Config) -> None:
 
 def relevance_stage(cfg: Config) -> None:
     posts = _read(cfg.paths.work / "hygiene" / "posts.parquet")
+    if not cfg.relevance.enabled:
+        work = cfg.paths.stage("relevance")
+        write_parquet(posts, work / "posts.parquet")
+        (work / "report.json").write_text(json.dumps({"enabled": False, "rows": posts.height}))
+        return
     posts = relevance.political_prethin(posts, cfg.relevance)
     nd = _maybe(cfg.paths.work / "dedup" / "near_dup.parquet")
     if nd is not None:
@@ -408,3 +413,56 @@ def neighbors_stage(cfg: Config) -> None:
     out = cfg.paths.stage("emb")
     write_parquet(nb.join(ss, on="post_id"), out / "neighbors.parquet")
     EmbeddingStore(out / "author_centroid", dim=vecs.shape[1]).write(meta["post_id"].to_numpy(), np.nan_to_num(cent))
+
+
+# --- Model (MODEL.md) ---------------------------------------------------------------
+
+
+def model_prepare(cfg: Config) -> dict:
+    """Build the model's feature table from the dataset stage and whatever embedding stages have run."""
+    from xviral.embed.store import EmbeddingStore
+    from xviral.model import features
+
+    w = cfg.paths.work
+    rows = _read(w / "dataset" / "rows.parquet")
+    emb = EmbeddingStore(w / "emb" / "mm") if (w / "emb" / "mm").exists() and any((w / "emb" / "mm").glob("shard-*.npy")) else None
+    sid = _maybe(w / "emb" / "sid.parquet")
+    nbrs = _maybe(w / "emb" / "neighbors.parquet")
+    extra = None
+    for p, cols in ((w / "media" / "transcripts.parquet", ["post_id", "speech_ratio", "speech_in_first_3s", "transcript_len"]),
+                    (w / "emb" / "video_frames.parquet", ["post_id", "frame_motion"])):
+        f = _maybe(p)
+        if f is not None:
+            f = f.select(cols).unique("post_id")
+            extra = f if extra is None else extra.join(f, on="post_id", how="full", coalesce=True)
+    return features.build(rows, cfg.paths.stage("model") / "table", emb=emb, sid=sid, neighbors=nbrs, extra=extra)
+
+
+def model_train(cfg: Config, preset: str = "base", steps: int | None = None, device: str | None = None, name: str = "run") -> dict:
+    from xviral.model import train as tr
+    from xviral.model.config import TrainCfg
+    from xviral.model.features import FeatureTable
+
+    table = FeatureTable.load(cfg.paths.work / "model" / "table", device or cfg.embed.device)
+    tcfg = TrainCfg(**({"steps": steps} if steps else {}))
+    res = tr.train(table, cfg.paths.stage("model") / name, tr.model_cfg_for(table, preset), tcfg)
+    return {"best": res["best"], "params": res["params"]}
+
+
+def model_eval(cfg: Config, device: str | None = None, name: str = "run") -> dict:
+    """Test-split metrics for the best checkpoint, after fitting temperatures on validation rows."""
+    from xviral.model import evaluate
+    from xviral.model import train as tr
+    from xviral.model.features import FeatureTable
+
+    dev = device or cfg.embed.device
+    table = FeatureTable.load(cfg.paths.work / "model" / "table", dev)
+    run = cfg.paths.work / "model" / name
+    model, tcfg, ck = tr.load(run / "best.pt", dev)
+    temps = evaluate.fit_temperature(model, table, table.rows_of_split("val"), tcfg)
+    tr.save(run / "best.pt", model, model.cfg, tcfg, ck["table_meta"], ck["metrics"], temps)
+    test = table.rows_of_split("test")
+    res = {"temperature": temps,
+           "test": evaluate.metrics(evaluate.predict_rows(model, table, test, tcfg, temperature=temps), table, tcfg)}
+    (run / "eval.json").write_text(json.dumps(res, indent=2, default=float))
+    return res

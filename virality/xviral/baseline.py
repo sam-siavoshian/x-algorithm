@@ -30,6 +30,7 @@ FEATURES = [
     "trailing_rate_repost_p50", "trailing_rate_repost_p90", "trailing_rate_quote_p50", "trailing_rate_quote_p90",
     "trailing_reach_p50", "trailing_reach_p90", "trailing_reach_p99", "trailing_reply_to_fav",
     "trailing_media_share", "trailing_video_share", "trailing_link_share", "history_n", "reply_share",
+    "trailing_likes_p50", "trailing_likes_p90", "trailing_like_ratio_p50", "history_likes_n",
     "copypasta_events", "graph_pagerank",
     # audience and time (7.4)
     "local_hour_idx", "local_dow", "audience_zone_known",

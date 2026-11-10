@@ -75,7 +75,7 @@ def build_sources(root, rng):
             tw.append({"tweet_id": str(snowflake(ms, seq)), "account_id": str(aid), "created_at": None,
                        "full_text": TECH[(j + aid) % 8] + f" post {j}", "retweet_count": int(rng.integers(0, 20)),
                        "favorite_count": int(rng.integers(0, 200)), "reply_to_tweet_id": None, "reply_to_user_id": None,
-                       "archive_upload_id": 1})
+                       "archive_upload_id": 1, "updated_at": "2025-08-01T00:00:00+00:00"})
         for k in range(20):
             fol.append({"id": len(fol), "account_id": str(aid), "follower_account_id": str(9000 + k)})
             if k % 2 == 0:
@@ -85,6 +85,17 @@ def build_sources(root, rng):
     for t in tw:
         ms = (int(t["tweet_id"]) >> 22) + 1288834974657
         t["created_at"] = datetime.fromtimestamp(ms / 1000, tz=timezone.utc).isoformat()
+    # One stream-captured tweet read 5 seconds after posting: must be dropped as immature.
+    ms = T0 + 50 * DAY
+    tw.append({"tweet_id": str(snowflake(ms, 4_000_000)), "account_id": "5000", "created_at": None, "full_text": TECH[0] + " stream",
+               "retweet_count": 0, "favorite_count": 0, "reply_to_tweet_id": None, "reply_to_user_id": None,
+               "archive_upload_id": None, "updated_at": datetime.fromtimestamp(ms / 1000 + 5, tz=timezone.utc).isoformat()})
+    for t in tw:
+        if t["created_at"] is None:
+            t["created_at"] = datetime.fromtimestamp(((int(t["tweet_id"]) >> 22) + 1288834974657) / 1000, tz=timezone.utc).isoformat()
+    up = [{"id": 1, "account_id": "5000", "username": "ca5000", "archive_at": "2025-08-01T00:00:00+00:00", "upload_phase": "completed"}]
+    (ca / "archive_upload").mkdir(parents=True)
+    pl.DataFrame(up).write_parquet(ca / "archive_upload" / "part-00000.parquet")
     for name, rows in (("tweets", tw), ("all_account", acc), ("followers", fol), ("following", fing)):
         (ca / name).mkdir(parents=True)
         pl.DataFrame(rows).write_parquet(ca / name / "part-00000.parquet")
@@ -133,6 +144,7 @@ def test_phase0_end_to_end(tmp_path):
     assert usc_rows.filter(pl.col("author_id") < 1040).height > 100
     assert usc_rows.filter(pl.col("author_id") >= 1040).height < 0.1 * usc_rows.filter(pl.col("author_id") < 1040).height
     assert rows.filter(pl.col("source") == "community_archive").height > 600
+    assert rows.filter(pl.col("text").str.ends_with(" stream")).height == 0  # immature stream capture dropped
     # Mutual share is exact for CA donors: 10 of 20 followers followed back.
     a = pl.read_parquet(w / "authors" / "authors.parquet").filter(pl.col("author_id") == 5000)
     assert abs(a["mutual_share_exact"][0] - 0.5) < 1e-9

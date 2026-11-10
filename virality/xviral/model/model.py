@@ -1,0 +1,292 @@
+"""The surrogate: one transformer standing in for Phoenix (MODEL.md).
+
+Inputs per post are built the way Phoenix builds a candidate token: every
+feature is projected to the model width and the projections are summed into
+one token (phoenix/xrex/models/recsys_feature_prep.py::build_feature_prep_streams).
+Outputs are Phoenix's 64 action heads by ActionName index, plus distributional
+heads over reach, which is what the product reports as odds.
+"""
+
+from __future__ import annotations
+
+import math
+
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+from xviral.constants import ENGAGEMENT_COUNT_LOG2_SCALE, POST_AGE_NUM_BUCKETS
+from xviral.model.config import HistHead, ModelCfg, TrainCfg
+from xviral.model.episodes import I_LIKES, I_VIEWS, Episode
+from xviral.model.features import FeatureTable
+from xviral.model.layers import RMSNorm, Trunk
+
+TIME_GAP_CARDINALITY = 19  # recsys_feature_prep.py:52
+
+
+def post_age_bucket(age_s: torch.Tensor) -> torch.Tensor:
+    """Hourly bucket, 0 = unknown, 81 = overflow (recsys_feature_prep.py::_compute_post_age_bucket_linear)."""
+    b = (age_s // 60) // 60 + 1
+    return torch.where(age_s < 0, torch.zeros_like(b), b.clamp(0, POST_AGE_NUM_BUCKETS - 1))
+
+
+def time_gap_bucket(gap_s: torch.Tensor) -> torch.Tensor:
+    """Log-spaced bucket with edges 60 * 2^k seconds (recsys_feature_prep.py::_compute_time_gap_bucket)."""
+    edges = 60 * 2 ** torch.arange(TIME_GAP_CARDINALITY - 2, device=gap_s.device)
+    b = 1 + torch.bucketize(gap_s, edges, right=True)
+    return torch.where(gap_s < 0, torch.zeros_like(b), b)
+
+
+# --- distributional heads ---------------------------------------------------------
+
+
+def hist_edges(spec: HistHead, device) -> torch.Tensor:
+    return torch.linspace(spec.lo, spec.hi, spec.bins + 1, device=device)
+
+
+def hist_targets(y: torch.Tensor, spec: HistHead, sigma_bins: float) -> torch.Tensor:
+    """HL-Gauss soft targets: the mass a Gaussian centred on y puts in each bin.
+
+    Classification over bins with smoothed targets is more robust than regression for noisy,
+    heavy-tailed outcomes, and yields a full distribution. X models its own heavy-tailed
+    quantity (dwell time) the same way in cumulative form, as thresholds plus restoration
+    (CREAD, phoenix/xrex/models/loss_recsys.py:110-187).
+    """
+    edges = hist_edges(spec, y.device)
+    width = (spec.hi - spec.lo) / spec.bins
+    yc = y.clamp(spec.lo + 1e-4, spec.hi - 1e-4)
+    cdf = 0.5 * (1.0 + torch.erf((edges - yc[..., None]) / (sigma_bins * width * math.sqrt(2.0))))
+    p = cdf[..., 1:] - cdf[..., :-1]
+    return p / p.sum(-1, keepdim=True).clamp_min(1e-12)
+
+
+def hist_mean(logits: torch.Tensor, spec: HistHead) -> torch.Tensor:
+    e = hist_edges(spec, logits.device)
+    return (logits.softmax(-1) * (0.5 * (e[:-1] + e[1:]))).sum(-1)
+
+
+def hist_tail(logits: torch.Tensor, spec: HistHead, thr: torch.Tensor | float) -> torch.Tensor:
+    """P(y >= thr): bins above the threshold, plus the covered fraction of the bin containing it."""
+    e = hist_edges(spec, logits.device)
+    thr = torch.as_tensor(thr, device=logits.device, dtype=torch.float32)
+    width = (spec.hi - spec.lo) / spec.bins
+    frac = ((e[1:] - thr[..., None]) / width).clamp(0.0, 1.0)
+    return (logits.softmax(-1) * frac).sum(-1)
+
+
+def hist_quantile(logits: torch.Tensor, spec: HistHead, q: float) -> torch.Tensor:
+    e = hist_edges(spec, logits.device)
+    p = logits.softmax(-1)
+    cdf = p.cumsum(-1)
+    idx = (cdf < q).sum(-1).clamp(max=spec.bins - 1)
+    below = torch.where(idx > 0, cdf.gather(-1, (idx - 1).clamp(min=0)[..., None]).squeeze(-1), torch.zeros_like(idx, dtype=cdf.dtype))
+    mass = p.gather(-1, idx[..., None]).squeeze(-1).clamp_min(1e-9)
+    width = (spec.hi - spec.lo) / spec.bins
+    return e[idx] + ((q - below) / mass).clamp(0, 1) * width
+
+
+# --- token encoders ----------------------------------------------------------------
+
+
+class PostEncoder(nn.Module):
+    """Content, author-at-post-time and context features of one post, summed into one vector."""
+
+    def __init__(self, cfg: ModelCfg):
+        super().__init__()
+        d = cfg.d_model
+        self.cfg = cfg
+        self.emb = nn.Linear(cfg.emb_dim, d, bias=False) if cfg.emb_dim else None
+        self.no_emb = nn.Parameter(torch.zeros(d))
+        self.sid = nn.Embedding(cfg.sid_levels * cfg.sid_vocab, d) if cfg.sid_levels else None
+        self.num = nn.Sequential(nn.Linear(cfg.n_num, d), nn.GELU(approximate="tanh"), nn.Linear(d, d)) if cfg.n_num else None
+        self.cat = nn.ModuleList(nn.Embedding(c, d) for c in cfg.cat_cards)
+        self.aux = nn.ModuleDict({k: nn.Linear(v, d, bias=False) for k, v in cfg.aux_dims.items()})
+
+    def forward(self, t: dict, rows: torch.Tensor) -> torch.Tensor:
+        cfg = self.cfg
+        x = 0.0
+        if self.num is not None:
+            x = x + self.num(t["num"][rows])
+        for i, emb in enumerate(self.cat):
+            x = x + emb(t["cat"][rows][..., i].long())
+        if cfg.use_content:
+            if self.emb is not None and "emb" in t:
+                has = t["has_emb"][rows][..., None]
+                x = x + torch.where(has, self.emb(t["emb"][rows].float()), self.no_emb.expand(*rows.shape, -1))
+            if self.sid is not None and "sid" in t:
+                codes = t["sid"][rows].long()                                    # [..., L], 0 = missing
+                offs = torch.arange(codes.shape[-1], device=codes.device) * cfg.sid_vocab
+                x = x + (self.sid(codes + offs) * (codes > 0)[..., None]).sum(-2)
+            for name, proj in self.aux.items():
+                if f"aux_{name}" in t:
+                    x = x + proj(t[f"aux_{name}"][rows].float()) * t[f"has_aux_{name}"][rows][..., None]
+        return x
+
+
+class OutcomeEncoder(nn.Module):
+    """Engagement counts of a post, as Phoenix encodes them.
+
+    Phoenix feeds log2(count + 1) / 32 for like, reply, repost, quote and view, plus a constant,
+    through a 6 -> 64 -> D MLP (recsys_feature_prep.py:730-754). Our sources lack some counts, so
+    presence bits are added, along with the two follower-normalised ratios. Ratios are computed
+    here from counts and followers; no label column is ever read.
+    """
+
+    def __init__(self, d: int):
+        super().__init__()
+        self.mlp = nn.Sequential(nn.Linear(5 + 5 + 2 + 1, 64), nn.GELU(approximate="tanh"), nn.Linear(64, d))
+
+    def forward(self, counts: torch.Tensor, visible: torch.Tensor, followers: torch.Tensor) -> torch.Tensor:
+        present = (counts >= 0) & visible[..., None]
+        c = counts.clamp(min=0).float()
+        logc = torch.log2(c + 1.0) / ENGAGEMENT_COUNT_LOG2_SCALE * present
+        f = torch.log10(followers.clamp(min=0) + 1.0)[..., None]
+        ratio = (torch.log10(c[..., [I_LIKES, I_VIEWS]] + 1.0) - f) * present[..., [I_LIKES, I_VIEWS]]
+        x = torch.cat([logc, present.float(), ratio, visible[..., None].float()], dim=-1)
+        return self.mlp(x) * visible[..., None]
+
+
+class NeighborPool(nn.Module):
+    """Attention pooling of a candidate's retrieved neighbours into the candidate token."""
+
+    def __init__(self, d: int):
+        super().__init__()
+        self.q, self.k, self.v = nn.Linear(d, d, bias=False), nn.Linear(d, d, bias=False), nn.Linear(d, d, bias=False)
+        self.feat = nn.Sequential(nn.Linear(2, 32), nn.GELU(approximate="tanh"), nn.Linear(32, d))
+        self.scale = d ** -0.5
+
+    def forward(self, cand: torch.Tensor, nbr: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:
+        att = (self.q(cand)[..., None, :] * self.k(nbr)).sum(-1) * self.scale
+        att = att.masked_fill(~mask, float("-inf"))
+        any_n = mask.any(-1, keepdim=True)
+        w = torch.where(any_n, att.softmax(-1), torch.zeros_like(att))
+        return (w[..., None] * self.v(nbr)).sum(-2)
+
+
+class Surrogate(nn.Module):
+    def __init__(self, cfg: ModelCfg, action_index: list[int]):
+        super().__init__()
+        d = cfg.d_model
+        self.cfg = cfg
+        self.register_buffer("action_index", torch.tensor(action_index, dtype=torch.long), persistent=False)
+        self.post = PostEncoder(cfg)
+        self.outcome = OutcomeEncoder(d)
+        self.nbr_pool = NeighborPool(d)
+        self.ctx = nn.Sequential(nn.Linear(cfg.n_ctx, d), nn.GELU(approximate="tanh"), nn.Linear(d, d))
+        self.age_emb = nn.Embedding(POST_AGE_NUM_BUCKETS, d)
+        self.gap_emb = nn.Embedding(TIME_GAP_CARDINALITY, d)
+        self.role = nn.Parameter(torch.zeros(3, d))   # history, candidate, neighbour
+        nn.init.normal_(self.role, std=0.02)
+        self.in_norm = RMSNorm(d)
+        self.drop = nn.Dropout(cfg.dropout)
+        self.trunk = Trunk(d, cfg.n_layers, cfg.n_q_heads, cfg.n_kv_heads, cfg.ffn_mult, cfg.dropout)
+        self.actions = nn.Linear(d, cfg.n_actions)
+        self.hist = nn.ModuleDict({k: nn.Linear(d, h.bins) for k, h in cfg.hist_heads.items()})
+        self.pair_log_scale = nn.Parameter(torch.tensor(math.log(4.0)))
+
+    def forward(self, table: FeatureTable, ep: Episode) -> dict:
+        t, cfg = table.t, self.cfg
+        created, counts, followers = t["created_s"], t["counts"], t["followers"]
+        H = ep.hist_rows.shape[1]
+
+        hist_age = ep.cutoff_s[:, None] - created[ep.hist_rows]
+        vis = ep.hist_visible if cfg.use_history_outcomes else torch.zeros_like(ep.hist_visible)
+        hist = (self.post(t, ep.hist_rows) + self.outcome(counts[ep.hist_rows], vis, followers[ep.hist_rows])
+                + self.age_emb(post_age_bucket(hist_age)) + self.gap_emb(time_gap_bucket(hist_age)) + self.role[0])
+
+        cand_content = self.post(t, ep.cand_rows)
+        observed = (ep.cand_obs_counts >= 0).any(-1)
+        cand = (cand_content + self.outcome(ep.cand_obs_counts, observed, followers[ep.cand_rows])
+                + self.age_emb(post_age_bucket(ep.cand_obs_age_s))
+                + self.gap_emb(time_gap_bucket(created[ep.cand_rows] - ep.cutoff_s[:, None])) + self.role[1])
+        if cfg.use_neighbors and ep.nbr_rows.shape[-1] > 0:
+            age_h = (created[ep.cand_rows][..., None] - created[ep.nbr_rows]).clamp(min=0).float() / 3600.0
+            nfeat = torch.stack([ep.nbr_cos, torch.log1p(age_h) / 6.0], dim=-1)
+            nbr = (self.post(t, ep.nbr_rows) + self.outcome(counts[ep.nbr_rows], ep.nbr_visible, followers[ep.nbr_rows])
+                   + self.nbr_pool.feat(nfeat) + self.role[2])
+            cand = cand + self.nbr_pool(cand_content, nbr, ep.nbr_mask)
+
+        ctx = ep.ctx if cfg.use_history_outcomes else torch.cat([ep.ctx[:, :1], torch.zeros_like(ep.ctx[:, 1:])], dim=1)
+        x = torch.cat([self.ctx(ctx)[:, None], hist, cand], dim=1)
+        valid = torch.cat([torch.ones_like(ep.hist_mask[:, :1]), ep.hist_mask, ep.cand_mask], dim=1)
+        x = self.trunk(self.drop(self.in_norm(x)), valid, 1, H)[:, 1 + H:]
+        return {"actions": self.actions(x), "hist": {k: head(x) for k, head in self.hist.items()}}
+
+    # --- loss ---
+
+    def loss(self, ep: Episode, out: dict, tcfg: TrainCfg) -> tuple[torch.Tensor, dict]:
+        cfg = self.cfg
+        parts: dict[str, torch.Tensor] = {}
+        total = out["actions"].new_zeros(())
+        for name, spec in cfg.hist_heads.items():
+            y = ep.y[name]
+            m = ~torch.isnan(y)
+            if m.any():
+                tgt = hist_targets(y[m], spec, cfg.hl_gauss_sigma_bins)
+                ce = -(tgt * F.log_softmax(out["hist"][name][m].float(), dim=-1)).sum(-1)
+                w = ep.w[m]
+                parts[name] = (ce * w).sum() / w.sum().clamp_min(1e-8)
+                total = total + spec.weight * parts[name]
+        r = ep.rates
+        m = ~torch.isnan(r)
+        if m.any():
+            logits = out["actions"][..., self.action_index].float()
+            bce = F.binary_cross_entropy_with_logits(logits[m], r[m], reduction="none")
+            w = ep.w[..., None].expand_as(r)[m]
+            parts["rates"] = (bce * w).sum() / w.sum().clamp_min(1e-8)
+            total = total + tcfg.w_rates * parts["rates"]
+        pair = self.pair_loss(ep, out, tcfg)
+        if pair is not None:
+            parts["pair"] = pair
+            total = total + tcfg.w_pair * pair
+        return total, {k: float(v.detach()) for k, v in parts.items()}
+
+    def pair_loss(self, ep: Episode, out: dict, tcfg: TrainCfg) -> torch.Tensor | None:
+        """RankNet over same-author candidates in an episode: the confound control for content effects.
+
+        A pair uses views when both posts have them, otherwise likes. Within an episode the follower
+        count is essentially constant, so the difference in the follower-normalised target is the
+        difference in log outcome.
+        """
+        cfg = self.cfg
+        C = ep.cand_rows.shape[1]
+        if C < 2:
+            return None
+        upper = torch.triu(torch.ones(C, C, dtype=torch.bool, device=ep.w.device), diagonal=1)[None]
+        losses, used = [], None
+        for name in ("reach", "like"):
+            y = ep.y[name]
+            ok = ~torch.isnan(y)
+            both = ok[:, :, None] & ok[:, None, :] & upper
+            if used is not None:
+                both &= ~used
+            used = both if used is None else (used | both)
+            dy = torch.nan_to_num(y)[:, :, None] - torch.nan_to_num(y)[:, None, :]
+            m = both & (dy.abs() >= tcfg.pair_margin)
+            if m.any():
+                s = hist_mean(out["hist"][name].float(), cfg.hist_heads[name])
+                ds = (s[:, :, None] - s[:, None, :])[m] * self.pair_log_scale.exp()
+                losses.append(F.binary_cross_entropy_with_logits(ds, (dy[m] > 0).float(), reduction="none"))
+        return torch.cat(losses).mean() if losses else None
+
+    # --- predictions ---
+
+    @torch.no_grad()
+    def summarize(self, ep: Episode, out: dict, temperature: dict | None = None) -> dict:
+        """Per-candidate predictions the product reports. `temperature` holds per-head calibration."""
+        cfg = self.cfg
+        T = temperature or {}
+        res: dict[str, torch.Tensor] = {}
+        for name, spec in cfg.hist_heads.items():
+            lg = out["hist"][name].float() / T.get(name, 1.0)
+            res[f"{name}_mean"] = hist_mean(lg, spec)
+            for q in (0.1, 0.5, 0.9):
+                res[f"{name}_q{int(q * 100)}"] = hist_quantile(lg, spec, q)
+        reach = out["hist"]["reach"].float() / T.get("reach", 1.0)
+        for mult, thr in (("1x", 0.0), ("10x", 1.0), ("100x", 2.0)):
+            res[f"p_reach_{mult}"] = hist_tail(reach, cfg.hist_heads["reach"], thr)
+        for name in ("rel_like", "rel_view"):
+            thr = torch.nan_to_num(ep.own_p90_thr[name], nan=1e6)[:, None]
+            res[f"p_own_p90_{name}"] = hist_tail(out["hist"][name].float() / T.get(name, 1.0), cfg.hist_heads[name], thr)
+        res["actions"] = out["actions"].float().sigmoid()
+        return res

@@ -32,6 +32,9 @@ STAGES = {
     "sid-assign": pipeline.sid_assign,
     "embed-siglip": pipeline.embed_siglip,
     "neighbors": pipeline.neighbors_stage,
+    "model-prepare": pipeline.model_prepare,
+    "model-train": pipeline.model_train,
+    "model-eval": pipeline.model_eval,
 }
 
 
@@ -42,6 +45,10 @@ def main(argv: list[str] | None = None) -> None:
     ap.add_argument("--limit", type=int, default=None, help="ingest: only the first N USC chunks (smoke runs)")
     ap.add_argument("--blocklists", default=None, help="features/phase0: directory of domain blocklist .txt files")
     ap.add_argument("--tables", nargs="*", default=None, help="ca-download: subset of tables")
+    ap.add_argument("--preset", default="base", help="model-train: nano | small | base | large")
+    ap.add_argument("--steps", type=int, default=None, help="model-train: optimisation steps")
+    ap.add_argument("--device", default=None, help="model stages: cpu | cuda (default: embed.device)")
+    ap.add_argument("--run", default="run", help="model stages: run directory name under work/model/")
     ap.add_argument("--log-level", default="INFO")
     args = ap.parse_args(argv)
     setup_logging(args.log_level)
@@ -62,6 +69,10 @@ def main(argv: list[str] | None = None) -> None:
         kwargs["limit"] = args.limit
     if args.stage in ("features", "phase0"):
         kwargs["blocklist_dir"] = args.blocklists
+    if args.stage == "model-train":
+        kwargs.update(preset=args.preset, steps=args.steps, device=args.device, name=args.run)
+    if args.stage == "model-eval":
+        kwargs.update(device=args.device, name=args.run)
     res = fn(cfg, **kwargs)
     if res is not None:
         logging.getLogger("xviral").info("result:\n%s", json.dumps(res, indent=2, default=str))

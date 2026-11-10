@@ -60,9 +60,16 @@ def rates(df: pl.DataFrame) -> pl.DataFrame:
 def reach(df: pl.DataFrame) -> pl.DataFrame:
     f = pl.col("followers_at_post").cast(pl.Float64).clip(lower_bound=1.0)
     rr = pl.col("views").cast(pl.Float64) / f
+    lr = pl.col("likes").cast(pl.Float64) / f
+    own_like = lambda c: (  # noqa: E731
+        pl.when(pl.col(c).is_not_null() & pl.col("likes").is_not_null()).then(pl.col("likes") >= pl.col(c)).otherwise(None)
+        if c in df.columns else pl.lit(None, dtype=pl.Boolean))
     return df.with_columns(
         rr.alias("reach_ratio"),
         rr.log1p().alias("log_reach_ratio"),
+        lr.alias("like_ratio"),
+        lr.log1p().alias("log_like_ratio"),
+        own_like("trailing_likes_p90").alias("y_likes_beat_own_p90"),
         (rr >= 1).alias("y_reach_1x"),
         (rr >= 10).alias("y_reach_10x"),
         (rr >= 100).alias("y_reach_100x"),

@@ -58,7 +58,8 @@ def _post_quantities(posts: pl.DataFrame) -> pl.DataFrame:
         (~pl.element().struct.field("is_media")) & (pl.element().struct.field("final_domain").fill_null("") != "x.com")
     ).list.any()
     return posts.select(
-        "post_id", "author_id", "created_at_ms", "views",
+        "post_id", "author_id", "created_at_ms", "views", "likes",
+        (pl.col("likes").cast(pl.Float64) / pl.col("followers_at_post").cast(pl.Float64).clip(lower_bound=1)).alias("q_like_ratio"),
         (pl.col("likes") / v).alias("q_fav"),
         (pl.col("replies") / v).alias("q_reply"),
         (pl.col("reposts") / v).alias("q_repost"),
@@ -92,6 +93,16 @@ def trailing_features(posts: pl.DataFrame, window: int = 50) -> pl.DataFrame:
         pl.int_range(1, pl.len() + 1).over("author_id", order_by="created_at_ms").clip(upper_bound=window).alias("history_n"),
     ).group_by("author_id", "created_at_ms").agg(pl.all().last()).sort("created_at_ms")
 
+    # Like-based history: defined for every source (the Community Archive has likes but no views).
+    liked = q.filter(pl.col("likes").is_not_null())
+    state_liked = liked.select(
+        "author_id", "created_at_ms",
+        pl.col("likes").cast(pl.Float64).rolling_quantile(0.5, window_size=window, min_samples=1).over("author_id", order_by="created_at_ms").alias("trailing_likes_p50"),
+        pl.col("likes").cast(pl.Float64).rolling_quantile(0.9, window_size=window, min_samples=1).over("author_id", order_by="created_at_ms").alias("trailing_likes_p90"),
+        rq("q_like_ratio", 0.5).alias("trailing_like_ratio_p50"),
+        pl.int_range(1, pl.len() + 1).over("author_id", order_by="created_at_ms").clip(upper_bound=window).alias("history_likes_n"),
+    ).group_by("author_id", "created_at_ms").agg(pl.all().last()).sort("created_at_ms")
+
     state_all = q.select(
         "author_id", "created_at_ms",
         *[pl.col(f"q_{k}").rolling_mean(window_size=window, min_samples=1).over("author_id", order_by="created_at_ms").alias(f"trailing_{k}_share")
@@ -101,7 +112,8 @@ def trailing_features(posts: pl.DataFrame, window: int = 50) -> pl.DataFrame:
     target = q.select("post_id", "author_id", "created_at_ms").sort("created_at_ms")
     out = target.join_asof(state_viewed, on="created_at_ms", by="author_id", strategy="backward", allow_exact_matches=False, check_sortedness=False)
     out = out.join_asof(state_all, on="created_at_ms", by="author_id", strategy="backward", allow_exact_matches=False, check_sortedness=False)
-    out = out.with_columns(pl.col("history_n").fill_null(0))
+    out = out.join_asof(state_liked, on="created_at_ms", by="author_id", strategy="backward", allow_exact_matches=False, check_sortedness=False)
+    out = out.with_columns(pl.col("history_n").fill_null(0), pl.col("history_likes_n").fill_null(0))
 
     # Cadence: originals in the prior 24 h and 7 d, and the gap to the previous original.
     t = posts.select("post_id", "author_id", pl.col("created_at_ms").cast(pl.Datetime("ms")).alias("_t")).sort("author_id", "_t")
