@@ -9,6 +9,7 @@ Phoenix stores codes +1 so that 0 means "missing" (recsys_batch.py:1259-1261);
 from __future__ import annotations
 
 import logging
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -28,7 +29,8 @@ def train(embeddings_npy: str | Path, codebook_out: str | Path, num_levels: int 
     if sample_size:
         cmd += ["--sample-size", str(sample_size)]
     log.info("sid train: %s", " ".join(cmd))
-    subprocess.run(cmd, check=True, cwd=str(REFERENCE_DIR))
+    # No bytecode: the trainer lives in X's phoenix/reference, which this package must leave untouched.
+    subprocess.run(cmd, check=True, cwd=str(REFERENCE_DIR), env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1"})
     return Path(codebook_out)
 
 
