@@ -108,7 +108,12 @@ def main() -> None:
             for mult in ("1x", "10x", "100x"):
                 pred[f"p_reach_{mult}"] = scores["views_mean"]
         m = evaluate.metrics(pred, table, tcfg)
-        results["gbdt_tabular" + ("_plus_embedding" if with_emb else "")] = {k: v for k, v in m.items() if not k.startswith(("nll", "own_p90_ece", "ece"))}
+        results["gbdt_tabular" + ("_plus_embedding" if with_emb else "")] = rank_only(m)
+        if with_emb and "full" in results:
+            # Stage C preview: the model and the trees averaged, each score standardised first.
+            z = lambda a: (a - np.nanmean(a)) / (np.nanstd(a) + 1e-9)  # noqa: E731
+            ens = {k: 0.5 * z(ref_pred[k]) + 0.5 * z(v) for k, v in scores.items()}
+            results["ensemble_model_plus_gbdt"] = rank_only(evaluate.metrics({**ref_pred, **ens}, table, tcfg))
     (out / "results.json").write_text(json.dumps(results, indent=2, default=float))
 
     cols = [k for k in KEYS if any(k in r and not np.isnan(r[k]) for r in results.values())]

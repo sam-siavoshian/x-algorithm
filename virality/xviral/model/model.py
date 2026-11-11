@@ -22,6 +22,7 @@ from xviral.model.features import FeatureTable
 from xviral.model.layers import RMSNorm, Trunk
 
 TIME_GAP_CARDINALITY = 19  # recsys_feature_prep.py:52
+EMB_INIT_STD = 0.1         # lookup tables start well below the O(1) scale of the MLP feature groups
 
 
 def post_age_bucket(age_s: torch.Tensor) -> torch.Tensor:
@@ -95,12 +96,22 @@ class PostEncoder(nn.Module):
         super().__init__()
         d = cfg.d_model
         self.cfg = cfg
-        self.emb = nn.Linear(cfg.emb_dim, d, bias=False) if cfg.emb_dim else None
+        # Feature groups are summed into one token, so they must arrive at comparable scale. The post
+        # embedding is a unit vector (entries ~ 1/sqrt(dim)); it is multiplied by sqrt(dim) before its
+        # MLP, and lookup tables start small. Phoenix does the same job with explicit input scaling
+        # (phoenix/xrex/models/scaling.py). Without this, content enters at about 1% of the token.
+        mlp = lambda i: nn.Sequential(nn.Linear(i, d), nn.GELU(approximate="tanh"), nn.Linear(d, d))  # noqa: E731
+        self.emb = mlp(cfg.emb_dim) if cfg.emb_dim else None
+        self.emb_scale = math.sqrt(cfg.emb_dim) if cfg.emb_dim else 1.0
         self.no_emb = nn.Parameter(torch.zeros(d))
         self.sid = nn.Embedding(cfg.sid_levels * cfg.sid_vocab, d) if cfg.sid_levels else None
-        self.num = nn.Sequential(nn.Linear(cfg.n_num, d), nn.GELU(approximate="tanh"), nn.Linear(d, d)) if cfg.n_num else None
+        self.num = mlp(cfg.n_num) if cfg.n_num else None
         self.cat = nn.ModuleList(nn.Embedding(c, d) for c in cfg.cat_cards)
-        self.aux = nn.ModuleDict({k: nn.Linear(v, d, bias=False) for k, v in cfg.aux_dims.items()})
+        self.aux = nn.ModuleDict({k: mlp(v) for k, v in cfg.aux_dims.items()})
+        self.aux_scale = {k: math.sqrt(v) for k, v in cfg.aux_dims.items()}
+        for m in self.modules():
+            if isinstance(m, nn.Embedding):
+                nn.init.normal_(m.weight, std=EMB_INIT_STD)
 
     def forward(self, t: dict, rows: torch.Tensor) -> torch.Tensor:
         cfg = self.cfg
@@ -112,14 +123,14 @@ class PostEncoder(nn.Module):
         if cfg.use_content:
             if self.emb is not None and "emb" in t:
                 has = t["has_emb"][rows][..., None]
-                x = x + torch.where(has, self.emb(t["emb"][rows].float()), self.no_emb.expand(*rows.shape, -1))
+                x = x + torch.where(has, self.emb(t["emb"][rows].float() * self.emb_scale), self.no_emb.expand(*rows.shape, -1))
             if self.sid is not None and "sid" in t:
                 codes = t["sid"][rows].long()                                    # [..., L], 0 = missing
                 offs = torch.arange(codes.shape[-1], device=codes.device) * cfg.sid_vocab
                 x = x + (self.sid(codes + offs) * (codes > 0)[..., None]).sum(-2)
             for name, proj in self.aux.items():
                 if f"aux_{name}" in t:
-                    x = x + proj(t[f"aux_{name}"][rows].float()) * t[f"has_aux_{name}"][rows][..., None]
+                    x = x + proj(t[f"aux_{name}"][rows].float() * self.aux_scale[name]) * t[f"has_aux_{name}"][rows][..., None]
         return x
 
 
@@ -211,6 +222,8 @@ class Surrogate(nn.Module):
         self.ctx = nn.Sequential(nn.Linear(cfg.n_ctx, d), nn.GELU(approximate="tanh"), nn.Linear(d, d))
         self.age_emb = nn.Embedding(POST_AGE_NUM_BUCKETS, d)
         self.gap_emb = nn.Embedding(TIME_GAP_CARDINALITY, d)
+        nn.init.normal_(self.age_emb.weight, std=EMB_INIT_STD)
+        nn.init.normal_(self.gap_emb.weight, std=EMB_INIT_STD)
         self.role = nn.Parameter(torch.zeros(3, d))   # history, candidate, neighbour
         nn.init.normal_(self.role, std=0.02)
         self.in_norm = RMSNorm(d)
