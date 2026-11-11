@@ -107,16 +107,20 @@ def language(df: pl.DataFrame, cfg: FilterCfg) -> pl.DataFrame:
     return df.filter(keep)
 
 
-def hygiene(df: pl.DataFrame, authors: pl.DataFrame, cfg) -> pl.DataFrame:
-    """Drop accounts that look automated. Thresholds sit far beyond the flagging thresholds in features."""
+def hygiene_bad_accounts(authors: pl.DataFrame, cfg) -> pl.Series:
+    """Accounts that look automated. Thresholds sit far beyond the flagging thresholds in features."""
     bad = authors.filter(
         (pl.col("max_originals_24h") > cfg.max_originals_per_24h)
         | ((pl.col("follow_ratio") < cfg.min_follow_ratio) & (pl.col("following_latest") > cfg.min_following_for_ratio_rule))
         | ((pl.col("top_domain_share") > cfg.max_same_domain_share) & (pl.col("originals_n") >= cfg.min_posts_for_domain_rule))
         | (pl.col("copypasta_events") > cfg.max_copypasta_events)
-    ).select("author_id")
-    log.info("hygiene: %d accounts dropped", bad.height)
-    return df.join(bad, on="author_id", how="anti")
+    )["author_id"]
+    log.info("hygiene: %d accounts dropped", len(bad))
+    return bad
+
+
+def hygiene(df: pl.DataFrame, authors: pl.DataFrame, cfg) -> pl.DataFrame:
+    return df.filter(~pl.col("author_id").is_in(hygiene_bad_accounts(authors, cfg).implode()))
 
 
 def account_volume(df: pl.DataFrame, cfg) -> pl.DataFrame:
@@ -131,16 +135,21 @@ def account_volume(df: pl.DataFrame, cfg) -> pl.DataFrame:
     return df.filter(keep)
 
 
-def select_accounts(df: pl.DataFrame, cfg) -> pl.DataFrame:
-    """Account-level selection (config.SelectCfg). Adds `acct_tech_share`, `acct_off_share` and `in_audience`.
+SELECT_COLUMNS = ("post_id", "author_id", "created_at_ms", "source", "text")
 
-    Audience accounts: enough posts, tech-leaning, not dominated by off-audience vocabulary. Optionally a
-    fixed number of general accounts with enough posts is kept too, flagged `in_audience` = false.
+
+def account_selection(narrow: pl.DataFrame, cfg) -> pl.DataFrame:
+    """Which posts survive account selection (config.SelectCfg), decided on SELECT_COLUMNS alone.
+
+    Returns post_id, acct_tech_share, acct_off_share, in_audience for the kept posts. Audience accounts:
+    enough posts, tech-leaning, not dominated by off-audience vocabulary. Optionally a fixed number of
+    general accounts with enough posts is kept too, flagged `in_audience` = false. Working on five narrow
+    columns keeps a corpus of millions of posts from being copied while the decision is made.
     """
     from xviral.text.tech import is_off_audience_post, is_tech_post
 
     keep_src = pl.col("source").is_in(cfg.always_keep_sources)
-    stats = df.group_by("author_id").agg(
+    stats = narrow.group_by("author_id").agg(
         pl.len().alias("_n"), is_tech_post(strong=True).mean().alias("acct_tech_share"),
         is_off_audience_post().mean().alias("acct_off_share"), keep_src.any().alias("_keep"))
     on_topic = pl.col("acct_tech_share") >= cfg.min_tech_share
@@ -154,13 +163,17 @@ def select_accounts(df: pl.DataFrame, cfg) -> pl.DataFrame:
     else:
         general = general.head(0)
     ok = pl.concat([stats.filter(pl.col("in_audience")), general]).select("author_id", "acct_tech_share", "acct_off_share", "in_audience")
-    out = df.join(ok, on="author_id", how="inner")
+    keys = narrow.select("post_id", "author_id", "created_at_ms").join(ok, on="author_id", how="inner")
     cap_a, cap_g = cfg.max_posts_per_account, cfg.general_max_posts_per_account or cfg.max_posts_per_account
     if cap_a or cap_g:
         big = 1 << 60
         cap = pl.when(pl.col("in_audience")).then(pl.lit(cap_a or big)).otherwise(pl.lit(cap_g or big))
-        out = out.with_columns(pl.col("created_at_ms").rank("ordinal", descending=True).over("author_id").alias("_r")).filter(
-            pl.col("_r") <= cap).drop("_r")
-    log.info("select: %d -> %d posts; %d accounts -> %d audience + %d general", df.height, out.height, stats.height,
+        keys = keys.with_columns(pl.col("created_at_ms").rank("ordinal", descending=True).over("author_id").alias("_r")).filter(pl.col("_r") <= cap)
+    log.info("select: %d -> %d posts; %d accounts -> %d audience + %d general", narrow.height, keys.height, stats.height,
              int(ok["in_audience"].sum()), int((~ok["in_audience"]).sum()))
-    return out
+    return keys.select("post_id", "acct_tech_share", "acct_off_share", "in_audience")
+
+
+def select_accounts(df: pl.DataFrame, cfg) -> pl.DataFrame:
+    """Account-level selection on an in-memory frame; adds `acct_tech_share`, `acct_off_share` and `in_audience`."""
+    return df.join(account_selection(df.select(SELECT_COLUMNS), cfg), on="post_id", how="inner")

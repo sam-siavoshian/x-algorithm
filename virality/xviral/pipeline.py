@@ -129,9 +129,15 @@ def author_stage(cfg: Config) -> None:
 
 
 def hygiene_stage(cfg: Config) -> None:
-    posts = _read(cfg.paths.work / "filtered" / "posts.parquet")
+    """Hygiene and account selection. The decision is made on a few narrow columns; the wide rows are
+    read once, already restricted to the kept posts."""
+    path = cfg.paths.work / "filtered" / "posts.parquet"
     atab = _read(cfg.paths.work / "authors" / "authors.parquet")
-    kept = filters.select_accounts(filters.hygiene(posts, atab, cfg.hygiene), cfg.select)
+    bad = filters.hygiene_bad_accounts(atab, cfg.hygiene)
+    narrow = pl.scan_parquet(path).select(filters.SELECT_COLUMNS).filter(~pl.col("author_id").is_in(bad.implode())).collect()
+    keys = filters.account_selection(narrow, cfg.select)
+    del narrow
+    kept = pl.scan_parquet(path).join(keys.lazy(), on="post_id", how="inner").collect()
     write_parquet(kept, cfg.paths.stage("hygiene") / "posts.parquet")
 
 
