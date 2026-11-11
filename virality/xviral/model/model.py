@@ -176,36 +176,56 @@ class NeighborPool(nn.Module):
 
 
 class HistoryKNN(nn.Module):
-    """Explicit in-context estimate: how the account's most similar earlier posts performed.
+    """Explicit in-context estimates from the account's own visible history.
 
-    For each candidate, cosine similarity to every visible history post on the raw post embedding,
-    softmax at two temperatures, and the similarity-weighted mean of those posts' outcomes relative
-    to the account's own median. The trunk's attention can learn this; handing it the estimate
-    directly makes the account-specific signal available from the first training step.
+    For each candidate, the weighted mean of earlier posts' outcomes (relative to the account's own
+    median) under four kernels:
+      content   cosine similarity on the raw post embedding, softmax at two temperatures:
+                "how did this account's most similar posts do"
+      hour      Gaussian in circular hour-of-day distance (time-zone free, since it is a difference):
+                "how do this account's posts do at this hour"
+      format    same media/link/video combination: "how do this account's posts in this format do"
+    The trunk's attention can learn all of these; handing it the estimates makes the account-specific
+    signal available from the first training step.
     """
 
     TEMPS = (0.05, 0.2)
+    HOUR_SIGMA = 2.0
+    N_FEATS = 14
 
     def __init__(self, d: int):
         super().__init__()
-        self.mlp = nn.Sequential(nn.Linear(8, 64), nn.GELU(approximate="tanh"), nn.Linear(64, d))
+        self.mlp = nn.Sequential(nn.Linear(self.N_FEATS, 64), nn.GELU(approximate="tanh"), nn.Linear(64, d))
 
-    def forward(self, e_c: torch.Tensor, e_h: torch.Tensor, counts_h: torch.Tensor, visible: torch.Tensor,
-                med_like: torch.Tensor, med_view: torch.Tensor) -> torch.Tensor:
+    def forward(self, e_c: torch.Tensor, e_h: torch.Tensor, counts_h: torch.Tensor, visible: torch.Tensor, has_emb_h: torch.Tensor,
+                med_like: torch.Tensor, med_view: torch.Tensor, hour_c: torch.Tensor, hour_h: torch.Tensor,
+                fmt_c: torch.Tensor, fmt_h: torch.Tensor) -> torch.Tensor:
         sim = F.normalize(e_c, dim=-1) @ F.normalize(e_h, dim=-1).transpose(1, 2)        # [B, C, H]
+        dh = (hour_c[:, :, None] - hour_h[:, None, :]).abs()
+        dh = torch.minimum(dh, 24.0 - dh)
+        hour_logit = -(dh ** 2) / (2 * self.HOUR_SIGMA ** 2)
+        same_fmt = fmt_c[:, :, None] == fmt_h[:, None, :]
+        neg = float("-inf")
+
+        def wmean(logits: torch.Tensor, ok: torch.Tensor, rel: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+            any_ok = ok.any(-1, keepdim=True)
+            w = logits.masked_fill(~ok, neg).softmax(-1)
+            w = torch.where(any_ok, w, torch.zeros_like(w))
+            return (w * rel[:, None, :]).sum(-1), any_ok.squeeze(-1).float()
+
         feats = []
         for idx, med in ((I_LIKES, med_like), (I_VIEWS, med_view)):
             ok = visible & (counts_h[..., idx] >= 0)                                      # [B, H]
             rel = (torch.log10(counts_h[..., idx].clamp(min=0).float() + 1.0) - med[:, None]) * ok
-            any_ok = ok.any(-1)[:, None, None]
+            okc = ok[:, None, :].expand_as(sim)
             for temp in self.TEMPS:
-                w = (sim / temp).masked_fill(~ok[:, None, :], float("-inf")).softmax(-1)
-                w = torch.where(any_ok, w, torch.zeros_like(w))
-                feats.append((w * rel[:, None, :]).sum(-1))
-            feats.append(any_ok.expand(-1, sim.shape[1], 1).squeeze(-1).float())
-        vis_sim = sim.masked_fill(~visible[:, None, :], -1.0)
-        feats.append(vis_sim.max(-1).values * visible.any(-1)[:, None])
-        feats.append((sim * visible[:, None, :]).sum(-1) / visible.sum(-1).clamp(min=1)[:, None])
+                feats.append(wmean(sim / temp, okc & has_emb_h[:, None, :], rel)[0])
+            feats.append(wmean(hour_logit, okc, rel)[0])
+            f_mean, f_any = wmean(torch.zeros_like(sim), okc & same_fmt, rel)
+            feats += [f_mean, f_any, okc.any(-1).float()]
+        vis = visible & has_emb_h
+        feats.append(sim.masked_fill(~vis[:, None, :], -1.0).max(-1).values * vis.any(-1)[:, None])
+        feats.append((sim * vis[:, None, :]).sum(-1) / vis.sum(-1).clamp(min=1)[:, None])
         return self.mlp(torch.stack(feats, dim=-1))
 
 
@@ -274,9 +294,12 @@ class Surrogate(nn.Module):
 
         if self.live_enc is not None and cfg.use_content:
             cand = cand + self.live_tokens(table, ep)
-        if cfg.use_hist_knn and cfg.use_history_outcomes and cfg.use_content and "emb" in t:
-            cand = cand + self.hist_knn(t["emb"][ep.cand_rows].float(), t["emb"][ep.hist_rows].float(), counts[ep.hist_rows],
-                                        ep.hist_visible & t["has_emb"][ep.hist_rows], ep.ctx[:, 3], ep.ctx[:, 5])
+        if cfg.use_hist_knn and cfg.use_history_outcomes and "emb" in t:
+            hour = lambda rows: (created[rows] % 86400).float() / 3600.0  # noqa: E731
+            e_c, e_h = t["emb"][ep.cand_rows].float(), t["emb"][ep.hist_rows].float()
+            has_h = t["has_emb"][ep.hist_rows] if cfg.use_content else torch.zeros_like(ep.hist_visible)
+            cand = cand + self.hist_knn(e_c, e_h, counts[ep.hist_rows], ep.hist_visible, has_h, ep.ctx[:, 3], ep.ctx[:, 5],
+                                        hour(ep.cand_rows), hour(ep.hist_rows), t["fmt"][ep.cand_rows], t["fmt"][ep.hist_rows])
 
         ctx = ep.ctx if cfg.use_history_outcomes else torch.cat([ep.ctx[:, :1], torch.zeros_like(ep.ctx[:, 1:])], dim=1)
         x = torch.cat([self.ctx(ctx)[:, None], hist, cand], dim=1)

@@ -30,6 +30,7 @@ NUM_SPEC: list[tuple[str, str]] = [
     # content scalars home-mixer computes (DATA_PIPELINE.md 7.2)
     ("weighted_text_len", "log1p"), ("newline_count", "log1p"), ("external_url_count", "log1p"), ("media_count", "log1p"),
     ("video_duration_ms", "log1p"), ("mentions_n", "log1p"), ("hashtags_n", "log1p"),
+    ("external_urls_text", "log1p"),   # links counted in the text itself; present even when a source has no URL table
     ("has_url", "bool"), ("has_media", "bool"), ("has_photo", "bool"), ("has_video", "bool"), ("has_gif", "bool"),
     ("video_gt_10s", "bool"), ("video_index_eligible", "bool"), ("thunder_has_video", "bool"), ("is_quote", "bool"),
     ("is_long_post", "bool"),
@@ -134,6 +135,12 @@ def build(rows: pl.DataFrame, out_dir: str | Path, emb=None, sid: pl.DataFrame |
     rates = rows.select([pl.col(a).cast(pl.Float32, strict=False) for a in ACTIONS]).to_numpy().astype(np.float32)
     assert counts.shape[0] == n and rates.shape[0] == n
 
+    # Post format code for the account-history profile: media | link | video.
+    flag = lambda c: (rows[c].cast(pl.Int8, strict=False).fill_null(0).to_numpy() if c in rows.columns else np.zeros(n, np.int8))  # noqa: E731
+    has_link = np.maximum(flag("has_url"), (rows["external_urls_text"].fill_null(0).to_numpy() > 0).astype(np.int8)
+                          if "external_urls_text" in rows.columns else 0)
+    fmt = (flag("has_media") + 2 * has_link + 4 * flag("has_video")).astype(np.int8)
+
     author = rows["author_id"].to_numpy()
     change = np.r_[True, author[1:] != author[:-1]]
     starts = np.flatnonzero(change)
@@ -147,7 +154,7 @@ def build(rows: pl.DataFrame, out_dir: str | Path, emb=None, sid: pl.DataFrame |
         "created_s": (rows["created_at_ms"].to_numpy() // 1000).astype(np.int64),
         "split": split.astype(np.int8),
         "w_row": rows["w_row"].cast(pl.Float32, strict=False).fill_null(1.0).to_numpy() if "w_row" in rows.columns else np.ones(n, np.float32),
-        "num": num, "cat": cat, "counts": counts, "followers": followers.astype(np.float32),
+        "num": num, "cat": cat, "fmt": fmt, "counts": counts, "followers": followers.astype(np.float32),
         "y_like": y_like, "y_reach": y_reach, "y_likes": y_likes, "y_views": y_views, "rates": rates,
     }
 
