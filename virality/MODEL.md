@@ -108,14 +108,14 @@ Enforced in `episodes.build` and covered by tests that alter the data and check 
 
 ## 8. Training plan with the larger compute budget
 
-| Stage | What | Why |
-|---|---|---|
-| A (implemented) | Frozen embeddings, train the trunk and heads | Cheap, cacheable; establishes the numbers in section 9 with the real encoder |
-| B | LoRA on `Qwen3-VL-Embedding-8B`, trained through the same episode loss with candidates encoded live and history from cache, refreshed per epoch | Fine-tuned encoders beat frozen ones on engagement prediction in every 2024 to 2026 study; the pairwise loss gives the encoder a direct "which post wins" signal |
-| C | Ensemble of 3 to 5 seeds and sizes of stage B, distribution-averaged; a gradient-boosted model on tabular features as an independent second scorer | Calibration, and the agreement check the optimizer needs |
-| D | Viewer-level model on donors' own likes (22.7M) with Phoenix's real layout | Validates audience behaviour against real individuals |
+| Stage | What | Why | Status |
+|---|---|---|---|
+| A | Frozen embeddings; train the trunk and heads | Cheap and cacheable; the base every later stage warm-starts from | implemented, run in section 9 |
+| B | The encoder with LoRA adapters, trained through the same episode loss. Each candidate gets a second content vector from the adapted encoder; history keeps the frozen vectors, so nothing has to be re-embedded while the adapters move | Fine-tuned encoders beat frozen ones on engagement prediction in every 2024 to 2026 study, and the pairwise loss gives the encoder a direct "which post wins" signal | implemented (`xviral/model/live.py`), tested on CPU with a small encoder; needs a GPU for the 8B encoder |
+| C | Ensemble of seeds and sizes, distributions averaged; gradient-boosted trees on tabular features as an independent second scorer | Calibration, and the agreement check the optimizer needs | seeds via `--seed`; averaging to do |
+| D | Viewer-level model on donors' own likes (22.7M) in Phoenix's real layout | Validates audience behaviour against real individuals | planned |
 
-Stage A at `large` on 1M posts is a few GPU-hours. Stage B on an 8B encoder is the compute-heavy step: tens of GPU-hours on 80 GB cards per run.
+`scripts/gpu_run.sh` runs the whole sequence on one GPU machine: archive download, phase 0, media, X's embedding, semantic IDs, neighbours, stage A for each seed, stage B warm-started from each, evaluation and the comparison table. Stage A at `large` on 1M posts is a few GPU-hours; stage B on the 8B encoder is tens of GPU-hours on an 80 GB card per seed.
 
 ## 9. Evidence
 

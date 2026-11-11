@@ -44,7 +44,12 @@ def main(argv: list[str] | None = None) -> None:
     ap.add_argument("--config", default=None)
     ap.add_argument("--limit", type=int, default=None, help="ingest: only the first N USC chunks (smoke runs)")
     ap.add_argument("--blocklists", default=None, help="features/phase0: directory of domain blocklist .txt files")
-    ap.add_argument("--tables", nargs="*", default=None, help="ca-download: subset of tables")
+    ap.add_argument("--mode", default="donors", choices=["donors", "full", "tables"], help="ca-download: what to pull")
+    ap.add_argument("--shards", type=int, default=4, help="ca-download --mode full: parallel time shards")
+    ap.add_argument("--live-model", default=None, help="model-train: stage B encoder id (LoRA-tuned through the model's loss)")
+    ap.add_argument("--init", default=None, help="model-train: checkpoint to warm-start from")
+    ap.add_argument("--batch-size", type=int, default=None, help="model-train: episodes per step")
+    ap.add_argument("--seed", type=int, default=0, help="model-train: random seed (vary it to build an ensemble)")
     ap.add_argument("--preset", default="base", help="model-train: nano | small | base | large")
     ap.add_argument("--steps", type=int, default=None, help="model-train: optimisation steps")
     ap.add_argument("--device", default=None, help="model stages: cpu | cuda (default: embed.device)")
@@ -55,13 +60,8 @@ def main(argv: list[str] | None = None) -> None:
     cfg = Config.load(args.config)
 
     if args.stage == "ca-download":
-        from xviral.sources.community_archive import RestDownloader
-
-        if cfg.paths.community_archive is None:
-            ap.error("set paths.community_archive in the config")
-        dl = RestDownloader(cfg.community_archive, cfg.paths.community_archive)
-        for t in args.tables or cfg.community_archive.tables:
-            dl.download(t)
+        res = pipeline.ca_download(cfg, mode=args.mode, shards=args.shards)
+        logging.getLogger("xviral").info("result: %s", res)
         return
     fn = STAGES[args.stage]
     kwargs = {}
@@ -70,7 +70,8 @@ def main(argv: list[str] | None = None) -> None:
     if args.stage in ("features", "phase0"):
         kwargs["blocklist_dir"] = args.blocklists
     if args.stage == "model-train":
-        kwargs.update(preset=args.preset, steps=args.steps, device=args.device, name=args.run)
+        kwargs.update(preset=args.preset, steps=args.steps, device=args.device, name=args.run, live_model=args.live_model,
+                      init=args.init, batch_size=args.batch_size, seed=args.seed)
     if args.stage == "model-eval":
         kwargs.update(device=args.device, name=args.run)
     res = fn(cfg, **kwargs)

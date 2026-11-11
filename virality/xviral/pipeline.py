@@ -439,15 +439,66 @@ def model_prepare(cfg: Config) -> dict:
     return features.build(rows, cfg.paths.stage("model") / "table", emb=emb, sid=sid, neighbors=nbrs, extra=extra)
 
 
-def model_train(cfg: Config, preset: str = "base", steps: int | None = None, device: str | None = None, name: str = "run") -> dict:
+def model_train(cfg: Config, preset: str = "base", steps: int | None = None, device: str | None = None, name: str = "run",
+                live_model: str | None = None, init: str | None = None, batch_size: int | None = None, seed: int = 0) -> dict:
+    """Stage A by default. With `live_model`, stage B: that encoder with LoRA adapters trains through the
+    model's loss, normally warm-started from a stage-A checkpoint via `init`."""
     from xviral.model import train as tr
     from xviral.model.config import TrainCfg
     from xviral.model.features import FeatureTable
 
-    table = FeatureTable.load(cfg.paths.work / "model" / "table", device or cfg.embed.device)
-    tcfg = TrainCfg(**({"steps": steps} if steps else {}))
-    res = tr.train(table, cfg.paths.stage("model") / name, tr.model_cfg_for(table, preset), tcfg)
+    dev = device or cfg.embed.device
+    table = FeatureTable.load(cfg.paths.work / "model" / "table", dev)
+    kw = {"seed": seed}
+    if steps:
+        kw["steps"] = steps
+    if batch_size:
+        kw["batch_size"] = batch_size
+    overrides = {}
+    if live_model:
+        overrides["live"] = {"model_id": live_model, "device": dev, "grad_checkpointing": dev != "cpu",
+                             "dtype": "bfloat16" if dev != "cpu" else None}
+    res = tr.train(table, cfg.paths.stage("model") / name, tr.model_cfg_for(table, preset, **overrides), TrainCfg(**kw), init_from=init)
     return {"best": res["best"], "params": res["params"]}
+
+
+def ca_download(cfg: Config, mode: str = "donors", shards: int = 4, max_rows_per_account: int = 20_000) -> dict:
+    """Community Archive download.
+
+    donors  every donor account's posts since community_archive.min_created, through the account index
+    full    every post since min_created in `shards` parallel time ranges, plus account, media, URL and
+            quote tables: the stream-captured rows of hundreds of thousands of accounts
+    tables  the tables listed in community_archive.tables, each paged whole
+    """
+    from concurrent.futures import ThreadPoolExecutor
+    from datetime import datetime, timedelta, timezone
+
+    from xviral.sources.community_archive import RestDownloader
+
+    out = cfg.paths.community_archive
+    if out is None:
+        raise ValueError("set paths.community_archive in the config")
+    dl = RestDownloader(cfg.community_archive, out)
+    if mode == "tables":
+        return {t: dl.download(t) for t in cfg.community_archive.tables}
+    donors = dl.donor_accounts()["account_id"].to_list()
+    if mode == "donors":
+        return {"donors": len(donors), "accounts": dl.download_accounts_meta(donors),
+                "tweets": dl.download_account_tweets(donors, max_rows_per_account=max_rows_per_account)}
+    lo = datetime.fromisoformat(cfg.community_archive.min_created).replace(tzinfo=timezone.utc)
+    hi = datetime.now(timezone.utc) + timedelta(days=1)
+    edges = [lo + (hi - lo) * i / shards for i in range(shards + 1)]
+
+    def one(i: int) -> int:
+        return RestDownloader(cfg.community_archive, out).download(
+            "tweets", lo=edges[i].isoformat(), hi=edges[i + 1].isoformat(), tag=f"s{i:02d}")
+
+    with ThreadPoolExecutor(max_workers=shards) as ex:
+        rows = sum(ex.map(one, range(shards)))
+    res = {"tweets": rows}
+    for t in ("all_account", "tweet_media", "tweet_urls", "quote_tweets"):
+        res[t] = dl.download(t)
+    return res
 
 
 def model_eval(cfg: Config, device: str | None = None, name: str = "run") -> dict:

@@ -1,0 +1,27 @@
+# Full-scale run on a GPU machine (scripts/gpu_run.sh). Paths are relative to virality/.
+paths:
+  work: data/work
+  community_archive: data/raw/community_archive
+  user_scrape: []            # add your scrape JSONL files here, newest first
+  analytics: []              # X analytics CSV exports, one per account
+  seed_accounts: null        # optional handle list defining the audience
+
+workers: 16
+
+community_archive:
+  min_created: "2023-01-01"
+  requests_per_second: 4
+
+relevance:
+  enabled: true
+  embedder: Qwen/Qwen3-Embedding-0.6B
+  topic_margin_min: 0.05
+
+media:
+  max_images: 400000
+  max_videos: 40000
+
+embed:
+  device: cuda
+  batch_size: 32
+  sid_sample: null
