@@ -208,7 +208,19 @@ def test_select_accounts():
     rows += [make_post(snowflake(T0 + i * DAY, 100 + i), 2, T0 + i * DAY, text="football tonight") for i in range(10)]
     rows += [make_post(snowflake(T0, 200), 3, T0, text="new GPU benchmark")]
     rows += [make_post(snowflake(T0, 300), 4, T0, text="hello", source="user_scrape")]
-    out = filters.select_accounts(frame(rows), SelectCfg(min_posts_per_account=5, min_tech_share=0.3, max_posts_per_account=4))
+    # Tech words, but mostly token talk: off-audience share above tech share.
+    rows += [make_post(snowflake(T0 + i * DAY, 400 + i), 5, T0 + i * DAY, text="AI agents token $FOO airdrop, bullish" if i % 2 else "bitcoin pump incoming")
+             for i in range(10)]
+    # Everyday words the loose post pattern matches must not make an account tech.
+    rows += [make_post(snowflake(T0 + i * DAY, 500 + i), 6, T0 + i * DAY, text="they will launch a strike, says the paper") for i in range(10)]
+    cfg = SelectCfg(min_posts_per_account=5, min_tech_share=0.3, max_posts_per_account=4)
+    out = filters.select_accounts(frame(rows), cfg)
     by = dict(out.group_by("author_id").len().iter_rows())
     assert by == {1: 4, 4: 1}                      # tech account capped to latest 4; scrape account always kept
+    assert out["in_audience"].all() and out.filter(pl.col("author_id") == 1)["acct_tech_share"][0] == 0.5
+    # General accounts can be kept alongside, flagged, with their own cap.
+    both = filters.select_accounts(frame(rows), cfg.model_copy(update={"general_accounts": 2, "general_max_posts_per_account": 3}))
+    g = both.filter(~pl.col("in_audience"))
+    assert g["author_id"].n_unique() == 2 and set(g["author_id"].unique()) <= {2, 5, 6} and g.group_by("author_id").len()["len"].to_list() == [3, 3]
+    assert dict(both.filter(pl.col("in_audience")).group_by("author_id").len().iter_rows()) == by
     assert out.filter(pl.col("author_id") == 1)["created_at_ms"].min() == T0 + 6 * DAY

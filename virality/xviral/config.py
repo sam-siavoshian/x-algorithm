@@ -96,8 +96,18 @@ class SelectCfg(BaseModel):
     max_posts_per_account: int | None = None
     """Keep each account's most recent N posts."""
     min_tech_share: float = 0.0
-    """Cheap account-level audience gate: share of the account's posts matching the tech regex
-    (xviral.text.tech). A prefilter for very large general corpora; the relevance stage decides."""
+    """Account-level audience gate: share of the account's posts matching the strict tech pattern
+    (xviral.text.tech.TECH_STRONG). Accounts at or above it, and not dominated by off-audience
+    vocabulary, are the audience accounts (`in_audience`)."""
+    max_off_audience_ratio: float | None = 1.0
+    """An audience account's off-audience share (crypto, trading, politics) may be at most this multiple
+    of its tech share. None disables the check."""
+    general_accounts: int = 0
+    """How many accounts outside the audience to keep as well (chosen by a hash of the account ID, so the
+    choice is stable). X ranks every account with the same model, so these teach the trunk how reach
+    behaves; evaluation and the product stay on audience accounts. 0 keeps audience accounts only."""
+    general_max_posts_per_account: int | None = None
+    """Cap for general accounts; defaults to max_posts_per_account."""
     always_keep_sources: list[str] = Field(default_factory=lambda: ["user_scrape", "analytics"])
 
 

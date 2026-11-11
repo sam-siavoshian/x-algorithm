@@ -106,15 +106,35 @@ def hygiene(df: pl.DataFrame, authors: pl.DataFrame, cfg) -> pl.DataFrame:
 
 
 def select_accounts(df: pl.DataFrame, cfg) -> pl.DataFrame:
-    """Account-level selection (config.SelectCfg): enough posts, tech-leaning, capped to the latest N."""
-    from xviral.text.tech import is_tech_post
+    """Account-level selection (config.SelectCfg). Adds `acct_tech_share`, `acct_off_share` and `in_audience`.
+
+    Audience accounts: enough posts, tech-leaning, not dominated by off-audience vocabulary. Optionally a
+    fixed number of general accounts with enough posts is kept too, flagged `in_audience` = false.
+    """
+    from xviral.text.tech import is_off_audience_post, is_tech_post
 
     keep_src = pl.col("source").is_in(cfg.always_keep_sources)
-    stats = df.group_by("author_id").agg(pl.len().alias("_n"), is_tech_post().mean().alias("_tech"), keep_src.any().alias("_keep"))
-    ok = stats.filter(pl.col("_keep") | ((pl.col("_n") >= cfg.min_posts_per_account) & (pl.col("_tech") >= cfg.min_tech_share)))
-    out = df.join(ok.select("author_id"), on="author_id", how="semi")
-    if cfg.max_posts_per_account:
+    stats = df.group_by("author_id").agg(
+        pl.len().alias("_n"), is_tech_post(strong=True).mean().alias("acct_tech_share"),
+        is_off_audience_post().mean().alias("acct_off_share"), keep_src.any().alias("_keep"))
+    on_topic = pl.col("acct_tech_share") >= cfg.min_tech_share
+    if cfg.min_tech_share > 0 and cfg.max_off_audience_ratio is not None:
+        on_topic = on_topic & (pl.col("acct_off_share") <= cfg.max_off_audience_ratio * pl.col("acct_tech_share"))
+    enough = pl.col("_n") >= cfg.min_posts_per_account
+    stats = stats.with_columns((pl.col("_keep") | (enough & on_topic)).alias("in_audience"))
+    general = stats.filter(~pl.col("in_audience") & enough)
+    if cfg.general_accounts and general.height:
+        general = general.sort(pl.col("author_id").hash(seed=11)).head(cfg.general_accounts)
+    else:
+        general = general.head(0)
+    ok = pl.concat([stats.filter(pl.col("in_audience")), general]).select("author_id", "acct_tech_share", "acct_off_share", "in_audience")
+    out = df.join(ok, on="author_id", how="inner")
+    cap_a, cap_g = cfg.max_posts_per_account, cfg.general_max_posts_per_account or cfg.max_posts_per_account
+    if cap_a or cap_g:
+        big = 1 << 60
+        cap = pl.when(pl.col("in_audience")).then(pl.lit(cap_a or big)).otherwise(pl.lit(cap_g or big))
         out = out.with_columns(pl.col("created_at_ms").rank("ordinal", descending=True).over("author_id").alias("_r")).filter(
-            pl.col("_r") <= cfg.max_posts_per_account).drop("_r")
-    log.info("select: %d -> %d posts, %d -> %d accounts", df.height, out.height, stats.height, out["author_id"].n_unique())
+            pl.col("_r") <= cap).drop("_r")
+    log.info("select: %d -> %d posts; %d accounts -> %d audience + %d general", df.height, out.height, stats.height,
+             int(ok["in_audience"].sum()), int((~ok["in_audience"]).sum()))
     return out

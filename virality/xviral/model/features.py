@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import json
 import logging
+import warnings
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -73,42 +74,47 @@ def _num_expr(col: str, how: str) -> pl.Expr:
     return c
 
 
-def build(rows: pl.DataFrame, out_dir: str | Path, emb=None, sid: pl.DataFrame | None = None,
-          neighbors: pl.DataFrame | None = None, aux: dict | None = None, extra: pl.DataFrame | None = None,
-          max_neighbors: int = 16) -> dict:
-    """rows: output of the dataset stage. emb: an EmbeddingStore of the post embedding (or None).
-    aux: name -> EmbeddingStore keyed by post_id (pooled image or frame embeddings).
-    extra: post_id-keyed frame of additional scalar columns (media and speech scalars)."""
-    out = Path(out_dir)
-    out.mkdir(parents=True, exist_ok=True)
-    if extra is not None:
-        rows = rows.join(extra, on="post_id", how="left")
-    if neighbors is not None:
-        keep = [c for c in ("post_id", "nbr_post_id", "nbr_cos", "nbr_density_7d", "nbr_best_reach_7d", "nbr_best_like_7d", "self_sim_48h") if c in neighbors.columns]
-        rows = rows.join(neighbors.select(keep), on="post_id", how="left")
+def _arrays(rows: pl.DataFrame, meta: dict | None = None) -> tuple[dict, dict, pl.DataFrame]:
+    """Model-ready arrays for `rows`, sorted by (author, time).
+
+    With `meta` (a trained model's table metadata) the stored feature list, normalisation statistics,
+    missing-indicator columns and categorical layout are applied as they are, so new posts are
+    transformed exactly like the training data. Without it they are computed from training rows.
+    """
     rows = rows.sort("author_id", "created_at_ms", "post_id")
     n = rows.height
+    if "split" not in rows.columns:
+        rows = rows.with_columns(pl.lit("test").alias("split"))
     split = rows["split"].replace_strict(SPLITS, return_dtype=pl.Int8).to_numpy()
     train = split == 0
 
     # numeric
-    names = [c for c, _ in NUM_SPEC if c in rows.columns]
-    X = rows.select([_num_expr(c, h).alias(c) for c, h in NUM_SPEC if c in rows.columns]).to_numpy().astype(np.float32)
+    how = dict(NUM_SPEC)
+    names = list(meta["num_base"]) if meta else [c for c, _ in NUM_SPEC if c in rows.columns]
+    rows = rows.with_columns([pl.lit(None, dtype=pl.Float64).alias(c) for c in names if c not in rows.columns])
+    X = rows.select([_num_expr(c, how[c]).alias(c) for c in names]).to_numpy().astype(np.float32)
     miss = np.isnan(X)
-    mean = np.nanmean(np.where(train[:, None], X, np.nan), axis=0)
-    std = np.nanstd(np.where(train[:, None], X, np.nan), axis=0)
-    mean = np.nan_to_num(mean)
-    std = np.where(np.nan_to_num(std) < 1e-6, 1.0, np.nan_to_num(std))
+    if meta:
+        mean, std = np.asarray(meta["num_mean"], np.float32), np.asarray(meta["num_std"], np.float32)
+        miss_cols = list(meta["num_missing_cols"])
+    else:
+        with warnings.catch_warnings():            # columns that are entirely missing give an empty slice
+            warnings.simplefilter("ignore", RuntimeWarning)
+            mean = np.nan_to_num(np.nanmean(np.where(train[:, None], X, np.nan), axis=0))
+            std = np.nan_to_num(np.nanstd(np.where(train[:, None], X, np.nan), axis=0))
+        std = np.where(std < 1e-6, 1.0, std)
+        miss_cols = [i for i in range(X.shape[1]) if 0.001 < miss[train, i].mean()]
     Xs = np.nan_to_num((X - mean) / std).clip(-8, 8)
-    miss_cols = [i for i in range(X.shape[1]) if 0.001 < miss[train, i].mean()]
     num = np.concatenate([Xs, miss[:, miss_cols].astype(np.float32)], axis=1)
     num_names = names + [f"{names[i]}__missing" for i in miss_cols]
 
     # categorical
     cats, cards, cat_names = [], [], []
-    for col, spec in CAT_SPEC:
+    spec_of = dict(CAT_SPEC)
+    for col in (meta["cat_names"] if meta else [c for c, _ in CAT_SPEC if c in rows.columns]):
+        spec = spec_of[col]
         if col not in rows.columns:
-            continue
+            rows = rows.with_columns(pl.lit(None, dtype=pl.String if isinstance(spec, list) else pl.Int32).alias(col))
         if isinstance(spec, list):
             v = rows[col].cast(pl.String).replace_strict({s: i for i, s in enumerate(spec)}, default=0, return_dtype=pl.Int32).to_numpy()
             card = len(spec)
@@ -130,8 +136,9 @@ def build(rows: pl.DataFrame, out_dir: str | Path, emb=None, sid: pl.DataFrame |
     likes, views = counts[:, 0].astype(np.float64), counts[:, 4].astype(np.float64)
     y_likes = np.where(counts[:, 0] >= 0, np.log10(np.maximum(likes, 0) + 1), np.nan).astype(np.float32)
     y_views = np.where(counts[:, 4] >= 0, np.log10(np.maximum(views, 0) + 1), np.nan).astype(np.float32)
-    y_like = np.where((counts[:, 0] >= 0) & known, np.log10((likes + 1) / (followers + 1)), np.nan).astype(np.float32)
-    y_reach = np.where((counts[:, 4] >= 0) & known, np.log10((views + 1) / (followers + 1)), np.nan).astype(np.float32)
+    with np.errstate(divide="ignore"):             # absent counts are -1 and masked by the where
+        y_like = np.where((counts[:, 0] >= 0) & known, np.log10((likes + 1) / (followers + 1)), np.nan).astype(np.float32)
+        y_reach = np.where((counts[:, 4] >= 0) & known, np.log10((views + 1) / (followers + 1)), np.nan).astype(np.float32)
     rates = rows.select([pl.col(a).cast(pl.Float32, strict=False) for a in ACTIONS]).to_numpy().astype(np.float32)
     assert counts.shape[0] == n and rates.shape[0] == n
 
@@ -154,9 +161,32 @@ def build(rows: pl.DataFrame, out_dir: str | Path, emb=None, sid: pl.DataFrame |
         "created_s": (rows["created_at_ms"].to_numpy() // 1000).astype(np.int64),
         "split": split.astype(np.int8),
         "w_row": rows["w_row"].cast(pl.Float32, strict=False).fill_null(1.0).to_numpy() if "w_row" in rows.columns else np.ones(n, np.float32),
+        "audience": (rows["in_audience"].fill_null(True).to_numpy() if "in_audience" in rows.columns else np.ones(n, bool)),
         "num": num, "cat": cat, "fmt": fmt, "counts": counts, "followers": followers.astype(np.float32),
         "y_like": y_like, "y_reach": y_reach, "y_likes": y_likes, "y_views": y_views, "rates": rates,
     }
+
+    stats = {"num_names": num_names, "num_mean": np.asarray(mean).tolist(), "num_std": np.asarray(std).tolist(), "num_base": names,
+             "num_missing_cols": miss_cols, "cat_names": cat_names, "cat_cards": cards, "n_authors": int(len(starts))}
+    return arrays, stats, rows
+
+
+def build(rows: pl.DataFrame, out_dir: str | Path, emb=None, sid: pl.DataFrame | None = None,
+          neighbors: pl.DataFrame | None = None, aux: dict | None = None, extra: pl.DataFrame | None = None,
+          max_neighbors: int = 16) -> dict:
+    """rows: output of the dataset stage. emb: an EmbeddingStore of the post embedding (or None).
+    aux: name -> EmbeddingStore keyed by post_id (pooled image or frame embeddings).
+    extra: post_id-keyed frame of additional scalar columns (media and speech scalars)."""
+    out = Path(out_dir)
+    out.mkdir(parents=True, exist_ok=True)
+    if extra is not None:
+        rows = rows.join(extra, on="post_id", how="left")
+    if neighbors is not None:
+        keep = [c for c in ("post_id", "nbr_post_id", "nbr_cos", "nbr_density_7d", "nbr_best_reach_7d", "nbr_best_like_7d", "self_sim_48h") if c in neighbors.columns]
+        rows = rows.join(neighbors.select(keep), on="post_id", how="left")
+    arrays, stats, rows = _arrays(rows)
+    n = rows.height
+    split, counts = arrays["split"], arrays["counts"]
 
     ids = arrays["post_id"]
     emb_dim = 0
@@ -196,27 +226,53 @@ def build(rows: pl.DataFrame, out_dir: str | Path, emb=None, sid: pl.DataFrame |
         arrays["nbr_idx"], arrays["nbr_cos"] = nbr, cos
 
     if "text" in rows.columns:
-        # Rendered post text in table order, for stage B's live encoder (author line + text, t.co links removed,
-        # as phoenix/reference/mm_encoder.py renders a text post).
-        from xviral.embed import mm
-
-        cols = [c for c in ("post_id", "text", "text_note", "author_handle", "author_display_name") if c in rows.columns]
-        texts = [mm.render(mm.build_post(r))[0] for r in rows.select(cols).iter_rows(named=True)]
-        pl.DataFrame({"post_id": ids, "text": texts}).write_parquet(out / "texts.parquet", compression="zstd")
+        # Rendered post text in table order, for stage B's live encoder.
+        pl.DataFrame({"post_id": ids, "text": render_texts(rows)}).write_parquet(out / "texts.parquet", compression="zstd")
 
     for k, v in arrays.items():
         np.save(out / f"{k}.npy", v)
     meta = {
-        "n": n, "n_authors": int(len(starts)), "num_names": num_names, "num_mean": mean.tolist(), "num_std": std.tolist(),
-        "num_base": names, "num_missing_cols": miss_cols, "cat_names": cat_names, "cat_cards": cards, "emb_dim": emb_dim,
+        "n": n, **stats, "emb_dim": emb_dim,
         "aux_dims": aux_dims, "sid_levels": int(arrays["sid"].shape[1]) if "sid" in arrays else 0,
         "actions": ACTIONS, "action_index": ACTION_INDEX,
+        "labeled_actions": [idx for idx, ok in zip(ACTION_INDEX, (~np.isnan(arrays["rates"])).any(0)) if ok],
         "splits": {k: int((split == v).sum()) for k, v in SPLITS.items()},
         "has_views": int((counts[:, 4] >= 0).sum()), "has_likes": int((counts[:, 0] >= 0).sum()),
+        "audience_rows": int(arrays["audience"].sum()),
     }
     (out / "meta.json").write_text(json.dumps(meta, indent=2))
-    log.info("feature table: %d rows, %d authors, %d numeric, %d categorical, emb %d", n, len(starts), num.shape[1], cat.shape[1], emb_dim)
+    log.info("feature table: %d rows, %d authors, %d numeric, %d categorical, emb %d", n, stats["n_authors"],
+             arrays["num"].shape[1], arrays["cat"].shape[1], emb_dim)
     return meta
+
+
+def render_texts(rows: pl.DataFrame) -> list[str]:
+    """Each post as phoenix/reference/mm_encoder.py renders a text post: author line, text, t.co links removed."""
+    from xviral.embed import mm
+
+    cols = [c for c in ("post_id", "text", "text_note", "author_handle", "author_display_name") if c in rows.columns]
+    return [mm.render(mm.build_post(r))[0] for r in rows.select(cols).iter_rows(named=True)]
+
+
+def transform(rows: pl.DataFrame, meta: dict, emb: np.ndarray | None = None, sid: np.ndarray | None = None,
+              device: str = "cpu") -> tuple["FeatureTable", pl.DataFrame]:
+    """An in-memory table for new posts, using a trained model's stored transforms.
+
+    `emb` and `sid` are aligned with `rows` as passed in. Returns the table and the rows in table order.
+    """
+    import torch
+
+    rows = rows.with_row_index("_in")
+    arrays, _, srt = _arrays(rows, meta)
+    order = srt["_in"].to_numpy()
+    n = srt.height
+    if meta["emb_dim"]:
+        e = np.zeros((n, meta["emb_dim"]), np.float16) if emb is None else np.asarray(emb)[order].astype(np.float16)
+        arrays["emb"], arrays["has_emb"] = e, np.full(n, emb is not None)
+    if meta["sid_levels"]:
+        arrays["sid"] = (np.zeros((n, meta["sid_levels"]), np.int16) if sid is None else np.asarray(sid)[order].astype(np.int16))
+    t = {k: torch.from_numpy(v).to(device) for k, v in arrays.items()}
+    return FeatureTable(meta={**meta, "n": n}, t=t, texts=render_texts(srt) if "text" in srt.columns else None), srt.drop("_in")
 
 
 @dataclass
@@ -247,7 +303,11 @@ class FeatureTable:
     def device(self):
         return self.t["post_id"].device
 
-    def rows_of_split(self, name: str):
+    def rows_of_split(self, name: str, audience_only: bool = False):
+        """Row indices of a split; with audience_only, only posts by audience accounts (see filters.select_accounts)."""
         import torch
 
-        return torch.nonzero(self.t["split"] == SPLITS[name]).squeeze(1)
+        keep = self.t["split"] == SPLITS[name]
+        if audience_only and "audience" in self.t:
+            keep = keep & self.t["audience"]
+        return torch.nonzero(keep).squeeze(1)

@@ -94,7 +94,7 @@ def train(table: FeatureTable, out_dir: str | Path, mcfg: ModelCfg, tcfg: TrainC
     log.info("model: %.2fM parameters, d=%d, layers=%d", n_params / 1e6, mcfg.d_model, mcfg.n_layers)
 
     train_rows = table.rows_of_split("train")
-    val_rows = table.rows_of_split("val")
+    val_rows = table.rows_of_split("val", audience_only=True)      # model selection is on the audience
     if len(val_rows) > tcfg.eval_max_rows:
         val_rows = val_rows[torch.randperm(len(val_rows), device=dev, generator=gen)[:tcfg.eval_max_rows]]
     use_amp = tcfg.amp and dev.type == "cuda"

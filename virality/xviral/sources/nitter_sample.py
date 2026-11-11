@@ -72,7 +72,12 @@ def read_shard(path: str | Path, mature_before: str = "2026-05-01", keep_authors
         q.field("text").alias("quoted_text"),
         pl.lit(False).alias("is_reply"),
     ).filter(pl.col("post_id").is_not_null()).with_columns(snowflake_ms_expr("post_id").alias("created_at_ms"))
-    df = df.drop("likes", "quotes").rename({"likes_true": "likes", "views_true": "views"}).with_columns(
+    df = df.drop("likes", "quotes").rename({"likes_true": "likes", "views_true": "views"})
+    if df.height >= 1000:
+        ok = float((df["likes"].fill_null(0) <= df["views"].fill_null(0)).mean())
+        if ok < 0.99:
+            raise ValueError(f"{path.name}: likes <= views in only {ok:.1%} of rows; the column shift this reader corrects is not present")
+    df = df.with_columns(
         pl.lit(None, dtype=pl.Int64).alias("quotes"),
         # Mature only before the cutoff; later posts keep a null snapshot and are dropped by the maturity filter.
         pl.when(pl.col("created_at_ms") < cutoff).then(pl.lit("assumed_mature")).otherwise(pl.lit("unknown")).alias("snapshot_kind"),
@@ -92,12 +97,20 @@ def read_shard(path: str | Path, mature_before: str = "2026-05-01", keep_authors
 
 
 def ingest(shard_dir: str | Path, out_dir: str | Path, mature_before: str = "2026-05-01", min_tech_posts: int = 3,
-           min_tech_share: float = 0.3) -> dict:
+           min_tech_share: float = 0.3, general_authors: int = 0, general_min_posts: int = 30) -> dict:
+    """general_authors: also keep the full timelines of this many other authors with at least
+    `general_min_posts` original posts (chosen by a hash of the author ID). They are the general
+    accounts of filters.select_accounts: same ranking system, different audience."""
     files = sorted(Path(shard_dir).glob("*.parquet"))
     out = Path(out_dir)
     stats = pl.concat([author_stats(f) for f in files]).group_by("author_id").agg(pl.col("posts", "tech_posts").sum())
-    authors = stats.filter((pl.col("tech_posts") >= min_tech_posts) & (pl.col("tech_posts") / pl.col("posts") >= min_tech_share))
-    log.info("nitter_2026: %d authors, %d tech authors", stats.height, authors.height)
+    is_tech = (pl.col("tech_posts") >= min_tech_posts) & (pl.col("tech_posts") / pl.col("posts") >= min_tech_share)
+    authors = stats.filter(is_tech)
+    n_tech = authors.height
+    if general_authors:
+        general = stats.filter(~is_tech & (pl.col("posts") >= general_min_posts) & pl.col("author_id").is_not_null())
+        authors = pl.concat([authors, general.sort(pl.col("author_id").hash(seed=11)).head(general_authors)])
+    log.info("nitter_2026: %d authors, %d tech authors, %d general authors kept", stats.height, n_tech, authors.height - n_tech)
     n = 0
     for f in files:
         target = out / "posts" / f"{f.stem}.parquet"
@@ -107,7 +120,7 @@ def ingest(shard_dir: str | Path, out_dir: str | Path, mature_before: str = "202
         write_parquet(df, target)
         n += df.height
         log.info("nitter_2026 %s: kept %d", f.name, df.height)
-    return {"shards": len(files), "authors": stats.height, "tech_authors": authors.height, "kept": n}
+    return {"shards": len(files), "authors": stats.height, "tech_authors": n_tech, "general_authors": authors.height - n_tech, "kept": n}
 
 
 def ingest_streaming(out_dir: str | Path, known_handles: list[str] | None = None, mature_before: str = "2026-05-01",

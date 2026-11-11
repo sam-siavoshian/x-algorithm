@@ -51,7 +51,7 @@ author_following     int64
 author_posts_count   int64
 author_created_at_ms int64
 author_verified      bool
-source               enum       user_scrape | usc | community_archive | analytics
+source               enum       user_scrape | usc | community_archive | analytics | nitter_2026 | twitter100m
 source_file          string
 ```
 
@@ -437,3 +437,51 @@ The pipeline now takes the snapshot time per row (archive date or capture time),
 This revises section 13's estimate. The archive's usable, mature, deep-history data is the donor accounts: `RestDownloader.download_account_tweets` pulls a list of accounts' posts through the account index (about 0.8 s per 1,000 rows). All 404 donors since 2023: 1.78M posts, of which 417k are originals, 372k mature, 358k English, from 392 accounts with a median of 735 posts each. The same call serves any account list, including your seed accounts if they are in the archive.
 
 Added for like-only sources: `trailing_likes_p50/p90` and `trailing_like_ratio_p50` (strictly-earlier author history on likes), labels `log_like_ratio` and `y_likes_beat_own_p90`, and `relevance.enabled: false` to pass an already on-audience corpus through.
+
+---
+
+## 15. Two more public sources, the full archive, and account selection (2026-11-11)
+
+### 15.1 Sources added
+
+| Source | Code | What it carries | Use |
+|---|---|---|---|
+| `SinclairSchneider/tweets_sample_2026` on Hugging Face, 73 shards, 75.8M posts from early 2026 | `sources/nitter_sample.py` | Text, likes, replies, reposts, quotes, **views**, handle. No follower counts | The only public corpus found with view counts from the current ranking system. Primary view-labeled set until the private scrape arrives |
+| `enryu43/twitter100m_tweets` and `twitter100m_users`, timelines up to April 2023 | `sources/twitter100m.py` | Text, likes, replies, reposts, user bio and follower count. No views | Deep per-account history for accounts whose bio is tech. Pre-dates the current ranker, so it has its own recency floor (2020) and lowest merge priority |
+
+Two defects in `tweets_sample_2026` are corrected at ingest, both verified on the data:
+
+1. **The count columns are shifted by one.** The column named `quotes` holds likes and the column named `likes` holds views. After the correction likes are at most views in 99.99% of rows and the median like-to-view ratio is 1.3%, the usual rate. The reader checks this on every shard and refuses a shard where fewer than 99% of rows satisfy it, so a corrected re-upload of the dataset cannot be silently mis-read.
+2. **Later posts were captured young.** The file has no capture time. Median views fall steeply for posts created from May 2026 on, which means those were read soon after posting. Posts created before 1 May 2026 are treated as mature; later ones are dropped by the maturity filter. About half of the rows that pass the other filters survive.
+
+The corpus is a random sample of X, not of the target audience. Ingest is therefore streaming and selective: each shard is downloaded, reduced to posts whose author handle is in the Community Archive account index or whose text matches the tech pattern, written, and deleted. That keeps roughly 87k rows per shard, 43k of them mature.
+
+### 15.2 The full Community Archive, measured
+
+Downloading every table since 2023 by creation-time keyset (`ca-download --mode full`):
+
+| Step | Rows |
+|---|---|
+| Raw tweet rows since 2023 | 17.1M |
+| Originals and quotes, mature at capture | 3.67M |
+| English | 3.48M |
+| Accounts | 216,930 |
+| Accounts with at least 30 posts | 9,840 |
+| Accounts with at least 30 posts and a tech share of at least 0.15 | 2,412 accounts, 366,639 posts |
+
+Stream rows (section 14) are biased: the browser extension captures what appears in its users' timelines, which over-represents posts that were already being distributed. Two consequences are handled in code. Maturity is decided per row from the capture time. And accounts are kept only when the archive holds enough of their posts to form a history, which removes the long tail of accounts seen once because one post travelled.
+
+### 15.3 Account selection (`filters.select_accounts`, config `select`)
+
+Runs after hygiene and before deduplication. It replaces the embedding topic gate as the first-line audience filter on large corpora, because it costs nothing and works at the account level, which is what the model needs: a post is only useful with its author's history.
+
+- `min_posts_per_account`: fewer posts than this and the account cannot supply a history plus a candidate.
+- `min_tech_share`: share of the account's posts matching `text/tech.py`'s pattern (AI, ML, startup, developer and product vocabulary). An account is kept or dropped whole, so its off-topic posts stay in as history and as negatives.
+- `max_posts_per_account`: keeps the most recent N posts, so a few prolific accounts do not dominate the batches.
+- `always_keep_sources`: analytics exports and the private scrape bypass the rule.
+
+The embedding topic gate (4.6) remains for the final audit and for corpora with no account structure.
+
+### 15.4 Memory
+
+Unifying 17M rows in one pass ran out of memory. Two changes fixed it. The archive reader filters to mature originals and quotes while reading, before the frames are concatenated. And the cross-source merge groups only the post IDs that appear more than once, which is a small fraction, instead of grouping every row.

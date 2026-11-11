@@ -106,6 +106,16 @@ Enforced in `episodes.build` and covered by tests that alter the data and check 
 
 `xviral/xalgo/value_model.py` is a port of `xai-value-model/{weights,scoring}.rs`: the weighted sum over heads, the mutual-follow reply boost, the offset that pushes net-negative posts below every clean post, author-diversity decay and the out-of-network factor. Weights are parsed from `home-mixer/params/param.rs` and `vm-ranker/params.rs` at load time, so an upstream weight change arrives with a `git pull`. The model's 64 outputs times `head_weight_vector` is X's weighted score for the audience average, with the reply weight blended by the account's mutual-follow share.
 
+### 7.1 Scoring a draft (`xviral/serve.py`)
+
+`DraftScorer` is the product's entry point for the model. It takes the account's post history in the unified schema, the account's current follower count, and one or more drafts, and returns one report per draft: view and like quantiles, the odds of reaching 1x, 10x and 100x the follower count, the lift against the account's own median, the odds of landing in the account's own top 10%, and X's weighted score.
+
+- The history and the drafts go through the same feature functions the training pipeline uses (`serve.feature_frame`), then through the normalisation statistics, missing-value indicators and categorical layout stored in the checkpoint (`features.transform`). A test asserts that a history post comes out of the serving path bit-for-bit as it sits in the training table.
+- Each draft is featurised alone against the history, as the account's next post. Drafts given together are alternatives for one slot: they share the history in one episode and are isolated from each other by the attention mask. A test asserts that a draft's score is the same alone, together with other drafts, and in any order. This is the property the optimizer (S7) needs to compare rewrites.
+- An account with no history gets a report from the follower count and the content alone; the fields that compare with the account's own past are empty.
+
+Not wired into serving yet: the pre-flight rule check, neighbour retrieval against a corpus index, and media embeddings for drafts.
+
 ## 8. Training plan with the larger compute budget
 
 | Stage | What | Why | Status |

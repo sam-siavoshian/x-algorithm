@@ -20,7 +20,7 @@ from xviral import audit, authors, baseline, dedup, filters, labels, relevance, 
 from xviral.authors import follower_tier_expr
 from xviral.config import Config
 from xviral.constants import FOLLOWER_TIER_NAMES
-from xviral.features import audience, content, suppression
+from xviral.features import audience, content, derive, suppression
 from xviral.util.core import scan_dir, stable_hash64, write_parquet
 
 log = logging.getLogger(__name__)
@@ -57,7 +57,7 @@ def ingest(cfg: Config, sources: list[str] | None = None, limit: int | None = No
         write_parquet(pl.concat(frames), root / "analytics" / "posts" / "part-00000.parquet")
     seeds = cfg.paths.seed_accounts.read_text().split() if cfg.paths.seed_accounts else None
     if "nitter_2026" in sources and cfg.paths.nitter_2026:
-        nitter_sample.ingest(cfg.paths.nitter_2026, root / "nitter_2026")
+        nitter_sample.ingest(cfg.paths.nitter_2026, root / "nitter_2026", general_authors=cfg.select.general_accounts)
     if "twitter100m" in sources and cfg.paths.twitter100m_tweets and cfg.paths.twitter100m_users:
         twitter100m.ingest(cfg.paths.twitter100m_tweets, cfg.paths.twitter100m_users, root / "twitter100m", seed_handles=seeds,
                            min_created=cfg.filters.min_created_by_source.get("twitter100m", cfg.filters.min_created))
@@ -181,16 +181,7 @@ def feature_stage(cfg: Config, blocklist_dir: str | None = None) -> None:
     nd = _maybe(w / "dedup" / "near_dup.parquet")
     if nd is not None:
         df = df.join(nd, on="post_id", how="left")
-    df = df.with_columns(
-        follower_tier_expr().alias("follower_tier"),
-        pl.col("followers_at_post").cast(pl.Float64).log1p().alias("log_followers_at_post"),
-        pl.col("author_following").cast(pl.Float64).log1p().alias("log_following"),
-        (pl.col("followers_at_post").cast(pl.Float64) / pl.col("author_following").cast(pl.Float64).clip(lower_bound=1)).alias("follow_ratio"),
-        ((pl.col("created_at_ms") - pl.col("author_created_at_ms")) / 86_400_000).alias("account_age_days"),
-        (pl.col("followers_at_post") <= 50_000).alias("cold_start_eligible_author"),
-    ).with_columns(
-        pl.col("follower_tier").replace_strict({n: i for i, n in enumerate(FOLLOWER_TIER_NAMES)}, return_dtype=pl.Int32).alias("follower_tier_idx"),
-    )
+    df = derive.author_columns(df)
     df = df.join(content.content_features(df), on="post_id", how="left")
     zones = _read(a / "audience_zones.parquet")
     df = df.join(audience.audience_time_features(df, zones), on="post_id", how="left")
@@ -521,9 +512,9 @@ def model_eval(cfg: Config, device: str | None = None, name: str = "run") -> dic
     table = FeatureTable.load(cfg.paths.work / "model" / "table", dev)
     run = cfg.paths.work / "model" / name
     model, tcfg, ck = tr.load(run / "best.pt", dev)
-    temps = evaluate.fit_temperature(model, table, table.rows_of_split("val"), tcfg)
+    temps = evaluate.fit_temperature(model, table, table.rows_of_split("val", audience_only=True), tcfg)
     tr.save(run / "best.pt", model, model.cfg, tcfg, ck["table_meta"], ck["metrics"], temps)
-    test = table.rows_of_split("test")
+    test = table.rows_of_split("test", audience_only=True)
     res = {"temperature": temps,
            "test": evaluate.metrics(evaluate.predict_rows(model, table, test, tcfg, temperature=temps), table, tcfg)}
     (run / "eval.json").write_text(json.dumps(res, indent=2, default=float))

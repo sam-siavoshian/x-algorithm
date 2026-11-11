@@ -89,6 +89,17 @@ To compare the model with its ablations and the baselines on the time-forward te
 .venv/bin/python scripts/compare_models.py --table data/work/model/table --out data/work/model/compare --preset base --device cuda
 ```
 
+To score drafts for an account with a trained model:
+
+```python
+from xviral.serve import DraftScorer
+
+scorer = DraftScorer("data/work/model/runs/base/best.pt", embed_fn)   # embed_fn: list of texts -> array, the training encoder
+reports = scorer.score(history, [{"text": "draft one"}, {"text": "draft two"}], {"handle": "acme", "followers": 12_000})
+```
+
+`history` is the account's past posts in the unified schema (any source reader in `xviral/sources` produces it).
+
 ## Test
 
 ```bash

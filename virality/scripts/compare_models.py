@@ -65,8 +65,8 @@ def main() -> None:
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
     table = FeatureTable.load(args.table, args.device)
-    test = table.rows_of_split("test")
-    val = table.rows_of_split("val")
+    test = table.rows_of_split("test", audience_only=True)
+    val = table.rows_of_split("val", audience_only=True)
     results: dict[str, dict] = {}
     overrides = {"full": {}, "no_history_outcomes": {"use_history_outcomes": False}, "no_content": {"use_content": False},
                  "no_neighbors": {"use_neighbors": False}}

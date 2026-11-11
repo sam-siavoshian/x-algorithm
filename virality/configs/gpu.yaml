@@ -15,8 +15,19 @@ community_archive:
   min_created: "2023-01-01"
   requests_per_second: 4
 
+# Accounts are kept or dropped whole (DATA_PIPELINE.md 15.3). Audience accounts are the evaluation and
+# product target; general accounts add volume for the trunk, since X ranks everyone with one model.
+select:
+  min_posts_per_account: 20
+  min_tech_share: 0.15
+  max_posts_per_account: 600
+  general_accounts: 30000
+  general_max_posts_per_account: 150
+
+# The per-post topic gate is off: selection is at the account level, and a tech account's off-topic
+# posts are part of its history.
 relevance:
-  enabled: true
+  enabled: false
   embedder: Qwen/Qwen3-Embedding-0.6B
   topic_margin_min: 0.05
 

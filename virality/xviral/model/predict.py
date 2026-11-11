@@ -24,8 +24,11 @@ class Predictor:
         self.temperature = temperature or {}
         self.weights = weights or vm.Weights.from_repo()
         # A head is trained only if the table carries labels for it (a like-only corpus trains none).
-        has_label = (~torch.isnan(table.t["rates"])).any(0).cpu().numpy()
-        self.trained_heads = {idx for idx, ok in zip(table.meta["action_index"], has_label) if ok}
+        if "labeled_actions" in table.meta:      # recorded when the training table was built
+            self.trained_heads = set(table.meta["labeled_actions"])
+        else:
+            has_label = (~torch.isnan(table.t["rates"])).any(0).cpu().numpy()
+            self.trained_heads = {idx for idx, ok in zip(table.meta["action_index"], has_label) if ok}
 
     @classmethod
     def load(cls, checkpoint: str | Path, table_dir: str | Path, device: str = "cpu") -> "Predictor":
@@ -35,10 +38,21 @@ class Predictor:
     @torch.no_grad()
     def report(self, rows: torch.Tensor, mutual_share: float = 0.0) -> list[dict]:
         """One report per row, each scored alone with its own history (cold start: no counts observed)."""
-        t = self.table.t
         ep = episodes.build(self.table, rows, self.model.cfg, self.tcfg, train=False)
+        return self._reports(ep, self.model(self.table, ep), rows, 0, mutual_share)
+
+    @torch.no_grad()
+    def report_joint(self, first_row: int, n: int, mutual_share: float = 0.0) -> list[dict]:
+        """`n` consecutive rows of one account scored as alternatives: one episode, shared history (the posts
+        before `first_row`), candidates isolated from each other."""
+        anchor = torch.tensor([first_row], device=self.table.device)
+        ep = episodes.build(self.table, anchor, self.model.cfg, self.tcfg, train=False, n_candidates=n)
         out = self.model(self.table, ep)
-        s = {k: v[:, 0].float().cpu().numpy() for k, v in self.model.summarize(ep, out, self.temperature).items()}
+        return [r for c in range(n) for r in self._reports(ep, out, anchor + c, c, mutual_share)]
+
+    def _reports(self, ep, out, rows: torch.Tensor, cand: int, mutual_share: float) -> list[dict]:
+        t = self.table.t
+        s = {k: v[:, cand].float().cpu().numpy() for k, v in self.model.summarize(ep, out, self.temperature).items()}
         followers = t["followers"][rows].cpu().numpy()
         med_like, med_view = ep.ctx[:, 3].cpu().numpy(), ep.ctx[:, 5].cpu().numpy()
         has_like, has_view = ep.ctx[:, 7].cpu().numpy() > 0, ep.ctx[:, 8].cpu().numpy() > 0
