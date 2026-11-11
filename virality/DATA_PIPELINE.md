@@ -473,6 +473,8 @@ Two defects in `tweets_sample_2026` are corrected at ingest, both verified on th
 
 3. **Timestamps are recorded to the minute.** The validity filter compares each post's own timestamp with the time encoded in its ID and used to require agreement to the second, which silently dropped 96% of this corpus. The tolerance is now set per source (`filters.timestamp_tolerance_ms_by_source`: one minute here, 36 hours for analytics exports, which carry a date in the account's time zone), and the filter logs a warning whenever a source loses more than a fifth of its rows to this check.
 
+4. **`profile_id` is not the X user ID.** paulg is 183749519 on X and 1824002576 in this file. Read as an author ID it split every account in two, one half with likes from the archive and one half with views from here, and it kept follower counts from joining. Authors from this corpus are now keyed by handle and carry a synthetic ID that `unify.resolve_handles` maps to the real ID when another source knows the handle. On the full run that moved 1.49M of 2.36M rows onto real accounts, and 2,822 selected accounts now have one history with both labels.
+
 The corpus is a random sample of X, not of the target audience. Ingest is therefore streaming and selective: each shard is downloaded, reduced to posts whose author handle is in the Community Archive account index or whose text matches the tech pattern, written, and deleted. That keeps roughly 87k rows per shard, 43k of them mature.
 
 ### 15.2 The full Community Archive, measured
@@ -501,6 +503,29 @@ Runs after hygiene and before deduplication. It replaces the embedding topic gat
 
 The embedding topic gate (4.6) remains for the final audit and for corpora with no account structure.
 
-### 15.4 Memory
+### 15.4 The combined corpus on this machine (2026-11-11)
 
-Unifying 17M rows in one pass ran out of memory. Two changes fixed it. The archive reader filters to mature originals and quotes while reading, before the frames are concatenated. And the cross-source merge groups only the post IDs that appear more than once, which is a small fraction, instead of grouping every row.
+Full archive plus the view corpus, `select` at 20 posts, tech share 0.15, 400 posts per audience account, and 3,000 general accounts at 100 posts each:
+
+| Step | Rows |
+|---|---|
+| Unified, one row per post | 6.01M |
+| After the volume prefilter (accounts with at least 20 posts) | 5.22M |
+| English | 4.48M |
+| After hygiene | 3.98M posts, 40.0k accounts with enough posts |
+| Selected | 465,675 posts: 4,221 audience accounts and 3,000 general accounts |
+
+| Source | Audience posts | General posts | With views | With a follower count |
+|---|---|---|---|---|
+| Community Archive | 253,067 | 57,948 | none | 82% |
+| 2026 view corpus | 60,219 | 94,441 | all | 55% |
+
+The audience accounts include the ones the product is for: sama, paulg, karpathy, OpenAI, AnthropicAI, ycombinator, garrytan, a16z, patrickc, levelsio, rauchg, ylecun, fchollet. The strict pattern plus the off-audience rule rejects almost only crypto and trading accounts; a sample of what it keeps is roughly 70% clearly on-audience, the rest adjacent (science, general business). A list of seed handles from the scrape would replace the pattern.
+
+**View labels for the audience are the scarce resource.** 60k posts from 1,724 audience accounts carry views, 50k of them in training. That is the number the private scrape and analytics exports change.
+
+**Test split.** The view corpus ends in April 2026 and the archive runs to November. A cutoff at the newest tenth of all posts left a test period with no view labels at all. The cutoff now sits at the newest tenth of the view-labelled posts (23 April 2026) and every later post is test, so nothing from the test period is trained on: 5,140 audience posts with views and 95k audience posts with likes are held out.
+
+### 15.5 Memory
+
+Three steps ran out of memory on a 16 GB machine and were rewritten. Language detection held every text as a Python string at once (13.5 GB on five million posts); it now works in slices and caches its result by post ID, which also turns a 20-minute rerun into 4. Account selection copied the wide table several times; it now decides on five narrow columns and reads the kept rows once. And unifying 17M rows in one pass failed; two changes fixed it. The archive reader filters to mature originals and quotes while reading, before the frames are concatenated. And the cross-source merge groups only the post IDs that appear more than once, which is a small fraction, instead of grouping every row.
