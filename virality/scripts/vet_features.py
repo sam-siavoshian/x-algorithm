@@ -69,7 +69,10 @@ def main() -> None:
     tr = train_all & (t["created_s"] < cut) & ok
     dev = train_all & (t["created_s"] >= cut) & ok
     va = (t["split"] == 1) & ok
-    base = np.concatenate([t["num"], t["cat"].astype(np.float32), PCA(48, random_state=0).fit(E[tr]).transform(E)], axis=1)
+    # The base is the model's inputs without any text-structure column already admitted, so an admitted
+    # group can be re-vetted on new data (for instance on view labels) against the same reference.
+    keep_num = [i for i, name in enumerate(table.meta["num_names"]) if not name.startswith("ts_")]
+    base = np.concatenate([t["num"][:, keep_num], t["cat"].astype(np.float32), PCA(48, random_state=0).fit(E[tr]).transform(E)], axis=1)
 
     rows = pl.read_parquet(args.rows)
     cand = ts.text_structure(rows)
