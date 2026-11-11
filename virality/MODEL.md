@@ -191,10 +191,32 @@ Ablations, from the run before the input-scale fix below (so compare them with e
 
 1. The design carries over to views. On posts from a period it never saw, the surrogate ranks two posts by the same account correctly 61 to 63% of the time, ahead of trees with the same inputs, and its rank correlation within an account is a third higher than the trees' (0.26 against 0.20).
 2. The odds are usable as stated: the probability of reaching ten times the follower count separates outcomes with an AUROC of 0.91 and a calibration error of 0.002 to 0.004.
-3. **General accounts do not improve ranking for the audience.** Training on audience accounts alone gives the best pairwise accuracy on views (62.6% against 61.3%); adding 3,000 general accounts improves the fit of the distributions (likelihood, the 10x odds) and nothing else. One seed each, so the 1.3-point gap is suggestive, not established. The practical reading is unchanged either way: the lever is more view-labelled posts from the audience, not more posts.
+3. **General accounts: no detectable effect on ranking, a consistent gain in calibration.** In this round audience-only training ranked views better (62.6% against 61.3%); in the second round below the order reversed (62.0% against 62.8%). The gap is run-to-run noise of about a point. What does repeat is that the all-accounts model fits the distributions better (10x-followers AUROC 0.914 against 0.88 to 0.90, lower likelihood loss in both rounds). Train on all accounts. The lever for ranking remains more view-labelled posts from the audience.
 4. The account-median baseline is below 50% on views. Its prediction for two posts by one account differs only when the trailing median moved between them, so it carries no information about the posts themselves; it is a level, not a ranker. Everything above 50% comes from content, timing and history. Why it lands under 50% rather than at it has not been investigated.
 
 **Text-structure groups, re-vetted on views** (development slice, base 59.6%; `research/12_text_structure_vetting_views.json`): opening +0.6, layout +0.5, voice +0.5, typography +0.6 and history-relative +0.8 each pass; link placement, which passed on likes, does not (+0.2). All six together add 1.1 points. Voice, typography and history-relative were held back on the like-only evidence; on view labels they earn their place. Checked in combination on both labels (`research/12_text_structure_vetting_*_combinations.json`): on views the three groups admitted earlier give +0.85 points and all six +0.89; on likes in this corpus the three give +0.11 (not distinguishable from zero) and all six +0.73. All six together are the only set that is clearly positive on both labels, so all 46 columns are model inputs from the next training run on.
+
+**Second round, all six text-structure groups as inputs** (`research/12_combined_run_results_round2.json`):
+
+| Model | Pairwise, views | Within-account Spearman, views | Pairwise, likes | Within-account Spearman, likes | 10x-followers AUROC |
+|---|---|---|---|---|---|
+| Trees, tabular | 58.3% | 0.186 | 56.7% | 0.227 | |
+| Trees, tabular + embedding | 60.3% | 0.233 | 58.7% | 0.275 | |
+| Surrogate, audience accounts only | 62.0% | 0.247 | 59.8% | 0.298 | 0.881 |
+| Surrogate, all accounts | 62.8% | 0.257 | 59.7% | 0.298 | 0.914 |
+| **Both surrogates as one ensemble (stage C)** | **62.8%** | **0.265** | **60.1%** | **0.305** | 0.906 |
+
+The added columns lift the tabular trees by half a point on both labels. Their effect on the surrogate is inside the run-to-run noise (61.3 to 62.8 for one variant, 62.6 to 62.0 for the other). The two-model ensemble is the best or equal-best ranker on every column, as expected from averaging; more seeds will tighten it further.
+
+**A worked example** (`research/14_example_draft_report.json`, `scripts/score_drafts.py`, the ensemble above). Three versions of a product announcement for a real audience account with 308 posts of history and 918k followers:
+
+| Version | Views, median | Views, 10% to 90% | Likes, median | Odds of the account's own top 10% | Against own median |
+|---|---|---|---|---|---|
+| One line, link at the end | 50k | 12k to 242k | 510 | 4% | 0.31x |
+| Same line, link first | 52k | 12k to 283k | 610 | 4% | 0.27x |
+| Concrete claim, short lines, three bullets, link at the end | 80k | 15k to 493k | 1,904 | 13% | 0.84x |
+
+The first two are indistinguishable, which is what the product should say. The third is preferred by a wide margin, and the change is of the kinds with independent support in research/11: more concrete detail and more lines. Even the best version is predicted below this account's median, which is the correct reading for a routine announcement from an account whose typical post does better.
 
 **Still not measured.** Images and video, X's own encoder, stage B, the larger presets. The numbers above are the floor of the design on a laptop-class budget.
 

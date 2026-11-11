@@ -1,0 +1,577 @@
+{
+  "account": {
+    "handle": "rauchg",
+    "followers": 917921
+  },
+  "history_posts": 308,
+  "reports": [
+    {
+      "post_id": -1104249794663923879,
+      "followers": 917921.0,
+      "views_24h": {
+        "q10": 12417.0869140625,
+        "q50": 49962.37890625,
+        "q90": 242257.625
+      },
+      "likes": {
+        "q10": 113.74634552001953,
+        "q50": 510.3337707519531,
+        "q90": 2681.189453125
+      },
+      "p_reach_1x": 0.019853459671139717,
+      "p_reach_10x": 0.002605086425319314,
+      "p_reach_100x": 0.00015510951925534755,
+      "lift_vs_own_median": {
+        "likes": 0.30828750133514404,
+        "views": null
+      },
+      "p_own_top_10pct": {
+        "likes": 0.03603142872452736,
+        "views": null
+      },
+      "own_median": {
+        "likes": 2626.292724609375,
+        "views": null
+      },
+      "action_rates": {
+        "favorite": 0.015652969479560852,
+        "reply": 0.0016061310889199376,
+        "retweet": 0.002673953305929899
+      },
+      "x_value_score": {
+        "in_network": 0.02178691114205867,
+        "out_of_network": 0.017090183356544005,
+        "breakdown": {
+          "favorite": 0.011082302391529082,
+          "reply": 0.008030655444599688,
+          "retweet": 0.002673953305929899
+        },
+        "unobserved_weight_share": 0.9840477521075849
+      },
+      "text": "We shipped a new feature today. Check it out: https://vercel.com/blog/new",
+      "history_posts_used": 48,
+      "gates": [
+        {
+          "gate": "in_network_store",
+          "status": "pass",
+          "detail": "2 originals in the last 48 hours, under the cap of 50 per author",
+          "source": "thunder/config.rs MAX_ORIGINAL_POSTS_PER_AUTHOR",
+          "originals_last_48h": 2,
+          "cap": 50
+        },
+        {
+          "gate": "author_diversity",
+          "status": "info",
+          "detail": "previous post 24.0 hours ago: both are candidates for the same feed for 48 hours, and the lower-scored of the two is multiplied by 0.625",
+          "source": "home-mixer/params/param.rs AuthorDiversityDecay, AuthorDiversityFloor",
+          "hours_since_previous": 24.0,
+          "second_post_multiplier": 0.625
+        },
+        {
+          "gate": "out_of_network_factor",
+          "status": "info",
+          "detail": "shown to non-followers, the post's score is multiplied by 0.75",
+          "source": "home-mixer/params/param.rs OonWeightFactor",
+          "factor": 0.75
+        },
+        {
+          "gate": "cold_start_slot",
+          "status": "info",
+          "detail": "not eligible for the cold-start slot (more than 50,000 followers)",
+          "source": "home-mixer/scorers/author_cold_start.rs",
+          "follower_cap": 50000
+        },
+        {
+          "gate": "exploration_target",
+          "status": "info",
+          "detail": "views by age below which X's training data labels the post under-exposed for its follower count: 2,612 by 1h, 5,007 by 2h, 15,736 by 8h, 27,538 by 24h",
+          "source": "phoenix/xrex/data/recsys/recsys_batch.py",
+          "views_needed": {
+            "1h": 2612,
+            "2h": 5007,
+            "8h": 15736,
+            "24h": 27538
+          }
+        },
+        {
+          "gate": "expiry",
+          "status": "info",
+          "detail": "candidates older than 48 hours are no longer served",
+          "source": "home-mixer/params/config.rs",
+          "hours": 48
+        }
+      ]
+    },
+    {
+      "post_id": -2309219804286167964,
+      "followers": 917921.0,
+      "views_24h": {
+        "q10": 11583.35546875,
+        "q50": 51560.21875,
+        "q90": 282968.28125
+      },
+      "likes": {
+        "q10": 117.26660919189453,
+        "q50": 610.3802490234375,
+        "q90": 3809.893310546875
+      },
+      "p_reach_1x": 0.02002330869436264,
+      "p_reach_10x": 0.0032295319251716137,
+      "p_reach_100x": 0.0002063588035525754,
+      "lift_vs_own_median": {
+        "likes": 0.2725815176963806,
+        "views": null
+      },
+      "p_own_top_10pct": {
+        "likes": 0.03765025734901428,
+        "views": null
+      },
+      "own_median": {
+        "likes": 2626.292724609375,
+        "views": null
+      },
+      "action_rates": {
+        "favorite": 0.017243003472685814,
+        "reply": 0.0016683206195011735,
+        "retweet": 0.003325546160340309
+      },
+      "x_value_score": {
+        "in_network": 0.02387519571650773,
+        "out_of_network": 0.018656396787380798,
+        "breakdown": {
+          "favorite": 0.012208046458661555,
+          "reply": 0.008341603097505867,
+          "retweet": 0.003325546160340309
+        },
+        "unobserved_weight_share": 0.9840477521075849
+      },
+      "text": "https://vercel.com/blog/new we shipped a new feature today",
+      "history_posts_used": 48,
+      "gates": [
+        {
+          "gate": "in_network_store",
+          "status": "pass",
+          "detail": "2 originals in the last 48 hours, under the cap of 50 per author",
+          "source": "thunder/config.rs MAX_ORIGINAL_POSTS_PER_AUTHOR",
+          "originals_last_48h": 2,
+          "cap": 50
+        },
+        {
+          "gate": "author_diversity",
+          "status": "info",
+          "detail": "previous post 24.0 hours ago: both are candidates for the same feed for 48 hours, and the lower-scored of the two is multiplied by 0.625",
+          "source": "home-mixer/params/param.rs AuthorDiversityDecay, AuthorDiversityFloor",
+          "hours_since_previous": 24.0,
+          "second_post_multiplier": 0.625
+        },
+        {
+          "gate": "out_of_network_factor",
+          "status": "info",
+          "detail": "shown to non-followers, the post's score is multiplied by 0.75",
+          "source": "home-mixer/params/param.rs OonWeightFactor",
+          "factor": 0.75
+        },
+        {
+          "gate": "cold_start_slot",
+          "status": "info",
+          "detail": "not eligible for the cold-start slot (more than 50,000 followers)",
+          "source": "home-mixer/scorers/author_cold_start.rs",
+          "follower_cap": 50000
+        },
+        {
+          "gate": "exploration_target",
+          "status": "info",
+          "detail": "views by age below which X's training data labels the post under-exposed for its follower count: 2,612 by 1h, 5,007 by 2h, 15,736 by 8h, 27,538 by 24h",
+          "source": "phoenix/xrex/data/recsys/recsys_batch.py",
+          "views_needed": {
+            "1h": 2612,
+            "2h": 5007,
+            "8h": 15736,
+            "24h": 27538
+          }
+        },
+        {
+          "gate": "expiry",
+          "status": "info",
+          "detail": "candidates older than 48 hours are no longer served",
+          "source": "home-mixer/params/config.rs",
+          "hours": 48
+        }
+      ]
+    },
+    {
+      "post_id": -8381023961549835732,
+      "followers": 917921.0,
+      "views_24h": {
+        "q10": 15251.33203125,
+        "q50": 80112.21875,
+        "q90": 493472.15625
+      },
+      "likes": {
+        "q10": 434.7483215332031,
+        "q50": 1904.3916015625,
+        "q90": 7791.1337890625
+      },
+      "p_reach_1x": 0.04607601463794708,
+      "p_reach_10x": 0.008227359503507614,
+      "p_reach_100x": 0.0008073193021118641,
+      "lift_vs_own_median": {
+        "likes": 0.8433302044868469,
+        "views": null
+      },
+      "p_own_top_10pct": {
+        "likes": 0.13227489590644836,
+        "views": null
+      },
+      "own_median": {
+        "likes": 2626.292724609375,
+        "views": null
+      },
+      "action_rates": {
+        "favorite": 0.03800865262746811,
+        "reply": 0.0036809283774346113,
+        "retweet": 0.008790086954832077
+      },
+      "x_value_score": {
+        "in_network": 0.05410485490225256,
+        "out_of_network": 0.04132864117668942,
+        "breakdown": {
+          "favorite": 0.02691012606024742,
+          "reply": 0.018404641887173057,
+          "retweet": 0.008790086954832077
+        },
+        "unobserved_weight_share": 0.9840477521075849
+      },
+      "text": "Today we're making every deploy 40% faster.\n\nNo config changes. No new pricing.\n\nHow it works:\n- builds are cached per function, not per project\n- cold starts are skipped when nothing changed\n- you can see exactly what was reused\n\nDetails: https://vercel.com/blog/new",
+      "history_posts_used": 48,
+      "gates": [
+        {
+          "gate": "in_network_store",
+          "status": "pass",
+          "detail": "2 originals in the last 48 hours, under the cap of 50 per author",
+          "source": "thunder/config.rs MAX_ORIGINAL_POSTS_PER_AUTHOR",
+          "originals_last_48h": 2,
+          "cap": 50
+        },
+        {
+          "gate": "author_diversity",
+          "status": "info",
+          "detail": "previous post 24.0 hours ago: both are candidates for the same feed for 48 hours, and the lower-scored of the two is multiplied by 0.625",
+          "source": "home-mixer/params/param.rs AuthorDiversityDecay, AuthorDiversityFloor",
+          "hours_since_previous": 24.0,
+          "second_post_multiplier": 0.625
+        },
+        {
+          "gate": "out_of_network_factor",
+          "status": "info",
+          "detail": "shown to non-followers, the post's score is multiplied by 0.75",
+          "source": "home-mixer/params/param.rs OonWeightFactor",
+          "factor": 0.75
+        },
+        {
+          "gate": "cold_start_slot",
+          "status": "info",
+          "detail": "not eligible for the cold-start slot (more than 50,000 followers)",
+          "source": "home-mixer/scorers/author_cold_start.rs",
+          "follower_cap": 50000
+        },
+        {
+          "gate": "exploration_target",
+          "status": "info",
+          "detail": "views by age below which X's training data labels the post under-exposed for its follower count: 2,612 by 1h, 5,007 by 2h, 15,736 by 8h, 27,538 by 24h",
+          "source": "phoenix/xrex/data/recsys/recsys_batch.py",
+          "views_needed": {
+            "1h": 2612,
+            "2h": 5007,
+            "8h": 15736,
+            "24h": 27538
+          }
+        },
+        {
+          "gate": "expiry",
+          "status": "info",
+          "detail": "candidates older than 48 hours are no longer served",
+          "source": "home-mixer/params/config.rs",
+          "hours": 48
+        }
+      ]
+    }
+  ],
+  "timing": [
+    {
+      "when_ms": 1792848566036,
+      "hours_from_start": 38,
+      "views_q50": 64236.390625,
+      "likes_q50": 647.598876953125,
+      "p_own_top_10pct": {
+        "likes": 0.046399686485528946,
+        "views": null
+      },
+      "x_value_score": 0.022563068471848965
+    },
+    {
+      "when_ms": 1792870166036,
+      "hours_from_start": 44,
+      "views_q50": 62445.265625,
+      "likes_q50": 643.8104248046875,
+      "p_own_top_10pct": {
+        "likes": 0.045872461050748825,
+        "views": null
+      },
+      "x_value_score": 0.02344547553360462
+    },
+    {
+      "when_ms": 1792826966036,
+      "hours_from_start": 32,
+      "views_q50": 62402.83984375,
+      "likes_q50": 644.2721557617188,
+      "p_own_top_10pct": {
+        "likes": 0.048030510544776917,
+        "views": null
+      },
+      "x_value_score": 0.02256262134667486
+    },
+    {
+      "when_ms": 1792855766036,
+      "hours_from_start": 40,
+      "views_q50": 61132.0234375,
+      "likes_q50": 626.9688720703125,
+      "p_own_top_10pct": {
+        "likes": 0.04538080468773842,
+        "views": null
+      },
+      "x_value_score": 0.02329607759229839
+    },
+    {
+      "when_ms": 1792884566036,
+      "hours_from_start": 48,
+      "views_q50": 61013.80078125,
+      "likes_q50": 622.8167724609375,
+      "p_own_top_10pct": {
+        "likes": 0.04610873758792877,
+        "views": null
+      },
+      "x_value_score": 0.02351503009814769
+    },
+    {
+      "when_ms": 1792834166036,
+      "hours_from_start": 34,
+      "views_q50": 60660.30859375,
+      "likes_q50": 648.6565551757812,
+      "p_own_top_10pct": {
+        "likes": 0.04778667911887169,
+        "views": null
+      },
+      "x_value_score": 0.02423305780161172
+    },
+    {
+      "when_ms": 1792877366036,
+      "hours_from_start": 46,
+      "views_q50": 60364.84375,
+      "likes_q50": 620.65478515625,
+      "p_own_top_10pct": {
+        "likes": 0.04525590315461159,
+        "views": null
+      },
+      "x_value_score": 0.022970157554373143
+    },
+    {
+      "when_ms": 1792841366036,
+      "hours_from_start": 36,
+      "views_q50": 59541.09765625,
+      "likes_q50": 631.9750366210938,
+      "p_own_top_10pct": {
+        "likes": 0.04583839699625969,
+        "views": null
+      },
+      "x_value_score": 0.024378217871300876
+    },
+    {
+      "when_ms": 1792862966036,
+      "hours_from_start": 42,
+      "views_q50": 59188.73046875,
+      "likes_q50": 614.1272583007812,
+      "p_own_top_10pct": {
+        "likes": 0.04359225556254387,
+        "views": null
+      },
+      "x_value_score": 0.021774805151857438
+    },
+    {
+      "when_ms": 1792819766036,
+      "hours_from_start": 30,
+      "views_q50": 57632.3671875,
+      "likes_q50": 628.08544921875,
+      "p_own_top_10pct": {
+        "likes": 0.04541614279150963,
+        "views": null
+      },
+      "x_value_score": 0.022182592277415095
+    },
+    {
+      "when_ms": 1792762166036,
+      "hours_from_start": 14,
+      "views_q50": 56603.4453125,
+      "likes_q50": 596.3136596679688,
+      "p_own_top_10pct": {
+        "likes": 0.041912999004125595,
+        "views": null
+      },
+      "x_value_score": 0.021210794853046534
+    },
+    {
+      "when_ms": 1792812566036,
+      "hours_from_start": 28,
+      "views_q50": 56602.140625,
+      "likes_q50": 610.2658081054688,
+      "p_own_top_10pct": {
+        "likes": 0.04349715635180473,
+        "views": null
+      },
+      "x_value_score": 0.022042468586936592
+    },
+    {
+      "when_ms": 1792783766036,
+      "hours_from_start": 20,
+      "views_q50": 55469.0546875,
+      "likes_q50": 600.6343994140625,
+      "p_own_top_10pct": {
+        "likes": 0.04195094108581543,
+        "views": null
+      },
+      "x_value_score": 0.022303173696622252
+    },
+    {
+      "when_ms": 1792740566036,
+      "hours_from_start": 8,
+      "views_q50": 54738.31640625,
+      "likes_q50": 593.0803833007812,
+      "p_own_top_10pct": {
+        "likes": 0.04357687383890152,
+        "views": null
+      },
+      "x_value_score": 0.021180899905972182
+    },
+    {
+      "when_ms": 1792805366036,
+      "hours_from_start": 26,
+      "views_q50": 54181.91796875,
+      "likes_q50": 581.039794921875,
+      "p_own_top_10pct": {
+        "likes": 0.04117598757147789,
+        "views": null
+      },
+      "x_value_score": 0.021857201751321553
+    },
+    {
+      "when_ms": 1792798166036,
+      "hours_from_start": 24,
+      "views_q50": 54028.94921875,
+      "likes_q50": 580.10302734375,
+      "p_own_top_10pct": {
+        "likes": 0.04194464534521103,
+        "views": null
+      },
+      "x_value_score": 0.022248021920211615
+    },
+    {
+      "when_ms": 1792733366036,
+      "hours_from_start": 6,
+      "views_q50": 53880.07421875,
+      "likes_q50": 572.3287963867188,
+      "p_own_top_10pct": {
+        "likes": 0.04093237966299057,
+        "views": null
+      },
+      "x_value_score": 0.02232615662831813
+    },
+    {
+      "when_ms": 1792769366036,
+      "hours_from_start": 16,
+      "views_q50": 53646.7265625,
+      "likes_q50": 579.134033203125,
+      "p_own_top_10pct": {
+        "likes": 0.0412251353263855,
+        "views": null
+      },
+      "x_value_score": 0.021868803092278538
+    },
+    {
+      "when_ms": 1792790966036,
+      "hours_from_start": 22,
+      "views_q50": 53543.98046875,
+      "likes_q50": 578.405517578125,
+      "p_own_top_10pct": {
+        "likes": 0.04121128097176552,
+        "views": null
+      },
+      "x_value_score": 0.02190862421039492
+    },
+    {
+      "when_ms": 1792747766036,
+      "hours_from_start": 10,
+      "views_q50": 53115.9453125,
+      "likes_q50": 597.2991943359375,
+      "p_own_top_10pct": {
+        "likes": 0.04332457855343819,
+        "views": null
+      },
+      "x_value_score": 0.0228151958277449
+    },
+    {
+      "when_ms": 1792726166036,
+      "hours_from_start": 4,
+      "views_q50": 53057.421875,
+      "likes_q50": 563.3193359375,
+      "p_own_top_10pct": {
+        "likes": 0.03934144601225853,
+        "views": null
+      },
+      "x_value_score": 0.022257981611415744
+    },
+    {
+      "when_ms": 1792754966036,
+      "hours_from_start": 12,
+      "views_q50": 52255.07421875,
+      "likes_q50": 583.1419067382812,
+      "p_own_top_10pct": {
+        "likes": 0.041643209755420685,
+        "views": null
+      },
+      "x_value_score": 0.02302908763010055
+    },
+    {
+      "when_ms": 1792776566036,
+      "hours_from_start": 18,
+      "views_q50": 51902.4375,
+      "likes_q50": 564.9356689453125,
+      "p_own_top_10pct": {
+        "likes": 0.03933211416006088,
+        "views": null
+      },
+      "x_value_score": 0.020556447885930536
+    },
+    {
+      "when_ms": 1792718966036,
+      "hours_from_start": 2,
+      "views_q50": 50827.984375,
+      "likes_q50": 537.0245361328125,
+      "p_own_top_10pct": {
+        "likes": 0.03731391578912735,
+        "views": null
+      },
+      "x_value_score": 0.02213055063318461
+    },
+    {
+      "when_ms": 1792711766036,
+      "hours_from_start": 0,
+      "views_q50": 49962.37890625,
+      "likes_q50": 510.3337707519531,
+      "p_own_top_10pct": {
+        "likes": 0.03603142872452736,
+        "views": null
+      },
+      "x_value_score": 0.021786916417069733
+    }
+  ]
+}
