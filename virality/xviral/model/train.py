@@ -134,8 +134,8 @@ def train(table: FeatureTable, out_dir: str | Path, mcfg: ModelCfg, tcfg: TrainC
             m = validate(ema, table, val_rows, tcfg) if len(val_rows) else {"val_nll": float("nan")}
             m["step"] = step + 1
             history.append(m)
-            log.info("val @%d: nll %.4f  pairwise_like %s  pairwise_reach %s", step + 1, m["val_nll"],
-                     m.get("pairwise_like"), m.get("pairwise_reach"))
+            log.info("val @%d: nll %.4f  pairwise_likes %s  pairwise_views %s", step + 1, m["val_nll"],
+                     m.get("pairwise_likes"), m.get("pairwise_views"))
             if not (m["val_nll"] >= best["val_nll"]):
                 best = m
                 save(out / "best.pt", ema, mcfg, tcfg, table.meta, m)

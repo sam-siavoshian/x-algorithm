@@ -23,8 +23,8 @@ from xviral.model import evaluate, train
 from xviral.model.config import TrainCfg
 from xviral.model.features import FeatureTable
 
-KEYS = ["pairwise_like", "within_rho_like", "own_p90_auc_rel_like", "own_p90_ece_rel_like", "nll_rel_like",
-        "pairwise_reach", "within_rho_reach", "own_p90_auc_rel_view", "auc_reach_10x", "ece_reach_10x", "nll_reach"]
+KEYS = ["pairwise_likes", "within_rho_likes", "own_p90_auc_rel_like", "own_p90_ece_rel_like", "nll_rel_like",
+        "pairwise_views", "within_rho_views", "own_p90_auc_rel_view", "auc_reach_10x", "ece_reach_10x", "nll_views"]
 
 
 def gbdt_scores(table: FeatureTable, target: str, with_emb: bool, seed: int = 0) -> np.ndarray:
@@ -96,17 +96,17 @@ def main() -> None:
     results["author_median"] = rank_only(evaluate.metrics({**ref_pred, **base}, table, tcfg))
     for with_emb in (False, True):
         scores = {}
-        for target, key in (("y_like", "like_mean"), ("y_reach", "reach_mean")):
+        for target, key in (("y_likes", "likes_mean"), ("y_views", "views_mean")):
             if not torch.isnan(table.t[target]).all():
                 scores[key] = gbdt_scores(table, target, with_emb, args.seed)[rows]
         # Trees give one score per post; it also ranks posts for the own-top-10% question.
         pred = {**ref_pred, **scores}
-        if "like_mean" in scores:
-            pred["p_own_p90_rel_like"] = scores["like_mean"]
-        if "reach_mean" in scores:
-            pred["p_own_p90_rel_view"] = scores["reach_mean"]
+        if "likes_mean" in scores:
+            pred["p_own_p90_rel_like"] = scores["likes_mean"]
+        if "views_mean" in scores:
+            pred["p_own_p90_rel_view"] = scores["views_mean"]
             for mult in ("1x", "10x", "100x"):
-                pred[f"p_reach_{mult}"] = scores["reach_mean"]
+                pred[f"p_reach_{mult}"] = scores["views_mean"]
         m = evaluate.metrics(pred, table, tcfg)
         results["gbdt_tabular" + ("_plus_embedding" if with_emb else "")] = {k: v for k, v in m.items() if not k.startswith(("nll", "own_p90_ece", "ece"))}
     (out / "results.json").write_text(json.dumps(results, indent=2, default=float))

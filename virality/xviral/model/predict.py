@@ -51,12 +51,12 @@ class Predictor:
         for i in range(len(rows)):
             f = float(followers[i])
             p = s["actions"][i].astype(np.float64) * observed          # heads without labels contribute nothing
-            to_count = lambda q: float(10 ** q * (f + 1) - 1)          # noqa: E731
+            to_count = lambda q: float(10 ** q - 1)                    # noqa: E731  absolute heads, log10(count + 1)
             rep = {
                 "post_id": int(t["post_id"][rows[i]]),
                 "followers": f,
-                "views_24h": {k: max(to_count(s[f"reach_{k}"][i]), 0.0) for k in ("q10", "q50", "q90")},
-                "likes": {k: max(to_count(s[f"like_{k}"][i]), 0.0) for k in ("q10", "q50", "q90")},
+                "views_24h": {k: max(to_count(s[f"views_{k}"][i]), 0.0) for k in ("q10", "q50", "q90")},
+                "likes": {k: max(to_count(s[f"likes_{k}"][i]), 0.0) for k in ("q10", "q50", "q90")},
                 "p_reach_1x": float(s["p_reach_1x"][i]), "p_reach_10x": float(s["p_reach_10x"][i]),
                 "p_reach_100x": float(s["p_reach_100x"][i]),
                 "lift_vs_own_median": {

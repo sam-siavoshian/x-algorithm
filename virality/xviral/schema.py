@@ -30,7 +30,7 @@ URL_STRUCT = pl.Struct(
 )
 
 KINDS = ("original", "quote", "reply", "repost")
-SOURCES = ("user_scrape", "usc", "community_archive", "analytics")
+SOURCES = ("user_scrape", "usc", "community_archive", "analytics", "nitter_2026", "twitter100m")
 
 POSTS_SCHEMA: dict[str, pl.DataType] = {
     "post_id": pl.Int64,

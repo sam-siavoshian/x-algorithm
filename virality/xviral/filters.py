@@ -78,7 +78,10 @@ def maturity(df: pl.DataFrame, cfg: FilterCfg, usc_audit: pl.DataFrame | None = 
 
 
 def recency(df: pl.DataFrame, cfg: FilterCfg) -> pl.DataFrame:
-    return df.filter(pl.col("created_at_ms") >= date_to_ms(cfg.min_created))
+    floor = pl.lit(date_to_ms(cfg.min_created))
+    for src, d in cfg.min_created_by_source.items():
+        floor = pl.when(pl.col("source") == src).then(pl.lit(date_to_ms(d))).otherwise(floor)
+    return df.filter(pl.col("created_at_ms") >= floor)
 
 
 def language(df: pl.DataFrame, cfg: FilterCfg) -> pl.DataFrame:

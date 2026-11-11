@@ -5,6 +5,9 @@ paths:
   user_scrape: []            # add your scrape JSONL files here, newest first
   analytics: []              # X analytics CSV exports, one per account
   seed_accounts: null        # optional handle list defining the audience
+  nitter_2026: data/raw/nitter_2026/data            # 75.8M posts with views, Jan-Jul 2026 (Hugging Face)
+  twitter100m_tweets: data/raw/twitter100m/tweets   # tech account timelines to Apr 2023, likes (Hugging Face)
+  twitter100m_users: data/raw/twitter100m/users.parquet
 
 workers: 16
 

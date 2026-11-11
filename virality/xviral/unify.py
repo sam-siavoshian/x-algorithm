@@ -21,7 +21,7 @@ from xviral.util.core import scan_dir, write_parquet
 
 log = logging.getLogger(__name__)
 
-SOURCE_PRIORITY = {"analytics": 0, "user_scrape": 1, "usc": 2, "community_archive": 3}
+SOURCE_PRIORITY = {"analytics": 0, "user_scrape": 1, "nitter_2026": 2, "usc": 3, "community_archive": 4, "twitter100m": 5}
 
 
 def _norm_text_hash() -> pl.Expr:

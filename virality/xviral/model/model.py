@@ -141,7 +141,8 @@ class OutcomeEncoder(nn.Module):
         c = counts.clamp(min=0).float()
         logc = torch.log2(c + 1.0) / ENGAGEMENT_COUNT_LOG2_SCALE * present
         f = torch.log10(followers.clamp(min=0) + 1.0)[..., None]
-        ratio = (torch.log10(c[..., [I_LIKES, I_VIEWS]] + 1.0) - f) * present[..., [I_LIKES, I_VIEWS]]
+        known = (followers > 0)[..., None]     # 0 = follower count unknown: no ratio
+        ratio = (torch.log10(c[..., [I_LIKES, I_VIEWS]] + 1.0) - f) * (present[..., [I_LIKES, I_VIEWS]] & known)
         x = torch.cat([logc, present.float(), ratio, visible[..., None].float()], dim=-1)
         return self.mlp(x) * visible[..., None]
 
@@ -302,9 +303,8 @@ class Surrogate(nn.Module):
     def pair_loss(self, ep: Episode, out: dict, tcfg: TrainCfg) -> torch.Tensor | None:
         """RankNet over same-author candidates in an episode: the confound control for content effects.
 
-        A pair uses views when both posts have them, otherwise likes. Within an episode the follower
-        count is essentially constant, so the difference in the follower-normalised target is the
-        difference in log outcome.
+        A pair uses views when both posts have them, otherwise likes, on the absolute heads, so it
+        needs no follower count.
         """
         cfg = self.cfg
         C = ep.cand_rows.shape[1]
@@ -312,7 +312,7 @@ class Surrogate(nn.Module):
             return None
         upper = torch.triu(torch.ones(C, C, dtype=torch.bool, device=ep.w.device), diagonal=1)[None]
         losses, used = [], None
-        for name in ("reach", "like"):
+        for name in ("views", "likes"):
             y = ep.y[name]
             ok = ~torch.isnan(y)
             both = ok[:, :, None] & ok[:, None, :] & upper

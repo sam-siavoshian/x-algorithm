@@ -123,10 +123,14 @@ def build(rows: pl.DataFrame, out_dir: str | Path, emb=None, sid: pl.DataFrame |
     rows = rows.with_columns([pl.lit(None, dtype=pl.Int64).alias(c) for c in COUNT_COLS if c not in rows.columns]
                              + [pl.lit(None, dtype=pl.Float32).alias(a) for a in ACTIONS if a not in rows.columns])
     counts = rows.select([pl.col(c).cast(pl.Int64, strict=False).fill_null(-1) for c in COUNT_COLS]).to_numpy().astype(np.int64)
-    followers = rows["followers_at_post"].cast(pl.Float64, strict=False).fill_null(0).to_numpy()
+    # Follower count 0 means unknown (some sources carry none); follower-normalised targets are then undefined.
+    followers = rows["followers_at_post"].cast(pl.Float64, strict=False).fill_null(0).clip(lower_bound=0).to_numpy()
+    known = followers > 0
     likes, views = counts[:, 0].astype(np.float64), counts[:, 4].astype(np.float64)
-    y_like = np.where(counts[:, 0] >= 0, np.log10((likes + 1) / (followers + 1)), np.nan).astype(np.float32)
-    y_reach = np.where(counts[:, 4] >= 0, np.log10((views + 1) / (followers + 1)), np.nan).astype(np.float32)
+    y_likes = np.where(counts[:, 0] >= 0, np.log10(np.maximum(likes, 0) + 1), np.nan).astype(np.float32)
+    y_views = np.where(counts[:, 4] >= 0, np.log10(np.maximum(views, 0) + 1), np.nan).astype(np.float32)
+    y_like = np.where((counts[:, 0] >= 0) & known, np.log10((likes + 1) / (followers + 1)), np.nan).astype(np.float32)
+    y_reach = np.where((counts[:, 4] >= 0) & known, np.log10((views + 1) / (followers + 1)), np.nan).astype(np.float32)
     rates = rows.select([pl.col(a).cast(pl.Float32, strict=False) for a in ACTIONS]).to_numpy().astype(np.float32)
     assert counts.shape[0] == n and rates.shape[0] == n
 
@@ -144,7 +148,7 @@ def build(rows: pl.DataFrame, out_dir: str | Path, emb=None, sid: pl.DataFrame |
         "split": split.astype(np.int8),
         "w_row": rows["w_row"].cast(pl.Float32, strict=False).fill_null(1.0).to_numpy() if "w_row" in rows.columns else np.ones(n, np.float32),
         "num": num, "cat": cat, "counts": counts, "followers": followers.astype(np.float32),
-        "y_like": y_like, "y_reach": y_reach, "rates": rates,
+        "y_like": y_like, "y_reach": y_reach, "y_likes": y_likes, "y_views": y_views, "rates": rates,
     }
 
     ids = arrays["post_id"]

@@ -40,9 +40,9 @@ def _maybe(path: Path) -> pl.DataFrame | None:
 
 
 def ingest(cfg: Config, sources: list[str] | None = None, limit: int | None = None) -> None:
-    from xviral.sources import analytics, community_archive, usc, user_scrape
+    from xviral.sources import analytics, community_archive, nitter_sample, twitter100m, usc, user_scrape
 
-    sources = sources or ["usc", "community_archive", "user_scrape", "analytics"]
+    sources = sources or ["usc", "community_archive", "user_scrape", "analytics", "nitter_2026", "twitter100m"]
     root = cfg.paths.stage("sources")
     if "usc" in sources and cfg.paths.usc_root:
         usc.ingest(cfg.paths.usc_root, root / "usc", workers=cfg.workers, keep_langs=tuple(cfg.filters.keep_langs), limit=limit)
@@ -55,6 +55,12 @@ def ingest(cfg: Config, sources: list[str] | None = None, limit: int | None = No
     if "analytics" in sources and cfg.paths.analytics:
         frames = [analytics.read_export(p) for p in cfg.paths.analytics]
         write_parquet(pl.concat(frames), root / "analytics" / "posts" / "part-00000.parquet")
+    seeds = cfg.paths.seed_accounts.read_text().split() if cfg.paths.seed_accounts else None
+    if "nitter_2026" in sources and cfg.paths.nitter_2026:
+        nitter_sample.ingest(cfg.paths.nitter_2026, root / "nitter_2026")
+    if "twitter100m" in sources and cfg.paths.twitter100m_tweets and cfg.paths.twitter100m_users:
+        twitter100m.ingest(cfg.paths.twitter100m_tweets, cfg.paths.twitter100m_users, root / "twitter100m", seed_handles=seeds,
+                           min_created=cfg.filters.min_created_by_source.get("twitter100m", cfg.filters.min_created))
 
 
 def unify(cfg: Config) -> None:

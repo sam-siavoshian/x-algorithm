@@ -29,6 +29,15 @@ step "1. Community Archive: donor accounts, then every post since 2023"
 $X ca-download --config "$CFG" --mode donors
 $X ca-download --config "$CFG" --mode full --shards 8
 
+step "1b. Public corpora from Hugging Face: 2026 posts with views, and tech account timelines to 2023"
+HF=".venv/bin/hf"; [ -x "$HF" ] || HF=".venv/bin/huggingface-cli"
+$HF download SinclairSchneider/tweets_sample_2026 --repo-type dataset --local-dir data/raw/nitter_2026
+$HF download enryu43/twitter100m_tweets --repo-type dataset --local-dir data/raw/twitter100m/tweets_repo
+$HF download enryu43/twitter100m_users --repo-type dataset --local-dir data/raw/twitter100m/users_repo
+mkdir -p data/raw/twitter100m/tweets
+find data/raw/twitter100m/tweets_repo -name "*.parquet" -exec ln -sf "$(pwd)/{}" data/raw/twitter100m/tweets/ \;
+ln -sf "$(pwd)/$(find data/raw/twitter100m/users_repo -name '*.parquet' | head -1)" data/raw/twitter100m/users.parquet
+
 step "2. Phase 0: unify, filter to the audience, author history, labels, baseline"
 $X phase0 --config "$CFG"
 

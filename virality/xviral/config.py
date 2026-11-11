@@ -24,6 +24,12 @@ class Paths(BaseModel):
     """JSONL files from the 2025 tech scrape. Listed newest first."""
     analytics: list[Path] = Field(default_factory=list)
     """X analytics CSV exports, one per account."""
+    nitter_2026: Path | None = None
+    """Directory of Parquet shards of SinclairSchneider/tweets_sample_2026 (X posts with views, 2026)."""
+    twitter100m_tweets: Path | None = None
+    """Directory of Parquet shards of enryu43/twitter100m_tweets (timelines to April 2023, likes)."""
+    twitter100m_users: Path | None = None
+    """The users Parquet file of enryu43/twitter100m_users."""
     seed_accounts: Path | None = None
     """Optional text file of handles that define the target audience, one per line."""
 
@@ -60,6 +66,8 @@ class CommunityArchiveCfg(BaseModel):
 class FilterCfg(BaseModel):
     min_created: str = "2023-01-01"
     """Views are public only for posts after Dec 2022."""
+    min_created_by_source: dict[str, str] = Field(default_factory=lambda: {"twitter100m": "2020-01-01"})
+    """Earlier floors for like-only sources, whose labels do not depend on views existing."""
     maturity_hours: float = 72.0
     """Minimum hours between creation and count snapshot. X serves posts for 48 h."""
     keep_kinds: list[str] = Field(default_factory=lambda: ["original", "quote"])

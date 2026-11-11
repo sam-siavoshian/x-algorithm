@@ -16,10 +16,14 @@ class HistHead(BaseModel):
 
 def default_hist_heads() -> dict[str, HistHead]:
     return {
+        # log10(views + 1) and log10(likes + 1): absolute outcomes, defined whenever the count exists
+        # (some sources have no follower counts). Same-author ranking is trained and scored on these.
+        "views": HistHead(lo=0.0, hi=9.0, bins=90, weight=1.0),
+        "likes": HistHead(lo=0.0, hi=7.0, bins=70, weight=1.0),
         # log10((views + 1) / (followers + 1)): reach relative to followers, X's exploration scale.
-        "reach": HistHead(lo=-4.0, hi=4.0, bins=80, weight=1.0),
+        "reach": HistHead(lo=-4.0, hi=4.0, bins=80, weight=0.5),
         # log10((likes + 1) / (followers + 1)): defined for every source, the bridge between corpora.
-        "like": HistHead(lo=-6.0, hi=2.0, bins=80, weight=1.0),
+        "like": HistHead(lo=-6.0, hi=2.0, bins=80, weight=0.5),
         # log10 of the outcome over the author's own median in the visible history: "x times your usual".
         "rel_view": HistHead(lo=-3.0, hi=3.0, bins=60, weight=0.5),
         "rel_like": HistHead(lo=-3.0, hi=3.0, bins=60, weight=0.5),

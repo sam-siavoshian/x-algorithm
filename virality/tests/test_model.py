@@ -181,22 +181,22 @@ def test_learns_planted_signal_and_roundtrips(world, tmp_path):
     test_rows = world.rows_of_split("test")
     pred = evaluate.predict_rows(model, world, test_rows, tc2)
     m = evaluate.metrics(pred, world, tc2)
-    assert m["pairwise_reach"] > 0.66 and m["pairwise_like"] > 0.62, m      # author-median baseline is 0.50
-    assert m["within_rho_reach"] > 0.35, m
+    assert m["pairwise_views"] > 0.66 and m["pairwise_likes"] > 0.62, m      # author-median baseline is 0.50
+    assert m["within_rho_views"] > 0.35, m
     assert m["auc_reach_1x"] > 0.8, m
     base = evaluate.baseline_author_median(world, test_rows, mcfg, tc2)
     mb = evaluate.metrics({**pred, **base}, world, tc2)
-    assert mb["pairwise_reach"] < 0.55                                       # the baseline cannot rank within an author
+    assert mb["pairwise_views"] < 0.55                                       # the baseline cannot rank within an author
     # Removing content collapses pairwise accuracy: the skill is in the content.
     model.cfg.use_content = False
     m0 = evaluate.metrics(evaluate.predict_rows(model, world, test_rows, tc2), world, tc2)
     model.cfg.use_content = True
-    assert m0["pairwise_reach"] < m["pairwise_reach"] - 0.1, (m0, m)
+    assert m0["pairwise_views"] < m["pairwise_views"] - 0.1, (m0, m)
     # Calibration and reload.
     temps = evaluate.fit_temperature(model, world, world.rows_of_split("val"), tc2)
     assert set(temps) == set(mcfg.hist_heads) and all(0.4 < v < 3.1 for v in temps.values())
     again = evaluate.predict_rows(train.load(tmp_path / "run" / "best.pt")[0], world, test_rows[:64], tc2)
-    assert np.allclose(again["reach_mean"], pred["reach_mean"][:64], atol=1e-5)
+    assert np.allclose(again["views_mean"], pred["views_mean"][:64], atol=1e-5)
     assert res["best"]["step"] > 0
 
 
@@ -244,7 +244,7 @@ def test_stage_b_live_encoder_trains_and_reloads(tmp_path):
     rows_t = table.rows_of_split("val")
     a = evaluate.predict_rows(model, table, rows_t, tc2)
     b = evaluate.predict_rows(train.load(tmp_path / "run" / "best.pt")[0], table, rows_t, tc2)
-    assert np.allclose(a["like_mean"], b["like_mean"], atol=1e-4)
+    assert np.allclose(a["likes_mean"], b["likes_mean"], atol=1e-4)
     # The adapters receive gradient: at least one LoRA B matrix has moved from its zero initialisation.
     assert any(v.abs().sum() > 0 for k, v in ck["state"].items() if "lora_B" in k)
     assert res["params"] < 5_000_000

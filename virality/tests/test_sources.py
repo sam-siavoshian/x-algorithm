@@ -157,3 +157,63 @@ def test_ca_time_keyset_pagination_has_no_gaps_or_duplicates(tmp_path, monkeypat
     n = RestDownloader(cfg, tmp_path, session=_FakeCA(rows)).download("tweets", flush_rows=5)
     got = pl.read_parquet(tmp_path / "tweets" / "*.parquet")["tweet_id"].to_list()
     assert n == 23 and sorted(got) == sorted(r["tweet_id"] for r in rows) and len(set(got)) == 23
+
+
+def test_nitter_2026_reader_fixes_the_column_shift(tmp_path):
+    from xviral.sources import nitter_sample as ns
+
+    T = 1_772_000_000_000  # 2026-02-25
+    def row(i, text, user, ms, likes_true, views_true, reply=False, rt=False, quote=None):
+        pid = ((ms - 1288834974657) << 22) | i
+        return {"search_term": "x", "id": str(pid), "link": f"https://twitter.com/{user}/status/{pid}#m", "text": text, "name": user.upper(),
+                "username": "@" + user, "profile_id": str(1000 + hash(user) % 1000), "avatar": "", "date": "2026-02-25 00:00:00+00:00",
+                "is-retweet": rt, "is-pinned": False, "external-link": "https://github.com/a/b" if i == 1 else "",
+                "replying-to": ["@someone"] if reply else [], "quoted-post": {"date": None, "gifs": None, "link": quote, "pictures": None,
+                "text": "quoted text" if quote else None, "user": None, "videos": None},
+                # the corpus's shifted columns: `quotes` holds likes, `likes` holds views
+                "comments": 2, "retweets": 3, "quotes": likes_true, "likes": views_true,
+                "pictures": ["https://pbs.twimg.com/media/A.jpg"] if i == 1 else [], "videos": [], "gifs": []}
+    rows = [row(1, "We just open source our LLM agent framework", "dev", T, 40, 3000),
+            row(2, "lovely weather for a walk", "dev", T + 1000, 5, 400),
+            row(3, "lovely weather again", "walker", T, 9, 900),
+            row(4, "new GPU benchmark for inference", "dev", T + 90 * 86_400_000, 7, 100),       # after the maturity cutoff
+            row(5, "@x great api launch", "dev", T, 1, 10, reply=True),
+            row(6, "startup founders: read this paper", "dev", T, 3, 50, quote="https://twitter.com/q/status/1")]
+    schema = {"quoted-post": pl.Struct({"date": pl.String, "gifs": pl.List(pl.String), "link": pl.String, "pictures": pl.List(pl.String),
+                                        "text": pl.String, "user": pl.String, "videos": pl.List(pl.Null)}), "videos": pl.List(pl.Null)}
+    (tmp_path / "raw").mkdir()
+    pl.DataFrame(rows, schema_overrides=schema).write_parquet(tmp_path / "raw" / "s0.parquet")
+    res = ns.ingest(tmp_path / "raw", tmp_path / "out", min_tech_posts=2, min_tech_share=0.3)
+    df = pl.read_parquet(tmp_path / "out" / "posts" / "*.parquet").sort("post_id")
+    by = {r["text"][:12]: r for r in df.to_dicts()}
+    a = by["We just open"]
+    assert a["likes"] == 40 and a["views"] == 3000 and a["replies"] == 2 and a["reposts"] == 3 and a["quotes"] is None
+    assert a["author_handle"] == "dev" and a["snapshot_kind"] == "assumed_mature" and a["created_at_ms"] == T
+    assert a["media"][0]["type"] == "photo" and a["urls"][0]["final_domain"] == "github.com"
+    assert "lovely weath" in by and by["lovely weath"]["author_handle"] == "dev"     # tech author's off-topic post kept (timeline)
+    assert not any(r["author_handle"] == "walker" for r in df.to_dicts())             # non-tech author dropped
+    assert not any(r["text"].startswith("@x") for r in df.to_dicts())                 # replies dropped
+    assert by["new GPU benc"]["snapshot_kind"] == "unknown"                            # immature: no snapshot time
+    assert by["startup foun"]["kind"] == "quote" and by["startup foun"]["quoted_text"] == "quoted text"
+    assert res["tech_authors"] == 1
+
+
+def test_twitter100m_reader(tmp_path):
+    from xviral.sources import twitter100m as tw
+
+    ms = 1_675_000_000_000  # 2023-01-29
+    pid = ((ms - 1288834974657) << 22) | 5
+    (tmp_path / "t").mkdir()
+    pl.DataFrame({"user": ["builder", "builder", "builder", "chef", "seeded"], "id": [pid, pid + 1, pid + 2, pid + 3, pid + 4],
+                  "tweet": ["shipping v2 today", "@x thanks", "RT @y: wow", "new recipe", "essay is up"],
+                  "replies": [1, 0, 0, 0, 2], "retweets": [2, 0, 0, 0, 9], "likes": [30, 1, 0, 4, 500], "quotes": [0, 0, 0, 0, 3],
+                  "date": ["2023-01-29T13:46:40+00:00"] * 5}).write_parquet(tmp_path / "t" / "s0.parquet")
+    pl.DataFrame({"user": ["builder", "chef", "seeded"], "id": [1, 2, 3], "verified": [False, False, True],
+                  "followers": [1200, 50, 900000], "description": ["Founder building dev tools", "I cook", "essays"],
+                  "location": ["SF", "", ""]}).write_parquet(tmp_path / "u.parquet")
+    res = tw.ingest(tmp_path / "t", tmp_path / "u.parquet", tmp_path / "out", seed_handles=["@Seeded"])
+    df = pl.read_parquet(tmp_path / "out" / "posts" / "*.parquet")
+    assert sorted(df["text"].to_list()) == ["essay is up", "shipping v2 today"]            # replies, reposts, non-tech dropped
+    r = df.filter(pl.col("author_handle") == "builder").row(0, named=True)
+    assert r["likes"] == 30 and r["author_followers"] == 1200 and r["author_bio"].startswith("Founder") and r["views"] is None
+    assert r["source"] == "twitter100m" and r["snapshot_kind"] == "file_date" and res["tech_accounts"] == 2

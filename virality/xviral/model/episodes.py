@@ -127,6 +127,8 @@ def build(table: FeatureTable, anchors: torch.Tensor, mcfg: ModelCfg, tcfg: Trai
     log_likes = torch.log10(cand_counts[..., I_LIKES].clamp(min=0).float() + 1.0)
     log_views = torch.log10(cand_counts[..., I_VIEWS].clamp(min=0).float() + 1.0)
     y = {
+        "views": lab(log_views, cand_counts[..., I_VIEWS] >= 0),
+        "likes": lab(log_likes, cand_counts[..., I_LIKES] >= 0),
         "reach": lab(t["y_reach"][cand_rows], torch.ones_like(cand_mask)),
         "like": lab(t["y_like"][cand_rows], torch.ones_like(cand_mask)),
         "rel_like": lab(log_likes - z(med_like)[:, None], (cand_counts[..., I_LIKES] >= 0) & has_like[:, None]),

@@ -2,7 +2,7 @@
 
 Every row is scored alone, with its own full history, exactly as a draft
 would be at serving time. Metrics:
-  pairwise      same-author pairs within the pair window: which post did better.
+  pairwise      same-author pairs within the pair window: which post got more likes (or views).
                 The author baseline alone scores 50% here, so this isolates content skill.
   within_rho    Spearman between prediction and outcome inside each author, averaged.
   global_rho    Spearman across all rows (dominated by author size; reported for completeness).
@@ -131,7 +131,7 @@ def metrics(pred: dict[str, np.ndarray], table: FeatureTable, tcfg: TrainCfg, sc
     created = table.t["created_s"][rows].cpu().numpy()
     res: dict[str, float] = {"n": int(len(rows))}
     window = tcfg.pair_window_days * 86400
-    for target, head in (("like", "like"), ("reach", "reach")):
+    for target, head in (("likes", "likes"), ("views", "views")):
         y = pred[f"y_{head}"]
         s = pred[(score_key or {}).get(target, f"{head}_mean")]
         if np.isnan(y).all():
@@ -151,7 +151,9 @@ def metrics(pred: dict[str, np.ndarray], table: FeatureTable, tcfg: TrainCfg, sc
                     rhos.append(r)
         res[f"within_rho_{target}"] = float(np.mean(rhos)) if rhos else float("nan")
         res[f"global_rho_{target}"] = spearman(s, y)
-        res[f"nll_{head}"] = float(np.nanmean(pred[f"nll_{head}"])) if f"nll_{head}" in pred else float("nan")
+    for head in ("views", "likes", "reach", "like"):
+        if f"nll_{head}" in pred and not np.isnan(pred[f"nll_{head}"]).all():
+            res[f"nll_{head}"] = float(np.nanmean(pred[f"nll_{head}"]))
     for name in ("rel_like", "rel_view"):
         y, thr = pred[f"y_{name}"], pred[f"thr_{name}"]
         ok = ~(np.isnan(y) | np.isnan(thr))
@@ -200,9 +202,9 @@ def fit_temperature(model: Surrogate, table: FeatureTable, rows: torch.Tensor, t
 def baseline_author_median(table: FeatureTable, rows: torch.Tensor, mcfg: ModelCfg, tcfg: TrainCfg) -> dict[str, np.ndarray]:
     """Predict every post at its author's visible-history median. Pairwise accuracy is 50% by construction;
     listed so the content skill of other models reads against it."""
-    out = {"like_mean": [], "reach_mean": []}
+    out = {"likes_mean": [], "views_mean": []}
     for i in range(0, len(rows), 2048):
         ep = episodes.build(table, rows[i:i + 2048], mcfg, tcfg, train=False)
-        out["like_mean"].append(ep.ctx[:, 10].cpu().numpy())
-        out["reach_mean"].append(ep.ctx[:, 11].cpu().numpy())
+        out["likes_mean"].append(ep.ctx[:, 3].cpu().numpy())   # log10 median likes in visible history
+        out["views_mean"].append(ep.ctx[:, 5].cpu().numpy())
     return {k: np.concatenate(v) for k, v in out.items()}
