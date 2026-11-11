@@ -83,6 +83,13 @@ def test_draft_scoring_end_to_end(tmp_path):
     assert scorer.score(history, drafts[::-1], account, when)[0]["views_24h"]["q50"] == launch["views_24h"]["q50"]   # order-free
     again = scorer.score(history, drafts, account, when)
     assert again[1]["views_24h"] == launch["views_24h"]
+    # Deterministic gates ride along with every report.
+    g = {x["gate"]: x for x in launch["gates"]}
+    assert g["in_network_store"]["status"] == "pass" and g["cold_start_slot"]["status"] == "pass" and g["expiry"]["hours"] == 48
+    assert g["author_diversity"]["hours_since_previous"] == pytest.approx(30.0) and g["author_diversity"]["second_post_multiplier"] == pytest.approx(0.625)
+    assert g["exploration_target"]["views_needed"]["24h"] == round(0.03 * 46_000) and g["out_of_network_factor"]["factor"] == 0.75
+    big = scorer.score(history, drafts[:1], {**account, "followers": 900_000}, when)[0]
+    assert {x["gate"]: x for x in big["gates"]}["cold_start_slot"]["status"] == "info"
     # Posting-time sweep and link variants reuse the cached history embeddings.
     calls = []
     scorer._embed_raw = lambda texts: (calls.append(len(texts)), embed(texts))[1]

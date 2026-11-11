@@ -70,3 +70,20 @@ def test_head_vector_reproduces_weighted_sum():
     assert p @ v == pytest.approx(0.0708 + 0.05 + 0.02 - 0.117)
     v_in = vm.head_weight_vector(w, mutual_share=0.4, in_network=True)
     assert v_in[4] == pytest.approx(5 + 0.4 * 15)
+
+
+def test_gates_from_repo_constants():
+    from xviral.xalgo import gates
+
+    row = {"followers_at_post": 10_000, "kind": "original", "hours_since_prev_original": 2.0, "has_video": True,
+           "video_index_eligible": False, "video_duration_ms": 8_000, "url_blocked": True, "is_self_repeat": True}
+    g = {x["gate"]: x for x in gates.check(row, originals_last_48h=50)}
+    assert g["in_network_store"]["status"] == "fail" and g["author_diversity"]["status"] == "warn"
+    assert g["video_index"]["status"] == "fail" and g["link_safety"]["status"] == "fail" and g["self_repeat"]["status"] == "warn"
+    assert g["cold_start_slot"]["status"] == "pass"
+    # 3% of followers within 24 hours on an 8-hour half-life: half the saturating curve's mass is reached well before 8 h.
+    need = g["exploration_target"]["views_needed"]
+    assert need["24h"] == 300 and 150 < need["8h"] < 200 and need["1h"] < need["2h"] < need["8h"]
+    assert all(x["source"] for x in g.values())
+    quiet = {x["gate"]: x for x in gates.check({"followers_at_post": 0, "kind": "quote"}, 0)}
+    assert "video_index" not in quiet and "exploration_target" not in quiet and quiet["cold_start_slot"]["status"] == "info"

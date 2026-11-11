@@ -121,7 +121,9 @@ Two what-if functions sit on top of `score`:
 
 Both report what the model learned from observed posts by accounts like this one. They are associations, not experiments; the product should present them as such until the first live tests exist.
 
-Not wired into serving yet: the pre-flight rule check, neighbour retrieval against a corpus index, and media embeddings for drafts.
+Every report also carries the deterministic distribution gates from X's code (`xviral/xalgo/gates.py`), each with its numbers and the file it comes from: the 50-originals-per-author cap of the in-network store, the same-author decay that applies while two posts are both under 48 hours old, the out-of-network factor, cold-start slot eligibility, the 10-second rule for the video index, blocklisted links, near-duplicates of the account's own recent posts, the views needed by age to avoid X's under-exposed label, and expiry.
+
+Not wired into serving yet: the classifier-based pre-flight checks (adult content, violence, spam sub-types), neighbour retrieval against a corpus index, and media embeddings for drafts.
 
 ## 8. Training plan with the larger compute budget
 

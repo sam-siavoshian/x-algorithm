@@ -8,8 +8,9 @@ Drafts given together are treated as alternatives for the same slot: they share 
 are scored in one pass under candidate isolation, so each draft's score is independent of the
 others and the scores are directly comparable.
 
-Not yet wired in here: the pre-flight rule check, retrieved neighbours (needs a corpus index), and
-media embeddings. A model trained with neighbours scores without them as it does for a post that
+Each report also carries the deterministic distribution gates read off X's code (xalgo/gates.py).
+Not yet wired in here: the classifier-based pre-flight checks, retrieved neighbours (needs a corpus
+index), and media embeddings. A model trained with neighbours scores without them as it does for a post that
 has none.
 """
 
@@ -31,6 +32,7 @@ from xviral.model import train as tr
 from xviral.model.predict import Predictor
 from xviral.schema import MEDIA_STRUCT, URL_STRUCT, conform
 from xviral.util.core import stable_hash64
+from xviral.xalgo import gates
 
 
 def feature_frame(posts: pl.DataFrame, snapshots: pl.DataFrame | None = None, account: dict | None = None) -> pl.DataFrame:
@@ -133,11 +135,15 @@ class DraftScorer:
         first = table.n - n                        # drafts are the newest rows of the single author
         by_id = {r["post_id"]: r for r in Predictor(self.model, table, self.tcfg, self.temperature).report_joint(first, n, mutual_share=mutual_share)}
         acct = {"author_id": int(rows["author_id"][0]), **account}
+        feat = {r["post_id"]: r for r in rows.tail(n).iter_rows(named=True)}
+        recent = int((rows.head(first)["created_at_ms"] >= when_ms - 48 * 3_600_000).sum())
         reports = []
         for i, d in enumerate(drafts):             # table order among drafts is by ID; return them in the order given
-            r = by_id[int(self._draft_row(d, i, acct, when_ms)["post_id"][0])]
+            pid = int(self._draft_row(d, i, acct, when_ms)["post_id"][0])
+            r = by_id[pid]
             r["text"] = d.get("text")
             r["history_posts_used"] = int(min(first, self.model.cfg.max_history))
+            r["gates"] = gates.check(feat[pid], recent)      # deterministic distribution gates from X's code
             reports.append(r)
         return reports
 
