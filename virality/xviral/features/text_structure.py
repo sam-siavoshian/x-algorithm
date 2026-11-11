@@ -30,6 +30,12 @@ GROUPS: dict[str, list[str]] = {
 }
 ALL = [c for cols in GROUPS.values() for c in cols]
 
+# Groups that passed vetting and are model inputs (research/10_text_structure_vetting.json). On 152k
+# like-labelled posts they add 0.8 points of same-author pairwise accuracy to trees that already have
+# the embedding; voice and typography add nothing on top, and self_relative adds nothing at all.
+ADMITTED_GROUPS = ("opening", "shape", "link_position")
+ADMITTED = [c for g in ADMITTED_GROUPS for c in GROUPS[g]]
+
 
 def _count(col: pl.Expr, pattern: str) -> pl.Expr:
     return col.str.count_matches(pattern).cast(pl.Float32)
@@ -116,3 +122,8 @@ def text_structure(df: pl.DataFrame) -> pl.DataFrame:
         ((pl.col("ts_lines") + 1).log() - (prev(pl.col("ts_lines"), "rolling_median") + 1).log()).alias("ts_lines_vs_own"),
     )
     return d.select("post_id", *ALL)
+
+
+def admitted(df: pl.DataFrame) -> pl.DataFrame:
+    """post_id plus the admitted columns: what the feature stage and serving join in."""
+    return text_structure(df).select("post_id", *ADMITTED)

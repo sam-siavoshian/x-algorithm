@@ -326,6 +326,23 @@ Your 433 columns and three 768-d embeddings are loaded as a separate feature gro
 
 ---
 
+### 7.9 How the post is written: vetted before admission (E)
+
+X's ranker sees a post through its embedding, and a frozen embedding encodes topic much better than layout. Layout is also the thing a writer can change. `features/text_structure.py` defines 46 candidate columns in six groups, and `scripts/vet_features.py` admits a group only if it improves same-author ranking for trees that already have every current model input including the embedding. The decision is made on the most recent 15% of training rows, so the test split is never used to pick features. A group passes when its gain is positive in at least 95% of author-level bootstrap resamples.
+
+Result on 152k like-labelled posts from the archive's donor accounts (base 59.4% pairwise):
+
+| Group | Columns | Gain in pairwise accuracy | 90% interval | Decision |
+|---|---|---|---|---|
+| Link placement | link in the first line, link at the end, share of text before the link | +0.55 | +0.34 to +0.79 | admitted |
+| Opening line | length, words, share of the post, question, colon, number, first person, announcement phrasing, leading mention | +0.38 | +0.17 to +0.57 | admitted |
+| Layout | words, lines, blank lines, bullet lines, mean and longest line, sentences, words per sentence | +0.22 | +0.02 to +0.43 | admitted |
+| Voice | I, we, you, negation, superlatives, comparisons, how and why framing, thread marker, call to action | +0.20 | 0.00 to +0.38 | held: no gain on top of the three above |
+| Typography | capitals, exclamation and question marks, emoji, numbers, money, percent, quotes, arrows, code | +0.18 | -0.06 to +0.38 | held |
+| Relative to own history | length, media, link, gap and line count against the account's trailing median | +0.04 | -0.16 to +0.24 | dropped: the model already sees the history |
+
+The three admitted groups together add 0.77 points; all six add 0.88. The 20 admitted columns are computed in the feature stage and in serving, and are in the model's scalar inputs. The numbers are in `research/10_text_structure_vetting.json`. The run has to be repeated on view labels and with X's own encoder, since a stronger encoder may absorb some of this.
+
 ## 8. Embedding computation plan
 
 | Step | Model | Rows | Hardware | Hours | Credits |

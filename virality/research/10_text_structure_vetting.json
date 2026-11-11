@@ -1,0 +1,129 @@
+{
+  "date": "2026-11-11",
+  "corpus": "Community Archive donor accounts, 188k like-labelled posts; development slice = latest 15% of training rows by time",
+  "base_inputs": "model scalars and categoricals + 48 principal components of the bge-small post embedding; LightGBM",
+  "metric": "same-author pairwise accuracy, pairs within 7 days; delta against base; author-level bootstrap",
+  "single_groups_2_seeds": {
+    "base": {
+      "pairwise": 0.5936745511437302,
+      "within_rho": 0.26604072831703457
+    },
+    "opening": {
+      "pairwise": 0.5974770589663593,
+      "delta": 0.003802507822629045,
+      "share_of_resamples_positive": 0.995,
+      "delta_ci90": [
+        0.0016675025149061342,
+        0.005663985771823061
+      ],
+      "passes": true
+    },
+    "shape": {
+      "pairwise": 0.5959194051594991,
+      "delta": 0.002244854015768954,
+      "share_of_resamples_positive": 0.96,
+      "delta_ci90": [
+        0.00021225262516176143,
+        0.004341969065368096
+      ],
+      "passes": true
+    },
+    "typography": {
+      "pairwise": 0.5954337836785369,
+      "delta": 0.0017592325348066906,
+      "share_of_resamples_positive": 0.89,
+      "delta_ci90": [
+        -0.0006341870513879074,
+        0.0038492210684309973
+      ],
+      "passes": false
+    },
+    "link_position": {
+      "pairwise": 0.5991836061518163,
+      "delta": 0.005509055008086056,
+      "share_of_resamples_positive": 1.0,
+      "delta_ci90": [
+        0.0033648229147562317,
+        0.007928577936886025
+      ],
+      "passes": true
+    },
+    "voice": {
+      "pairwise": 0.5956926290905592,
+      "delta": 0.0020180779468290293,
+      "share_of_resamples_positive": 0.9475,
+      "delta_ci90": [
+        -1.1526760654596147e-05,
+        0.0038202838917430985
+      ],
+      "passes": false
+    },
+    "self_relative": {
+      "pairwise": 0.5940937432711646,
+      "delta": 0.00041919212743440676,
+      "share_of_resamples_positive": 0.59,
+      "delta_ci90": [
+        -0.001587627425758797,
+        0.0023776768038836333
+      ],
+      "passes": false
+    },
+    "all": {
+      "pairwise": 0.6033228420768106,
+      "delta": 0.009648290933080443,
+      "share_of_resamples_positive": 1.0,
+      "delta_ci90": [
+        0.006882621079588069,
+        0.012373742986374487
+      ],
+      "passes": true
+    }
+  },
+  "combinations_3_seeds": {
+    "base": {
+      "pairwise": 0.5945679114153117,
+      "within_rho": 0.266912153897083
+    },
+    "opening+shape+link_position": {
+      "pairwise": 0.6022393564140976,
+      "delta": 0.007671444998785947,
+      "share_of_resamples_positive": 1.0,
+      "delta_ci90": [
+        0.005130643921635617,
+        0.010217799214036238
+      ],
+      "passes": true
+    },
+    "opening+shape+link_position+voice": {
+      "pairwise": 0.6018155829519373,
+      "delta": 0.007247671536625481,
+      "share_of_resamples_positive": 1.0,
+      "delta_ci90": [
+        0.004449043300305243,
+        0.009922769092134487
+      ],
+      "passes": true
+    },
+    "opening+shape+link_position+voice+typography": {
+      "pairwise": 0.6024638418156746,
+      "delta": 0.007895930400362842,
+      "share_of_resamples_positive": 1.0,
+      "delta_ci90": [
+        0.005019080746972458,
+        0.010471268361935236
+      ],
+      "passes": true
+    },
+    "all": {
+      "pairwise": 0.6033205514094476,
+      "delta": 0.008752639994135891,
+      "share_of_resamples_positive": 1.0,
+      "delta_ci90": [
+        0.005893136252737846,
+        0.011545653284394924
+      ],
+      "passes": true
+    }
+  },
+  "decision": "admit opening, shape, link_position; hold voice and typography (no gain on top); drop self_relative"
+}

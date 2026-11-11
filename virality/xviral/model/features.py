@@ -47,6 +47,12 @@ NUM_SPEC: list[tuple[str, str]] = [
     ("near_dup_rank", "log1p"), ("near_dup_cluster_size", "log1p"), ("is_self_repeat", "bool"), ("copypasta_events", "log1p"),
     ("url_blocked", "bool"), ("self_sim_48h", "id"), ("nbr_density_7d", "log1p"), ("nbr_best_reach_7d", "id"), ("nbr_best_like_7d", "id"),
     ("audience_zone_known", "bool"),
+    # how the post is written: the vetted groups of features/text_structure.py (opening line, layout, link placement)
+    ("ts_first_line_chars", "log1p"), ("ts_first_line_words", "log1p"), ("ts_first_line_share", "id"), ("ts_open_question", "bool"),
+    ("ts_open_colon", "bool"), ("ts_open_number", "bool"), ("ts_open_first_person", "bool"), ("ts_open_announce", "bool"),
+    ("ts_open_mention", "bool"), ("ts_words", "log1p"), ("ts_lines", "log1p"), ("ts_blank_lines", "log1p"), ("ts_bullet_lines", "log1p"),
+    ("ts_mean_line_chars", "log1p"), ("ts_max_line_chars", "log1p"), ("ts_sentences", "log1p"), ("ts_words_per_sentence", "log1p"),
+    ("ts_url_first_line", "bool"), ("ts_url_at_end", "bool"), ("ts_chars_before_url_share", "id"),
     # media and speech scalars (present after the media stages)
     ("frame_motion", "id"), ("speech_ratio", "id"), ("speech_in_first_3s", "bool"), ("transcript_len", "log1p"),
 ]

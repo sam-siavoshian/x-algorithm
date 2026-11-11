@@ -20,7 +20,7 @@ from xviral import audit, authors, baseline, dedup, filters, labels, relevance, 
 from xviral.authors import follower_tier_expr
 from xviral.config import Config
 from xviral.constants import FOLLOWER_TIER_NAMES
-from xviral.features import audience, content, derive, suppression
+from xviral.features import audience, content, derive, suppression, text_structure
 from xviral.util.core import scan_dir, stable_hash64, write_parquet
 
 log = logging.getLogger(__name__)
@@ -183,6 +183,7 @@ def feature_stage(cfg: Config, blocklist_dir: str | None = None) -> None:
         df = df.join(nd, on="post_id", how="left")
     df = derive.author_columns(df)
     df = df.join(content.content_features(df), on="post_id", how="left")
+    df = df.join(text_structure.admitted(df), on="post_id", how="left")
     zones = _read(a / "audience_zones.parquet")
     df = df.join(audience.audience_time_features(df, zones), on="post_id", how="left")
     df = df.join(suppression.url_features(df, suppression.load_blocklists(blocklist_dir)), on="post_id", how="left")

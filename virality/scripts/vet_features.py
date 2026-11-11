@@ -26,14 +26,18 @@ from xviral.model import evaluate
 from xviral.model.features import FeatureTable
 
 
+THREADS = 2   # more threads than free cores makes LightGBM far slower, not faster
+
+
 def fit_predict(X, y, tr, va, seed):
     import lightgbm as lgb
 
     params = dict(objective="huber", learning_rate=0.08, num_leaves=63, min_data_in_leaf=50, feature_fraction=0.8,
-                  bagging_fraction=0.8, bagging_freq=1, lambda_l2=1.0, verbose=-1, seed=seed, num_threads=0)
+                  bagging_fraction=0.8, bagging_freq=1, lambda_l2=1.0, verbose=-1, seed=seed, num_threads=THREADS)
     dtr = lgb.Dataset(X[tr], y[tr])
-    m = lgb.train(params, dtr, num_boost_round=1500, valid_sets=[lgb.Dataset(X[va], y[va], reference=dtr)],
+    m = lgb.train(params, dtr, num_boost_round=1000, valid_sets=[lgb.Dataset(X[va], y[va], reference=dtr)],
                   callbacks=[lgb.early_stopping(60, verbose=False)])
+    logging.info("  fit seed %d: %d rounds", seed, m.best_iteration)
     return m.predict(X), m
 
 
@@ -46,7 +50,10 @@ def main() -> None:
     ap.add_argument("--seeds", type=int, default=2)
     ap.add_argument("--dev-share", type=float, default=0.15)
     ap.add_argument("--groups", nargs="*", default=[*ts.GROUPS, "all"])
+    ap.add_argument("--threads", type=int, default=2)
     args = ap.parse_args()
+    global THREADS
+    THREADS = args.threads
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
     table = FeatureTable.load(args.table)
     t = {k: v.cpu().numpy() for k, v in table.t.items() if k in ("num", "cat", "split", "created_s", "author_idx", "post_id", "y_views", "y_likes")}
@@ -98,7 +105,7 @@ def main() -> None:
            "within_rho": evaluate.spearman(s_base[d] - _author_mean(s_base[d], author), yd - _author_mean(yd, author))}, "groups": {}}
     logging.info("base: pairwise %.4f on %d pairs from %d accounts", c_base.mean(), len(I), len(uniq))
     for g in args.groups:
-        cols = ts.ALL if g == "all" else ts.GROUPS[g]
+        cols = ts.ALL if g == "all" else [c for part in g.split("+") for c in ts.GROUPS[part]]   # "a+b" joins groups
         s = scores_for(np.concatenate([base, C[:, [col[c] for c in cols]]], axis=1))
         acc, delta, p_pos, ci = summarize(pair_correct(s))
         res["groups"][g] = {"pairwise": acc, "delta": delta, "share_of_resamples_positive": p_pos, "delta_ci90": ci,

@@ -24,7 +24,7 @@ import polars as pl
 import torch
 
 from xviral import authors, dedup
-from xviral.features import audience, content, derive, suppression
+from xviral.features import audience, content, derive, suppression, text_structure
 from xviral.model import episodes, features
 from xviral.model import train as tr
 from xviral.model.predict import Predictor
@@ -52,6 +52,7 @@ def feature_frame(posts: pl.DataFrame, snapshots: pl.DataFrame | None = None, ac
         fb("author_following", "following", pl.Int64), fb("author_created_at_ms", "created_at_ms", pl.Int64),
         fb("author_verified", "verified", pl.Boolean).alias("verified")))
     df = df.join(content.content_features(df), on="post_id", how="left")
+    df = df.join(text_structure.admitted(df), on="post_id", how="left")
     real = df.filter(pl.col("source") != "draft")
     zones = audience.estimate_audience_zone(real) if real.height else pl.DataFrame(
         schema={"author_id": pl.Int64, "audience_zone": pl.String, "audience_utc_offset": pl.Float64})
