@@ -527,10 +527,28 @@ def ca_download(cfg: Config, mode: str = "donors", shards: int = 4, max_rows_per
 
 
 def model_eval(cfg: Config, device: str | None = None, name: str = "run") -> dict:
-    """Test-split metrics for the best checkpoint, after fitting temperatures on validation rows."""
+    """Test-split metrics for the best checkpoint, after fitting temperatures on validation rows.
+
+    `name` may list several runs separated by commas: each must have been evaluated already (so its
+    temperatures are stored), and the result is the metrics of their ensemble (model/ensemble.py).
+    """
     from xviral.model import evaluate
     from xviral.model import train as tr
     from xviral.model.features import FeatureTable
+
+    if "," in name:
+        from xviral.model import ensemble
+
+        dev = device or cfg.embed.device
+        table = FeatureTable.load(cfg.paths.work / "model" / "table", dev)
+        runs = [r.strip() for r in name.split(",") if r.strip()]
+        ens, tcfg, _ = ensemble.load([cfg.paths.work / "model" / r / "best.pt" for r in runs], dev)
+        test = table.rows_of_split("test", audience_only=True)
+        res = {"members": runs, "test": evaluate.metrics(evaluate.predict_rows(ens, table, test, tcfg), table, tcfg)}
+        out = cfg.paths.stage("model") / ("ensemble_" + "_".join(runs))
+        out.mkdir(parents=True, exist_ok=True)
+        (out / "eval.json").write_text(json.dumps(res, indent=2, default=float))
+        return res
 
     dev = device or cfg.embed.device
     table = FeatureTable.load(cfg.paths.work / "model" / "table", dev)

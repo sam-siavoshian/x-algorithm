@@ -62,11 +62,18 @@ def feature_frame(posts: pl.DataFrame, snapshots: pl.DataFrame | None = None, ac
 
 
 class DraftScorer:
-    def __init__(self, checkpoint: str | Path, embed_fn: Callable[[list[str]], np.ndarray], device: str = "cpu",
+    def __init__(self, checkpoint: str | Path | list, embed_fn: Callable[[list[str]], np.ndarray], device: str = "cpu",
                  sid_codebook: str | Path | None = None):
         """embed_fn: rendered post texts -> [n, emb_dim] array, from the same encoder the model was trained with."""
-        self.model, self.tcfg, ck = tr.load(checkpoint, device)
-        self.meta, self.temperature = ck["table_meta"], ck.get("temperature") or {}
+        if isinstance(checkpoint, (list, tuple)):       # several checkpoints: scored as an ensemble (model/ensemble.py)
+            from xviral.model import ensemble
+
+            self.model, self.tcfg, ck = ensemble.load(list(checkpoint), device)
+            self.temperature = {}
+        else:
+            self.model, self.tcfg, ck = tr.load(checkpoint, device)
+            self.temperature = ck.get("temperature") or {}
+        self.meta = ck["table_meta"]
         self._embed_raw, self.device, self.sid_codebook = embed_fn, device, sid_codebook
         self._emb_cache: dict[str, np.ndarray] = {}
 

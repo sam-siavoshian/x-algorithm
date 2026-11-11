@@ -63,6 +63,9 @@ for s in $SEEDS; do
   $X model-eval --config "$CFG" --device cuda --run "a_seed$s"
 done
 
+# Stage C: the seeds scored as one model (probabilities averaged after each member's calibration).
+$X model-eval --config "$CFG" --device cuda --run "$(for s in $SEEDS; do printf 'a_seed%s,' "$s"; done | sed 's/,$//')"
+
 step "6. Stage B: the encoder with LoRA adapters, trained through the model's loss"
 for s in $SEEDS; do
   $X model-train --config "$CFG" --preset "$PRESET" --device cuda --steps 20000 --batch-size 32 --seed "$s" \

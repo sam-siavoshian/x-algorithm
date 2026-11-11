@@ -248,3 +248,31 @@ def test_stage_b_live_encoder_trains_and_reloads(tmp_path):
     # The adapters receive gradient: at least one LoRA B matrix has moved from its zero initialisation.
     assert any(v.abs().sum() > 0 for k, v in ck["state"].items() if "lora_B" in k)
     assert res["params"] < 5_000_000
+
+
+def test_ensemble_is_a_calibrated_mixture(world):
+    from xviral.model.ensemble import Ensemble
+
+    members = []
+    for seed in range(3):
+        torch.manual_seed(seed)
+        members.append(Surrogate(train.model_cfg_for(world, "nano", dropout=0.0), world.meta["action_index"]).eval())
+    temps = [{"views": 1.0}, {"views": 1.7}, {}]
+    ens = Ensemble(members, temps).eval()
+    tc = TrainCfg()
+    rows = world.rows_of_split("test")[:200]
+    pe = evaluate.predict_rows(ens, world, rows, tc)
+    singles = [evaluate.predict_rows(m, world, rows, tc, temperature=T) for m, T in zip(members, temps)]
+    for head in ("views", "likes", "reach"):
+        nll = np.nanmean(pe[f"nll_{head}"])
+        assert nll <= np.mean([np.nanmean(s[f"nll_{head}"]) for s in singles]) + 1e-5       # a mixture is never worse than its average member
+    assert np.allclose(pe["p_reach_10x"], np.mean([s["p_reach_10x"] for s in singles], axis=0), atol=1e-4)   # tail odds are the mean of the members'
+    assert np.allclose(pe["rates"], np.mean([s["rates"] for s in singles], axis=0), atol=1e-5)
+    assert (pe["views_q10"] <= pe["views_q50"] + 1e-6).all() and (pe["views_q50"] <= pe["views_q90"] + 1e-6).all()
+    # One member is the member itself.
+    one = evaluate.predict_rows(Ensemble(members[:1]).eval(), world, rows, tc)
+    assert np.allclose(one["views_mean"], evaluate.predict_rows(members[0], world, rows, tc)["views_mean"], atol=1e-4)
+    # Members that would read different episodes are refused.
+    other = Surrogate(train.model_cfg_for(world, "nano", dropout=0.0, max_history=8), world.meta["action_index"])
+    with pytest.raises(AssertionError):
+        Ensemble([members[0], other])
