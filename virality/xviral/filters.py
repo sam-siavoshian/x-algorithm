@@ -97,7 +97,11 @@ def recency(df: pl.DataFrame, cfg: FilterCfg) -> pl.DataFrame:
 def language(df: pl.DataFrame, cfg: FilterCfg) -> pl.DataFrame:
     """Trust X's tag; detect only where it is missing or non-linguistic. Keep text-free media posts."""
     und = set(cfg.undetermined_langs)
-    resolved = langmod.resolve(df["lang_src"].to_list(), df["text"].to_list(), und)
+    resolved: list[str | None] = []
+    step = 250_000                      # texts are materialised as Python strings one slice at a time
+    for i in range(0, df.height, step):
+        part = df.slice(i, step)
+        resolved += langmod.resolve(part["lang_src"].to_list(), part["text"].to_list(), und)
     df = df.with_columns(pl.Series("lang", resolved, dtype=pl.String))
     keep = pl.col("lang").is_in(cfg.keep_langs) | pl.col("lang").is_in(["zxx"]) | pl.col("lang").is_null()
     return df.filter(keep)
