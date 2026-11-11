@@ -48,8 +48,15 @@ export CA_ANON_KEY='<key from community-archive docs/api-doc.md>'
 .venv/bin/xviral ca-download --config configs/pipeline.yaml
 ```
 
+The 2026 view corpus and the 2023 timeline corpus come from Hugging Face; `scripts/gpu_run.sh`
+downloads both and `configs/gpu.yaml` points at them. On a machine without the disk for the view
+corpus, `xviral.sources.nitter_sample.ingest_streaming` filters it one shard at a time.
+
 The tech scrape: put the JSONL files where `paths.user_scrape` points. Analytics exports: list
 the CSV files under `paths.analytics`.
+
+Accounts are kept or dropped whole by the `select` block of the config (minimum posts, strict
+tech share, cap per account, optional general accounts): see DATA_PIPELINE.md section 15.3.
 
 ## Run
 
@@ -66,6 +73,16 @@ After `relevance`, label `relevance/audit_to_label.csv` (fill the `relevant` col
 
 Phase 1 runs on the GPU box, in this order: `media-select`, `fetch-images`, `fetch-videos`,
 `asr`, `embed-mm`, `sid-train`, `sid-assign`, `embed-siglip`, `neighbors`.
+
+Without a large GPU, `embed-text` replaces `embed-mm`: a small text encoder (`embed.text_model`)
+writes to the same store and every later stage runs unchanged. That is the development path, not
+the production one.
+
+New candidate features are vetted before they become model inputs:
+
+```bash
+.venv/bin/python scripts/vet_features.py --table data/work/model/table --rows data/work/dataset/rows.parquet --out vet.json
+```
 
 ## Model
 
