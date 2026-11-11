@@ -46,13 +46,17 @@ def author_stats(path: str | Path) -> pl.DataFrame:
     )
 
 
-def read_shard(path: str | Path, mature_before: str = "2026-05-01", keep_authors: pl.Series | None = None) -> pl.DataFrame:
-    """Original posts from one shard in the unified schema: tech-keyword matches plus `keep_authors`' posts."""
+def read_shard(path: str | Path, mature_before: str = "2026-05-01", keep_authors: pl.Series | None = None,
+               keep_handles: pl.Series | None = None) -> pl.DataFrame:
+    """Original posts from one shard in the unified schema: tech-keyword matches, plus every post by
+    `keep_authors` (author IDs) or `keep_handles` (lower-case handles without '@')."""
     path = Path(path)
     lf = _roots(pl.scan_parquet(path)).with_columns(pl.col("profile_id").cast(pl.Int64, strict=False).alias("author_id"))
     keep = is_tech_post()
     if keep_authors is not None:
         keep = keep | pl.col("author_id").is_in(keep_authors.implode())
+    if keep_handles is not None:
+        keep = keep | pl.col("username").str.strip_prefix("@").str.to_lowercase().is_in(keep_handles.implode())
     df = lf.filter(keep).collect()
     cutoff = date_to_ms(mature_before)
     q = pl.col("quoted-post").struct
@@ -104,3 +108,37 @@ def ingest(shard_dir: str | Path, out_dir: str | Path, mature_before: str = "202
         n += df.height
         log.info("nitter_2026 %s: kept %d", f.name, df.height)
     return {"shards": len(files), "authors": stats.height, "tech_authors": authors.height, "kept": n}
+
+
+def ingest_streaming(out_dir: str | Path, known_handles: list[str] | None = None, mature_before: str = "2026-05-01",
+                     repo: str = "SinclairSchneider/tweets_sample_2026", shards: list[int] | None = None) -> dict:
+    """One pass over the Hugging Face repository without keeping it on disk (25.7 GB): each shard is
+    downloaded, filtered and deleted. Keeps tech-keyword posts plus every original post by
+    `known_handles`, an author prior taken from other sources (archive accounts, tech-bio accounts,
+    seed handles), which stands in for the two-pass author statistics of `ingest`. Resumable.
+    """
+    import shutil
+    import tempfile
+
+    from huggingface_hub import hf_hub_download, list_repo_files
+
+    out = Path(out_dir)
+    files = sorted(f for f in list_repo_files(repo, repo_type="dataset") if f.endswith(".parquet"))
+    if shards is not None:
+        files = [files[i] for i in shards]
+    handles = pl.Series("h", sorted({h.lower().lstrip("@") for h in known_handles})) if known_handles else None
+    kept = 0
+    for f in files:
+        target = out / "posts" / (Path(f).stem + ".parquet")
+        if target.exists():
+            continue
+        tmp = Path(tempfile.mkdtemp(prefix="nitter_"))
+        try:
+            local = hf_hub_download(repo, f, repo_type="dataset", local_dir=tmp)
+            df = read_shard(local, mature_before, keep_handles=handles)
+            write_parquet(df, target)
+            kept += df.height
+            log.info("nitter_2026 %s: kept %d (%d mature)", Path(f).name, df.height, (df["snapshot_kind"] == "assumed_mature").sum())
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+    return {"shards": len(files), "kept": kept}

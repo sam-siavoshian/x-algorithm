@@ -119,4 +119,48 @@ Enforced in `episodes.build` and covered by tests that alter the data and check 
 
 ## 9. Evidence
 
-See the results section appended below by the experiment run.
+### 9.1 First run on real posts (2026-11-11, CPU only)
+
+**Data.** Community Archive donor accounts: 1.78M posts downloaded, 358k mature English originals after filtering, capped at the latest 600 per account: 188,409 posts from 375 accounts, 2023 to November 2026. Likes and reposts only; no views, no media. Test split: the 18,842 posts after 18 September 2026 (time-forward). Validation: 37 accounts held out entirely.
+
+**Stand-ins forced by the hardware** (4 CPU cores, no GPU): the content encoder is `BAAI/bge-small-en-v1.5` (33M parameters, text only) in place of X's 8B multimodal encoder; the trunk is the `small` preset (1.5M parameters, 5,000 steps). Semantic IDs were trained with X's own trainer on those embeddings. Everything else is the real pipeline.
+
+**Metric.** Each test post is scored alone with its own history. *Pairwise*: for two posts by the same account within 7 days whose likes differ by at least 0.1 dex, how often the model ranks them correctly. Knowing only the account scores 50%.
+
+| Model | Pairwise | Within-account Spearman | Own top-10% AUROC | Calibration error (own top-10%) |
+|---|---|---|---|---|
+| Account median (baseline) | 48.2% | −0.04 | | |
+| Gradient-boosted trees, tabular features | 55.9% | 0.131 | | |
+| Gradient-boosted trees, tabular + embedding (PCA-48) | 59.4% | 0.215 | | |
+| **Surrogate, full** | **60.5%** | **0.249** | **0.693** | **0.008** |
+| Surrogate averaged with trees + embedding | 60.7% | 0.245 | | |
+
+Ablations, from the run before the input-scale fix below (so compare them with each other, not with the table above):
+
+| Variant | Pairwise | Within-account Spearman | Own top-10% AUROC |
+|---|---|---|---|
+| Full (before fix) | 58.3% | 0.200 | 0.661 |
+| Outcomes of past posts hidden | 57.7% | 0.194 | 0.640 |
+| Content hidden | 55.7% | 0.119 | 0.635 |
+
+**What this shows.**
+
+1. The model finds real within-account signal in content on real tech-Twitter posts, and its stated odds are calibrated (error under 0.01).
+2. Content is the largest contributor (hiding it costs 2.6 points of pairwise and 40% of the rank correlation); the account's past outcomes add a smaller, consistent gain.
+3. The surrogate beats gradient-boosted trees given the same features and embedding.
+4. Published results with full-size fine-tuned encoders and richer data reach 62 to 77% on this kind of task; humans score about 61%. A 33M text-only encoder on posts with a median of five likes is the floor of this design, not its ceiling.
+
+**A flaw this run exposed and fixed.** In the first version the trees beat the surrogate (59.4% to 58.3%). Cause: feature groups are summed into one token, and the unit-norm post embedding projected to about 1% of the magnitude of the lookup-table features, so content was nearly invisible at initialisation. The embedding is now scaled by sqrt(dim) into a two-layer MLP and lookup tables start at std 0.1, which puts content and numeric features at the same scale. That alone moved pairwise from 58.3% to 60.5%. With the fix the small model also overfits after about 2,500 steps on 150k training posts, which is the expected sign that it is now data-limited rather than optimisation-limited.
+
+**Not yet measured.** Reach (views), because this corpus has none; images and video; the 8B encoder; stage B. These need a GPU and view-labeled data (sections 8 and 10).
+
+## 10. Data now available for the full-scale run
+
+| Source | Size | Labels | Status |
+|---|---|---|---|
+| Community Archive, all posts since 2023 | 16.3M posts downloaded; about a third are mature originals | likes, reposts | downloaded here; reader done |
+| `SinclairSchneider/tweets_sample_2026` (Hugging Face) | 75.8M posts, Jan to Jul 2026; roughly 0.5M English tech originals | **views**, likes, replies, reposts (engagement columns are mislabeled in the source; the reader corrects them) | reader done and verified on real shards |
+| `enryu43/twitter100m` (Hugging Face) | 88M posts to Apr 2023; timelines of the well-known tech accounts | likes, replies, reposts, quotes; follower counts and bios | reader done and verified on a real shard |
+| Your 2025 scrape | 250k to 450k posts | **views**, likes, media URLs | not yet shared |
+
+The absolute `views` and `likes` heads train on any row that has the count, so sources without follower counts (the 2026 corpus) still train the model.
