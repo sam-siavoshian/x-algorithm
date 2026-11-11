@@ -162,11 +162,14 @@ def test_ca_time_keyset_pagination_has_no_gaps_or_duplicates(tmp_path, monkeypat
 def test_nitter_2026_reader_fixes_the_column_shift(tmp_path):
     from xviral.sources import nitter_sample as ns
 
-    T = 1_772_000_000_000  # 2026-02-25
-    def row(i, text, user, ms, likes_true, views_true, reply=False, rt=False, quote=None):
+    from datetime import datetime, timezone
+
+    T = 1_772_000_037_360  # 2026-02-25, 37.36 s into a minute: the corpus records dates to the minute only
+    def row(i, text, user, ms, likes_true, views_true, reply=False, rt=False, quote=None, date_ms=None):
         pid = ((ms - 1288834974657) << 22) | i
+        minute = datetime.fromtimestamp(((date_ms or ms) // 60_000) * 60, tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S+00:00")
         return {"search_term": "x", "id": str(pid), "link": f"https://twitter.com/{user}/status/{pid}#m", "text": text, "name": user.upper(),
-                "username": "@" + user, "profile_id": str(1000 + hash(user) % 1000), "avatar": "", "date": "2026-02-25 00:00:00+00:00",
+                "username": "@" + user, "profile_id": str(1000 + hash(user) % 1000), "avatar": "", "date": minute,
                 "is-retweet": rt, "is-pinned": False, "external-link": "https://github.com/a/b" if i == 1 else "",
                 "replying-to": ["@someone"] if reply else [], "quoted-post": {"date": None, "gifs": None, "link": quote, "pictures": None,
                 "text": "quoted text" if quote else None, "user": None, "videos": None},
@@ -178,7 +181,8 @@ def test_nitter_2026_reader_fixes_the_column_shift(tmp_path):
             row(3, "lovely weather again", "walker", T, 9, 900),
             row(4, "new GPU benchmark for inference", "dev", T + 90 * 86_400_000, 7, 100),       # after the maturity cutoff
             row(5, "@x great api launch", "dev", T, 1, 10, reply=True),
-            row(6, "startup founders: read this paper", "dev", T, 3, 50, quote="https://twitter.com/q/status/1")]
+            row(6, "startup founders: read this paper", "dev", T, 3, 50, quote="https://twitter.com/q/status/1"),
+            row(7, "an api post whose date disagrees with its id", "dev", T + 2000, 3, 50, date_ms=T + 10 * 60_000)]
     schema = {"quoted-post": pl.Struct({"date": pl.String, "gifs": pl.List(pl.String), "link": pl.String, "pictures": pl.List(pl.String),
                                         "text": pl.String, "user": pl.String, "videos": pl.List(pl.Null)}), "videos": pl.List(pl.Null)}
     (tmp_path / "raw").mkdir()
@@ -196,6 +200,13 @@ def test_nitter_2026_reader_fixes_the_column_shift(tmp_path):
     assert by["new GPU benc"]["snapshot_kind"] == "unknown"                            # immature: no snapshot time
     assert by["startup foun"]["kind"] == "quote" and by["startup foun"]["quoted_text"] == "quoted text"
     assert res["tech_authors"] == 1
+    # The validity filter accepts minute-resolution timestamps from this source and still rejects real disagreement.
+    from xviral import filters
+    from xviral.config import FilterCfg
+
+    ok = filters.validity(df, FilterCfg())
+    assert ok.height == df.height - 1 and not ok["text"].str.contains("disagrees").any()
+    assert filters.validity(df, FilterCfg(timestamp_tolerance_ms_by_source={})).height <= 1    # the default one-second rule would drop them
 
 
 def test_twitter100m_reader(tmp_path):

@@ -77,6 +77,11 @@ class FilterCfg(BaseModel):
     )
     """X language tags that mean 'no linguistic content'; these fall back to our detector."""
     max_counts_over_views: float = 2.0
+    timestamp_tolerance_ms: int = 1000
+    """A post's ID encodes its creation time; the source's own timestamp must agree with it this closely."""
+    timestamp_tolerance_ms_by_source: dict[str, int] = Field(default_factory=lambda: {"nitter_2026": 60_000, "analytics": 36 * 3_600_000})
+    """Sources whose timestamps are coarser than a second. The 2026 view corpus records minutes; analytics
+    exports record a minute or only a date, in the account's time zone."""
     """Rows where likes exceed views by this factor are corrupt snapshots."""
 
 

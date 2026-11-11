@@ -47,8 +47,18 @@ def validity(df: pl.DataFrame, cfg: FilterCfg) -> pl.DataFrame:
     has_text = pl.col("text").fill_null("").str.strip_chars().str.len_chars() > 0
     has_media = pl.col("media").list.len() > 0
     created_ok = pl.col("created_at_ms").is_not_null()
-    # Snowflake time and the source timestamp must agree to the second (sources truncate to seconds).
-    ts_ok = pl.col("created_at_src_ms").is_null() | pl.col("synthetic_id") | ((pl.col("created_at_ms") - pl.col("created_at_src_ms")).abs() <= 1000)
+    # Snowflake time and the source timestamp must agree to the source's resolution: a second for most,
+    # a minute for sources that record minutes (config timestamp_tolerance_ms_by_source).
+    tol = pl.lit(cfg.timestamp_tolerance_ms)
+    for src, ms in cfg.timestamp_tolerance_ms_by_source.items():
+        tol = pl.when(pl.col("source") == src).then(pl.lit(ms)).otherwise(tol)
+    ts_ok = pl.col("created_at_src_ms").is_null() | pl.col("synthetic_id") | ((pl.col("created_at_ms") - pl.col("created_at_src_ms")).abs() <= tol)
+    # A source that loses many rows here has a timestamp format this check does not understand; say so loudly
+    # instead of dropping its rows in silence.
+    bad = df.group_by("source").agg((~ts_ok).mean().alias("share"), pl.len().alias("n")).filter((pl.col("share") > 0.2) & (pl.col("n") >= 50))
+    for src, share, n in bad.iter_rows():
+        log.warning("validity: %.0f%% of %d %s rows fail the timestamp check; set filters.timestamp_tolerance_ms_by_source "
+                    "if this source records coarse timestamps", 100 * share, n, src)
     views_ok = pl.col("views").is_null() | (pl.col("views") >= 0)
     counts_ok = pl.col("views").is_null() | (pl.col("views") < 1) | (pl.col("likes").fill_null(0) <= cfg.max_counts_over_views * pl.col("views"))
     return df.filter(pl.col("post_id").is_not_null() & pl.col("author_id").is_not_null() & created_ok & ts_ok & (has_text | has_media) & views_ok & counts_ok)

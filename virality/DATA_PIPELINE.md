@@ -471,6 +471,8 @@ Two defects in `tweets_sample_2026` are corrected at ingest, both verified on th
 1. **The count columns are shifted by one.** The column named `quotes` holds likes and the column named `likes` holds views. After the correction likes are at most views in 99.99% of rows and the median like-to-view ratio is 1.3%, the usual rate. The reader checks this on every shard and refuses a shard where fewer than 99% of rows satisfy it, so a corrected re-upload of the dataset cannot be silently mis-read.
 2. **Later posts were captured young.** The file has no capture time. Median views fall steeply for posts created from May 2026 on, which means those were read soon after posting. Posts created before 1 May 2026 are treated as mature; later ones are dropped by the maturity filter. About half of the rows that pass the other filters survive.
 
+3. **Timestamps are recorded to the minute.** The validity filter compares each post's own timestamp with the time encoded in its ID and used to require agreement to the second, which silently dropped 96% of this corpus. The tolerance is now set per source (`filters.timestamp_tolerance_ms_by_source`: one minute here, 36 hours for analytics exports, which carry a date in the account's time zone), and the filter logs a warning whenever a source loses more than a fifth of its rows to this check.
+
 The corpus is a random sample of X, not of the target audience. Ingest is therefore streaming and selective: each shard is downloaded, reduced to posts whose author handle is in the Community Archive account index or whose text matches the tech pattern, written, and deleted. That keeps roughly 87k rows per shard, 43k of them mature.
 
 ### 15.2 The full Community Archive, measured
