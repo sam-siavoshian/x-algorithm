@@ -185,6 +185,9 @@ class EmbedCfg(BaseModel):
     whisper_model: str = "large-v3-turbo"
     device: str = "cuda"
     batch_size: int = 32
+    text_model: str = "BAAI/bge-small-en-v1.5"
+    """Encoder of the `embed-text` stage: a text-only stand-in for X's multimodal encoder, for machines
+    without a large GPU. It writes to the same store, so every later stage runs unchanged."""
     sid_levels: int = 6
     sid_centroids: int = 256
     sid_iters: int = 25

@@ -253,11 +253,12 @@ def build(rows: pl.DataFrame, out_dir: str | Path, emb=None, sid: pl.DataFrame |
 
 
 def render_texts(rows: pl.DataFrame) -> list[str]:
-    """Each post as phoenix/reference/mm_encoder.py renders a text post: author line, text, t.co links removed."""
+    """Each post as phoenix/reference/mm_encoder.py renders a text post: author line, text, t.co links removed,
+    and the quoted post's text when the row carries it."""
     from xviral.embed import mm
 
-    cols = [c for c in ("post_id", "text", "text_note", "author_handle", "author_display_name") if c in rows.columns]
-    return [mm.render(mm.build_post(r))[0] for r in rows.select(cols).iter_rows(named=True)]
+    cols = [c for c in ("post_id", "text", "text_note", "author_handle", "author_display_name", "quoted_text") if c in rows.columns]
+    return [mm.render(mm.build_post(r, quoted={"text": r.get("quoted_text")}))[0] for r in rows.select(cols).iter_rows(named=True)]
 
 
 def transform(rows: pl.DataFrame, meta: dict, emb: np.ndarray | None = None, sid: np.ndarray | None = None,

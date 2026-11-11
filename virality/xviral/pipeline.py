@@ -337,17 +337,39 @@ def embed_mm(cfg: Config, batch: int = 512) -> None:
     images, frames, trans = _media_lookup(cfg)
     texts = dict(_read(cfg.paths.work / "dataset" / "rows.parquet").select("post_id", "text").iter_rows())
     enc = mm.MMEncoder(device=cfg.embed.device, batch_size=cfg.embed.batch_size)
-    rows = df.select("post_id", "text", "text_note", "author_handle", "author_display_name", "quoted_post_id").to_dicts()
+    rows = df.select("post_id", "text", "text_note", "author_handle", "author_display_name", "quoted_post_id", "quoted_text").to_dicts()
     for i in range(0, len(rows), batch):
         chunk = rows[i:i + batch]
         rendered = []
         for r in chunk:
-            q = {"text": texts.get(r["quoted_post_id"])} if r.get("quoted_post_id") in texts else None
+            q = {"text": r.get("quoted_text") or texts.get(r.get("quoted_post_id"))}      # build_post ignores an empty quote
             post = mm.build_post(r, images.get(r["post_id"]), frames.get(r["post_id"]), q)
             rendered.append(mm.render(post, transcript=trans.get(r["post_id"]), max_images=cfg.embed.mm_max_images))
         vecs = enc.encode(rendered)
         store.write(np.array([r["post_id"] for r in chunk], dtype=np.int64), vecs)
         log.info("embed-mm %d/%d", min(i + batch, len(rows)), len(rows))
+
+
+def embed_text(cfg: Config, batch: int = 20_000) -> None:
+    """Text-only post embeddings into the store `embed-mm` writes to (config embed.text_model).
+
+    The stand-in for development machines: the same rendered text X's encoder gets (author line, post,
+    quoted post), no images or video. Resumable. Do not mix it with `embed-mm` in one work directory.
+    """
+    from xviral.embed.store import EmbeddingStore
+    from xviral.embed.text_small import SentenceEmbedder
+    from xviral.model import features
+
+    df = _read(cfg.paths.work / "dataset" / "rows.parquet")
+    enc = SentenceEmbedder(cfg.embed.text_model, device=cfg.embed.device)
+    store = EmbeddingStore(cfg.paths.stage("emb") / "mm", dim=enc.dim)
+    todo = set(store.missing(df["post_id"].to_list()))
+    df = df.filter(pl.col("post_id").is_in(list(todo)))
+    for i in range(0, df.height, batch):
+        chunk = df.slice(i, batch)
+        vecs = enc.encode(features.render_texts(chunk), batch_size=cfg.embed.batch_size)
+        store.write(chunk["post_id"].to_numpy(), vecs)
+        log.info("embed-text %d/%d", min(i + batch, df.height), df.height)
 
 
 def sid_train(cfg: Config) -> None:

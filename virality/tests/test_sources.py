@@ -217,3 +217,50 @@ def test_twitter100m_reader(tmp_path):
     r = df.filter(pl.col("author_handle") == "builder").row(0, named=True)
     assert r["likes"] == 30 and r["author_followers"] == 1200 and r["author_bio"].startswith("Founder") and r["views"] is None
     assert r["source"] == "twitter100m" and r["snapshot_kind"] == "file_date" and res["tech_accounts"] == 2
+
+
+def test_ca_to_unified_maturity_per_row_and_quoted_text(tmp_path):
+    from datetime import datetime, timezone
+
+    from tests.conftest import snowflake
+    from xviral.sources import community_archive as ca
+
+    T = 1_750_000_000_000
+    iso = lambda ms: datetime.fromtimestamp(ms / 1000, tz=timezone.utc).isoformat()   # noqa: E731
+    day = 86_400_000
+
+    def tw(seq, account, ms, text, updated_ms, upload=None, reply_to=None):
+        return {"tweet_id": str(snowflake(ms, seq)), "account_id": str(account), "created_at": iso(ms), "full_text": text,
+                "favorite_count": 10 * seq, "retweet_count": seq, "reply_to_tweet_id": reply_to, "archive_upload_id": upload,
+                "updated_at": iso(updated_ms)}
+
+    reply_id = str(snowflake(T, 2))
+    tweets = [
+        tw(1, 7, T, "an original from a donor archive", T + 1000, upload=5),              # mature through the archive date
+        tw(2, 8, T, "a reply that someone will quote", T + 10 * day, reply_to="123"),      # dropped, but its text is kept for the quote
+        tw(3, 7, T + day, "look at this", T + 9 * day),                                    # stream row, captured 8 days later: mature quote
+        tw(4, 7, T + 2 * day, "captured five seconds after posting", T + 2 * day + 5000),  # stream row, immature
+        tw(5, 7, T + 3 * day, "RT @x: not an original", T + 30 * day),
+    ]
+    for name, rows in {
+        "tweets": tweets,
+        "quote_tweets": [{"tweet_id": tweets[2]["tweet_id"], "quoted_tweet_id": reply_id}],
+        "archive_upload": [{"id": 5, "account_id": "7", "archive_at": iso(T + 40 * day)}],
+        "all_account": [{"account_id": "7", "username": "donor", "account_display_name": "Donor", "created_at": iso(T - 900 * day),
+                         "num_followers": 1200, "num_following": 300, "num_tweets": 4000, "updated_at": iso(T + 40 * day)}],
+    }.items():
+        (tmp_path / name).mkdir()
+        pl.DataFrame(rows).write_parquet(tmp_path / name / "part-0.parquet")
+    out = ca.to_unified(tmp_path)
+    p = out["posts"].sort("created_at_ms")
+    assert p["text"].to_list() == ["an original from a donor archive", "look at this"]
+    assert p["kind"].to_list() == ["original", "quote"]
+    assert p["quoted_text"].to_list() == [None, "a reply that someone will quote"] and p["quoted_author_id"].to_list() == [None, 8]
+    assert p["snapshot_at_ms"].to_list() == [T + 40 * day, T + 9 * day]                    # archive date, then capture time
+    assert p["author_followers"].to_list() == [1200, 1200] and p["likes"].to_list() == [10, 30]
+    act = out["activity"].filter(pl.col("author_id") == 7).row(0, named=True)
+    assert act["rows"] == 4 and act["reposts"] == 1 and act["originals"] == 3
+    # The encoder input of a quote post includes what it quotes.
+    from xviral.model import features
+
+    assert "a reply that someone will quote" in features.render_texts(p)[1] and "look at this" in features.render_texts(p)[1]

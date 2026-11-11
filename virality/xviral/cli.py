@@ -28,6 +28,7 @@ STAGES = {
     "fetch-videos": pipeline.fetch_videos,
     "asr": pipeline.asr_stage,
     "embed-mm": pipeline.embed_mm,
+    "embed-text": pipeline.embed_text,
     "sid-train": pipeline.sid_train,
     "sid-assign": pipeline.sid_assign,
     "embed-siglip": pipeline.embed_siglip,

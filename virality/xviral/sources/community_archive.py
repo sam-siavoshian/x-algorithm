@@ -280,6 +280,15 @@ def to_unified(ca_dir: str | Path, prefilter: bool = True, maturity_hours: float
     if tweets is None:
         raise FileNotFoundError(f"no tweets table under {ca_dir}")
     tweets = tweets.unique("tweet_id")
+    # Text of quoted posts, looked up in the whole table before any row is dropped: what a quote post
+    # quotes is part of its content, and the quoted post is usually a reply or someone else's post.
+    quoted_lookup = None
+    q0 = _read(ca_dir, "quote_tweets")
+    if q0 is not None:
+        qids = q0.select(_i64("quoted_tweet_id").alias("quoted_post_id")).unique()
+        quoted_lookup = tweets.select(
+            _i64("tweet_id").alias("quoted_post_id"), pl.col("full_text").alias("quoted_text"), _i64("account_id").alias("quoted_author_id"),
+        ).join(qids, on="quoted_post_id", how="semi")
     activity = None
     if prefilter:
         is_rt = pl.col("full_text").fill_null("").str.starts_with("RT @")
@@ -330,6 +339,9 @@ def to_unified(ca_dir: str | Path, prefilter: bool = True, maturity_hours: float
     if quotes is not None:
         q = quotes.select(_i64("tweet_id").alias("post_id"), _i64("quoted_tweet_id").alias("quoted_post_id")).unique("post_id")
         t = t.join(q, on="post_id", how="left")
+        if quoted_lookup is not None:
+            t = t.join(quoted_lookup, on="quoted_post_id", how="left")
+            log.info("CA quotes: %d quote posts, quoted text found for %d", t["quoted_post_id"].is_not_null().sum(), t["quoted_text"].is_not_null().sum())
     else:
         t = t.with_columns(pl.lit(None, dtype=pl.Int64).alias("quoted_post_id"))
 
