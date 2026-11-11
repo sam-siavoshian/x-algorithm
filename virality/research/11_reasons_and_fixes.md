@@ -24,6 +24,8 @@ What can be earned is a track record: among the comparisons where we speak, the 
 | The account's own record | "Your 14 posts with an image: median 3,400 views. Your 52 without: 1,200." | Arithmetic on the user's own history, which they can check | When both groups are large enough and the interval excludes no difference |
 | Tested change | "Version B (image added) is predicted to beat version A. For changes of this type, when we are this confident, the preferred version won 68% of 1,240 held-out comparisons." | The model's comparison, gated by a measured hit rate for that type of change | Only when every gate in section 4 passes; otherwise "no change we can stand behind" |
 
+The numbers inside the examples in this section and in section 8 are illustrative; the real ones come from the benchmark in section 6 once the model is trained.
+
 Reasons are never free text from a language model. A reason is either a rule that fired, a fact about the account's history, or the name of the one thing that differs between two scored versions.
 
 ## 3. Reasons by construction: one change at a time
