@@ -28,6 +28,7 @@ def main() -> None:
     ap.add_argument("--followers", type=int, default=None)
     ap.add_argument("--encoder", default="BAAI/bge-small-en-v1.5")
     ap.add_argument("--device", default="cpu")
+    ap.add_argument("--sid-codebook", default=None, help="<work>/emb/sid_codebook.npz when the model was trained with semantic IDs")
     ap.add_argument("--when", default=None, help="posting time, ISO 8601 UTC; default: one day after the account's last post in --posts")
     ap.add_argument("--timing", action="store_true", help="also sweep posting times over the following 48 hours for the first draft")
     ap.add_argument("--json", default=None)
@@ -44,7 +45,7 @@ def main() -> None:
     when = int(datetime.fromisoformat(args.when).replace(tzinfo=timezone.utc).timestamp() * 1000) if args.when else (
         int(history["created_at_ms"].max()) + 86_400_000 if history.height else None)
     enc = SentenceEmbedder(args.encoder, device=args.device)
-    scorer = DraftScorer(args.checkpoint if len(args.checkpoint) > 1 else args.checkpoint[0], lambda texts: enc.encode(texts), device=args.device)
+    scorer = DraftScorer(args.checkpoint if len(args.checkpoint) > 1 else args.checkpoint[0], lambda texts: enc.encode(texts), device=args.device, sid_codebook=args.sid_codebook)
     account = {"handle": args.handle.lstrip("@"), "followers": followers}
     if not history.height:
         account["author_id"] = -1

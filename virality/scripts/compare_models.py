@@ -95,7 +95,7 @@ def main() -> None:
         ref_pred = evaluate.predict_rows(train.Surrogate(mcfg, table.meta["action_index"]).to(args.device), table, test, tcfg, with_nll=False)
     rows = test.cpu().numpy()
     base = evaluate.baseline_author_median(table, test, mcfg, tcfg)
-    rank_only = lambda m: {k: v for k, v in m.items() if k.startswith(("pairwise", "within_rho", "global_rho", "pairs", "n"))}  # noqa: E731
+    rank_only = lambda m: {k: v for k, v in m.items() if k == "n" or k.startswith(("pairwise", "within_rho", "global_rho", "pairs"))}  # noqa: E731
     results["author_median"] = rank_only(evaluate.metrics({**ref_pred, **base}, table, tcfg))
     for with_emb, aud_only in ((False, False), (True, False), (True, True)):
         if aud_only and not has_general:

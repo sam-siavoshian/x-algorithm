@@ -55,6 +55,7 @@ def main() -> None:
     ap.add_argument("--history", type=int, default=80)
     ap.add_argument("--encoder", default="BAAI/bge-small-en-v1.5")
     ap.add_argument("--device", default="cpu")
+    ap.add_argument("--sid-codebook", default=None, help="<work>/emb/sid_codebook.npz when the model was trained with semantic IDs")
     ap.add_argument("--out", required=True)
     args = ap.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
@@ -76,7 +77,7 @@ def main() -> None:
     by_id = {r["post_id"]: r for r in d.filter(pl.col("post_id").is_in(pl.concat([todo["post_id"], todo["post_id_b"]]).unique().implode())).iter_rows(named=True)}
 
     enc = SentenceEmbedder(args.encoder, device=args.device)
-    scorer = DraftScorer(args.checkpoint if len(args.checkpoint) > 1 else args.checkpoint[0], lambda t: enc.encode(t), device=args.device)
+    scorer = DraftScorer(args.checkpoint if len(args.checkpoint) > 1 else args.checkpoint[0], lambda t: enc.encode(t), device=args.device, sid_codebook=args.sid_codebook)
     recs = []
     for i, r in enumerate(todo.iter_rows(named=True)):
         a, b = by_id[r["post_id"]], by_id[r["post_id_b"]]

@@ -1,0 +1,187 @@
+{
+  "target": "y_views",
+  "pairs": 218415,
+  "authors": 3078,
+  "base": {
+    "pairwise": 0.5956550603209486,
+    "within_rho": 0.2436238775412849
+  },
+  "groups": {
+    "opening": {
+      "pairwise": 0.6018771604514342,
+      "delta": 0.006222100130485544,
+      "share_of_resamples_positive": 1.0,
+      "delta_ci90": [
+        0.0021456009230058125,
+        0.011135991164817371
+      ],
+      "passes": true,
+      "columns": [
+        "ts_first_line_chars",
+        "ts_first_line_words",
+        "ts_first_line_share",
+        "ts_open_question",
+        "ts_open_colon",
+        "ts_open_number",
+        "ts_open_first_person",
+        "ts_open_announce",
+        "ts_open_mention"
+      ]
+    },
+    "shape": {
+      "pairwise": 0.6001098825630108,
+      "delta": 0.00445482224206213,
+      "share_of_resamples_positive": 0.9975,
+      "delta_ci90": [
+        0.0019019882577463842,
+        0.007191379327091682
+      ],
+      "passes": true,
+      "columns": [
+        "ts_words",
+        "ts_lines",
+        "ts_blank_lines",
+        "ts_bullet_lines",
+        "ts_mean_line_chars",
+        "ts_max_line_chars",
+        "ts_sentences",
+        "ts_words_per_sentence"
+      ]
+    },
+    "link_position": {
+      "pairwise": 0.5973536616074904,
+      "delta": 0.0016986012865416753,
+      "share_of_resamples_positive": 0.855,
+      "delta_ci90": [
+        -0.0009846245157115656,
+        0.004346103904694829
+      ],
+      "passes": false,
+      "columns": [
+        "ts_url_first_line",
+        "ts_url_at_end",
+        "ts_chars_before_url_share"
+      ]
+    },
+    "voice": {
+      "pairwise": 0.6007737563812009,
+      "delta": 0.005118696060252272,
+      "share_of_resamples_positive": 1.0,
+      "delta_ci90": [
+        0.00202418203618261,
+        0.008088736960011606
+      ],
+      "passes": true,
+      "columns": [
+        "ts_i",
+        "ts_we",
+        "ts_you",
+        "ts_negation",
+        "ts_superlative",
+        "ts_comparison",
+        "ts_how_why",
+        "ts_thread_marker",
+        "ts_call_to_action"
+      ]
+    },
+    "typography": {
+      "pairwise": 0.6020236705354486,
+      "delta": 0.00636861021449992,
+      "share_of_resamples_positive": 1.0,
+      "delta_ci90": [
+        0.0033355589610891763,
+        0.009537814818093827
+      ],
+      "passes": true,
+      "columns": [
+        "ts_caps_words",
+        "ts_exclaims",
+        "ts_questions",
+        "ts_emoji",
+        "ts_number_tokens",
+        "ts_money",
+        "ts_percent",
+        "ts_ellipsis",
+        "ts_quotes",
+        "ts_parens",
+        "ts_arrows",
+        "ts_code"
+      ]
+    },
+    "self_relative": {
+      "pairwise": 0.6032140649680654,
+      "delta": 0.007559004647116728,
+      "share_of_resamples_positive": 1.0,
+      "delta_ci90": [
+        0.004414035410247539,
+        0.010805619028424559
+      ],
+      "passes": true,
+      "columns": [
+        "ts_len_vs_own",
+        "ts_media_vs_own",
+        "ts_link_vs_own",
+        "ts_gap_vs_own",
+        "ts_lines_vs_own"
+      ]
+    },
+    "all": {
+      "pairwise": 0.6066250028615251,
+      "delta": 0.010969942540576426,
+      "share_of_resamples_positive": 1.0,
+      "delta_ci90": [
+        0.007439828996890148,
+        0.014844618979398112
+      ],
+      "passes": true,
+      "columns": [
+        "ts_first_line_chars",
+        "ts_first_line_words",
+        "ts_first_line_share",
+        "ts_open_question",
+        "ts_open_colon",
+        "ts_open_number",
+        "ts_open_first_person",
+        "ts_open_announce",
+        "ts_open_mention",
+        "ts_words",
+        "ts_lines",
+        "ts_blank_lines",
+        "ts_bullet_lines",
+        "ts_mean_line_chars",
+        "ts_max_line_chars",
+        "ts_sentences",
+        "ts_words_per_sentence",
+        "ts_caps_words",
+        "ts_exclaims",
+        "ts_questions",
+        "ts_emoji",
+        "ts_number_tokens",
+        "ts_money",
+        "ts_percent",
+        "ts_ellipsis",
+        "ts_quotes",
+        "ts_parens",
+        "ts_arrows",
+        "ts_code",
+        "ts_url_first_line",
+        "ts_url_at_end",
+        "ts_chars_before_url_share",
+        "ts_i",
+        "ts_we",
+        "ts_you",
+        "ts_negation",
+        "ts_superlative",
+        "ts_comparison",
+        "ts_how_why",
+        "ts_thread_marker",
+        "ts_call_to_action",
+        "ts_len_vs_own",
+        "ts_media_vs_own",
+        "ts_link_vs_own",
+        "ts_gap_vs_own",
+        "ts_lines_vs_own"
+      ]
+    }
+  }
+}
