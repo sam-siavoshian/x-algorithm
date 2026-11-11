@@ -30,10 +30,12 @@ GROUPS: dict[str, list[str]] = {
 }
 ALL = [c for cols in GROUPS.values() for c in cols]
 
-# Groups that passed vetting and are model inputs (research/10_text_structure_vetting.json). On 152k
-# like-labelled posts they add 0.8 points of same-author pairwise accuracy to trees that already have
-# the embedding; voice and typography add nothing on top, and self_relative adds nothing at all.
-ADMITTED_GROUPS = ("opening", "shape", "link_position")
+# Groups that are model inputs. Vetted three times (research/10 and research/12): on like-only donor
+# data opening, shape and link_position passed and the rest added nothing; on view labels five of six
+# pass alone; in combination all six together are the only set clearly positive on both labels
+# (+0.9 points of same-author pairwise accuracy on views, +0.7 on likes, for trees that already have
+# the embedding).
+ADMITTED_GROUPS = ("opening", "shape", "link_position", "typography", "voice", "self_relative")
 ADMITTED = [c for g in ADMITTED_GROUPS for c in GROUPS[g]]
 
 

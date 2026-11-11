@@ -53,6 +53,12 @@ NUM_SPEC: list[tuple[str, str]] = [
     ("ts_open_mention", "bool"), ("ts_words", "log1p"), ("ts_lines", "log1p"), ("ts_blank_lines", "log1p"), ("ts_bullet_lines", "log1p"),
     ("ts_mean_line_chars", "log1p"), ("ts_max_line_chars", "log1p"), ("ts_sentences", "log1p"), ("ts_words_per_sentence", "log1p"),
     ("ts_url_first_line", "bool"), ("ts_url_at_end", "bool"), ("ts_chars_before_url_share", "id"),
+    ("ts_caps_words", "log1p"), ("ts_exclaims", "log1p"), ("ts_questions", "log1p"), ("ts_emoji", "log1p"), ("ts_number_tokens", "log1p"),
+    ("ts_money", "bool"), ("ts_percent", "bool"), ("ts_ellipsis", "bool"), ("ts_quotes", "log1p"), ("ts_parens", "log1p"),
+    ("ts_arrows", "log1p"), ("ts_code", "bool"),
+    ("ts_i", "log1p"), ("ts_we", "log1p"), ("ts_you", "log1p"), ("ts_negation", "log1p"), ("ts_superlative", "log1p"),
+    ("ts_comparison", "log1p"), ("ts_how_why", "bool"), ("ts_thread_marker", "bool"), ("ts_call_to_action", "bool"),
+    ("ts_len_vs_own", "id"), ("ts_media_vs_own", "id"), ("ts_link_vs_own", "id"), ("ts_gap_vs_own", "id"), ("ts_lines_vs_own", "id"),
     # media and speech scalars (present after the media stages)
     ("frame_motion", "id"), ("speech_ratio", "id"), ("speech_in_first_3s", "bool"), ("transcript_len", "log1p"),
 ]

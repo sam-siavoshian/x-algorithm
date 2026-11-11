@@ -194,9 +194,47 @@ Ablations, from the run before the input-scale fix below (so compare them with e
 3. **General accounts do not improve ranking for the audience.** Training on audience accounts alone gives the best pairwise accuracy on views (62.6% against 61.3%); adding 3,000 general accounts improves the fit of the distributions (likelihood, the 10x odds) and nothing else. One seed each, so the 1.3-point gap is suggestive, not established. The practical reading is unchanged either way: the lever is more view-labelled posts from the audience, not more posts.
 4. The account-median baseline is below 50% on views. Its prediction for two posts by one account differs only when the trailing median moved between them, so it carries no information about the posts themselves; it is a level, not a ranker. Everything above 50% comes from content, timing and history. Why it lands under 50% rather than at it has not been investigated.
 
-**Text-structure groups, re-vetted on views** (development slice, base 59.6%; `research/12_text_structure_vetting_views.json`): opening +0.6, layout +0.5, voice +0.5, typography +0.6 and history-relative +0.8 each pass; link placement, which passed on likes, does not (+0.2). All six together add 1.1 points. Voice, typography and history-relative were held back on the like-only evidence; on view labels they earn their place. They are to be admitted once the combination has been checked on both labels.
+**Text-structure groups, re-vetted on views** (development slice, base 59.6%; `research/12_text_structure_vetting_views.json`): opening +0.6, layout +0.5, voice +0.5, typography +0.6 and history-relative +0.8 each pass; link placement, which passed on likes, does not (+0.2). All six together add 1.1 points. Voice, typography and history-relative were held back on the like-only evidence; on view labels they earn their place. Checked in combination on both labels (`research/12_text_structure_vetting_*_combinations.json`): on views the three groups admitted earlier give +0.85 points and all six +0.89; on likes in this corpus the three give +0.11 (not distinguishable from zero) and all six +0.73. All six together are the only set that is clearly positive on both labels, so all 46 columns are model inputs from the next training run on.
 
 **Still not measured.** Images and video, X's own encoder, stage B, the larger presets. The numbers above are the floor of the design on a laptop-class budget.
+
+### 9.3 The product's central claim: which of two versions is better (2026-11-11)
+
+`scripts/evidence/tac_serve_eval.py`, results in `research/13_same_topic_pair_benchmark.json`. Pairs of posts by one account about the same topic (the same quoted post or the same link, different wording, at most 48 hours apart), created after the test cutoff, drawn from the whole 4.48M-post corpus. Both versions go to `DraftScorer` as alternative drafts at the time of the earlier one, with only the account's earlier posts as history. This is the product's use, and the design of Tan, Lee and Pang (2014), where people score 61.3% and the best published model 65.6%.
+
+700 test pairs from 434 accounts were scored with the all-accounts model of 9.2; 579 have likes differing by at least 25%. Almost none have views on both sides, so this is a like benchmark.
+
+| | Pairs | Model prefers the version that did better |
+|---|---|---|
+| All pairs | 579 | 60.8% |
+| With posting order balanced | 579 | 60.4% |
+
+Confidence is a logistic function of the model's score difference, fitted on 300 pairs from accounts the model never trained on.
+
+| Stated confidence | Pairs | Correct |
+|---|---|---|
+| 50 to 55% | 236 | 55.5% |
+| 55 to 60% | 119 | 57.1% |
+| 60 to 70% | 135 | 63.7% |
+| 70 to 80% | 61 | 73.8% |
+| 80% and over | 28 | 78.6% |
+| 60% and over (39% of pairs) | 224 | 68.3% |
+
+| Pairs that differ in | Pairs | Version with it really wins | Model correct |
+|---|---|---|---|
+| Image or video | 77 | 67.5% | 79.2% |
+| Three or more lines | 114 | 63.2% | 64.0% |
+| 1.5x more words | 332 | 53.6% | 60.8% |
+| Link in the first line | 142 | 49.3% | 64.1% |
+
+What this supports:
+
+1. The confidence means what it says. Accuracy rises in step with stated confidence, from 55% in the lowest band to 79% in the highest. The upper bands are small (61 and 28 pairs), so their rates carry about ten points of uncertainty each way.
+2. Selective answering works. Speaking only at 60% confidence or more covers 39% of comparisons at 68% correct; the remaining 61% are where the product should say "no confident difference".
+3. On the change with the strongest independent evidence, adding an image, the model is right 79% of the time.
+4. Overall accuracy matches people (61%) with a 33M text-only encoder and a 1.5M-parameter trunk. The gap to the best published figure is what the full-size encoder and stage B are for.
+
+Limits: likes, not views; one model, one seed; pairs within 48 hours only.
 
 ## 10. Data now available for the full-scale run
 

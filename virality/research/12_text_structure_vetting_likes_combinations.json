@@ -1,0 +1,101 @@
+{
+  "target": "y_likes",
+  "pairs": 246915,
+  "authors": 3764,
+  "base": {
+    "pairwise": 0.5875949213292023,
+    "within_rho": 0.2689458450720452
+  },
+  "groups": {
+    "opening+shape+link_position": {
+      "pairwise": 0.5887127149018894,
+      "delta": 0.001117793572686957,
+      "share_of_resamples_positive": 0.7,
+      "delta_ci90": [
+        -0.002204343610732425,
+        0.0047495603535184444
+      ],
+      "passes": false,
+      "columns": [
+        "ts_first_line_chars",
+        "ts_first_line_words",
+        "ts_first_line_share",
+        "ts_open_question",
+        "ts_open_colon",
+        "ts_open_number",
+        "ts_open_first_person",
+        "ts_open_announce",
+        "ts_open_mention",
+        "ts_words",
+        "ts_lines",
+        "ts_blank_lines",
+        "ts_bullet_lines",
+        "ts_mean_line_chars",
+        "ts_max_line_chars",
+        "ts_sentences",
+        "ts_words_per_sentence",
+        "ts_url_first_line",
+        "ts_url_at_end",
+        "ts_chars_before_url_share"
+      ]
+    },
+    "opening+shape+link_position+self_relative+typography+voice": {
+      "pairwise": 0.5949253791790697,
+      "delta": 0.007330457849867363,
+      "share_of_resamples_positive": 1.0,
+      "delta_ci90": [
+        0.004684339975157418,
+        0.009894045771597495
+      ],
+      "passes": true,
+      "columns": [
+        "ts_first_line_chars",
+        "ts_first_line_words",
+        "ts_first_line_share",
+        "ts_open_question",
+        "ts_open_colon",
+        "ts_open_number",
+        "ts_open_first_person",
+        "ts_open_announce",
+        "ts_open_mention",
+        "ts_words",
+        "ts_lines",
+        "ts_blank_lines",
+        "ts_bullet_lines",
+        "ts_mean_line_chars",
+        "ts_max_line_chars",
+        "ts_sentences",
+        "ts_words_per_sentence",
+        "ts_url_first_line",
+        "ts_url_at_end",
+        "ts_chars_before_url_share",
+        "ts_len_vs_own",
+        "ts_media_vs_own",
+        "ts_link_vs_own",
+        "ts_gap_vs_own",
+        "ts_lines_vs_own",
+        "ts_caps_words",
+        "ts_exclaims",
+        "ts_questions",
+        "ts_emoji",
+        "ts_number_tokens",
+        "ts_money",
+        "ts_percent",
+        "ts_ellipsis",
+        "ts_quotes",
+        "ts_parens",
+        "ts_arrows",
+        "ts_code",
+        "ts_i",
+        "ts_we",
+        "ts_you",
+        "ts_negation",
+        "ts_superlative",
+        "ts_comparison",
+        "ts_how_why",
+        "ts_thread_marker",
+        "ts_call_to_action"
+      ]
+    }
+  }
+}

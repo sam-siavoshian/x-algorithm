@@ -78,6 +78,7 @@ Three things this table teaches:
 1. `scripts/evidence/tac_pairs.py` builds the same-account, same-topic pairs from the whole corpus (42,473 within 30 days; 2,964 with views on both sides). Pairs after the test cutoff are held out.
 2. The trained model scores both sides of every held-out pair. Report accuracy overall, per operator (pairs that differ in exactly that attribute), and by confidence band. This is the benchmark for the product's central claim; 66% is the published reference point.
 3. Calibrate P(B beats A) on the validation pairs and fix the speaking threshold.
+   **First result (2026-11-11, MODEL.md 9.3).** 579 held-out pairs scored through the draft path with the small all-accounts model: 60.8% correct overall, 68.3% on the 39% of pairs where calibrated confidence is at least 60%, 73.8% at 70 to 80% and 78.6% above 80%. On pairs that differ by an image the model is right 79.2% of the time. Likes only; the upper confidence bands hold under 100 pairs.
 4. Add the Upworthy archive (32,487 randomized headline tests, CC BY 4.0) as an outside, randomized check on the wording operators. Expect weak transfer: clicks on headlines are not views in a feed.
 
 ## 7. The only thing that makes it sure: the live loop
