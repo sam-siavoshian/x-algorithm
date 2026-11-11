@@ -15,6 +15,7 @@ has none.
 
 from __future__ import annotations
 
+import re
 import time
 from pathlib import Path
 from typing import Callable
@@ -66,7 +67,18 @@ class DraftScorer:
         """embed_fn: rendered post texts -> [n, emb_dim] array, from the same encoder the model was trained with."""
         self.model, self.tcfg, ck = tr.load(checkpoint, device)
         self.meta, self.temperature = ck["table_meta"], ck.get("temperature") or {}
-        self.embed_fn, self.device, self.sid_codebook = embed_fn, device, sid_codebook
+        self._embed_raw, self.device, self.sid_codebook = embed_fn, device, sid_codebook
+        self._emb_cache: dict[str, np.ndarray] = {}
+
+    def embed_fn(self, texts: list[str]) -> np.ndarray:
+        """The encoder with a cache by rendered text: an account's history is embedded once across calls."""
+        new = [t for t in dict.fromkeys(texts) if t not in self._emb_cache]
+        if new:
+            for t, v in zip(new, np.asarray(self._embed_raw(new))):
+                self._emb_cache[t] = v
+        if len(self._emb_cache) > 200_000:
+            self._emb_cache = {t: self._emb_cache[t] for t in texts}
+        return np.stack([self._emb_cache[t] for t in texts])
 
     def _draft_row(self, d: dict, i: int, account: dict, when_ms: int) -> pl.DataFrame:
         row = {
@@ -121,3 +133,44 @@ class DraftScorer:
             r["history_posts_used"] = int(min(first, self.model.cfg.max_history))
             reports.append(r)
         return reports
+
+    def timing(self, history: pl.DataFrame, draft: dict, account: dict, start_ms: int | None = None, hours_ahead: int = 48,
+               step_hours: int = 2) -> list[dict]:
+        """The same draft at each candidate posting time, best first.
+
+        Each time is scored separately because the time features, the gap since the previous post and the
+        cadence counts change with it. What moves between the rows is what the model learned about hour,
+        weekday and spacing for accounts like this one from observed posts; it is an association, and the
+        differences are usually small next to differences in content.
+        """
+        start_ms = start_ms or int(time.time() * 1000)
+        out = []
+        for h in range(0, hours_ahead + 1, step_hours):
+            when = start_ms + h * 3_600_000
+            r = self.score(history, [draft], account, when)[0]
+            out.append({"when_ms": when, "hours_from_start": h, "views_q50": r["views_24h"]["q50"], "likes_q50": r["likes"]["q50"],
+                        "p_own_top_10pct": r["p_own_top_10pct"], "x_value_score": r["x_value_score"]["in_network"]})
+        key = "views_q50" if self.meta.get("has_views") else "likes_q50"
+        return sorted(out, key=lambda r: -r[key])
+
+    def link_variants(self, history: pl.DataFrame, draft: dict, account: dict, when_ms: int | None = None) -> list[dict]:
+        """A draft with a link, scored as written, with the link moved to the end, and with the link removed
+        (as when it goes in a reply). Empty when the draft has no link. Alternatives share one episode."""
+        text = draft.get("text") or ""
+        links = _URL.findall(text)
+        if not links:
+            return []
+        stripped = " ".join(_URL.sub(" ", text).split(" ")).strip()
+        stripped = "\n".join(line.rstrip() for line in stripped.split("\n")).strip()
+        variants = [("as written", text)]
+        if not text.rstrip().endswith(links[-1]) or len(links) > 1:
+            variants.append(("link moved to the end", stripped + "\n\n" + links[0]))
+        variants.append(("link removed (put it in a reply)", stripped))
+        reports = self.score(history, [{**draft, "text": t, "urls": [] if "removed" in name else draft.get("urls", [])} for name, t in variants],
+                             account, when_ms)
+        for (name, _), r in zip(variants, reports):
+            r["variant"] = name
+        return reports
+
+
+_URL = re.compile(r"https?://\S+")

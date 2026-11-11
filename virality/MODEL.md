@@ -114,6 +114,13 @@ Enforced in `episodes.build` and covered by tests that alter the data and check 
 - Each draft is featurised alone against the history, as the account's next post. Drafts given together are alternatives for one slot: they share the history in one episode and are isolated from each other by the attention mask. A test asserts that a draft's score is the same alone, together with other drafts, and in any order. This is the property the optimizer (S7) needs to compare rewrites.
 - An account with no history gets a report from the follower count and the content alone; the fields that compare with the account's own past are empty.
 
+Two what-if functions sit on top of `score`:
+
+- `timing` scores the same draft at each candidate posting time over the next two days and returns the times best first. Each time is a separate call, because the hour, the weekday, the gap since the previous post and the cadence counts all change with it.
+- `link_variants` scores a draft that contains a link three ways in one episode: as written, with the link moved to the end, and with the link removed, as when it goes in a reply.
+
+Both report what the model learned from observed posts by accounts like this one. They are associations, not experiments; the product should present them as such until the first live tests exist.
+
 Not wired into serving yet: the pre-flight rule check, neighbour retrieval against a corpus index, and media embeddings for drafts.
 
 ## 8. Training plan with the larger compute budget

@@ -83,6 +83,16 @@ def test_draft_scoring_end_to_end(tmp_path):
     assert scorer.score(history, drafts[::-1], account, when)[0]["views_24h"]["q50"] == launch["views_24h"]["q50"]   # order-free
     again = scorer.score(history, drafts, account, when)
     assert again[1]["views_24h"] == launch["views_24h"]
+    # Posting-time sweep and link variants reuse the cached history embeddings.
+    calls = []
+    scorer._embed_raw = lambda texts: (calls.append(len(texts)), embed(texts))[1]
+    sweep = scorer.timing(history, drafts[1], account, start_ms=when, hours_ahead=12, step_hours=4)
+    assert len(sweep) == 4 and sorted(r["hours_from_start"] for r in sweep) == [0, 4, 8, 12]
+    assert sweep[0]["views_q50"] == max(r["views_q50"] for r in sweep) and sum(calls) == 0       # nothing new to embed
+    link = {"text": "launch day: the new agent is live https://foo.dev read more below"}
+    lv = scorer.link_variants(history, link, account, when)
+    assert [r["variant"] for r in lv] == ["as written", "link moved to the end", "link removed (put it in a reply)"]
+    assert lv[1]["text"].endswith("https://foo.dev") and "http" not in lv[2]["text"] and scorer.link_variants(history, drafts[0], account, when) == []
     # An account with no history still gets a report; the lift fields are empty.
     cold = scorer.score(history.head(0), drafts[:1], {"handle": "newco", "followers": 150, "author_id": 999}, when)[0]
     assert cold["lift_vs_own_median"]["views"] is None and cold["views_24h"]["q50"] >= 0
