@@ -121,15 +121,19 @@ class RestDownloader:
             return r.json()
         raise RuntimeError(f"CA {table}: giving up after retries")
 
-    def download(self, table: str, flush_rows: int = 100_000, max_rows: int | None = None) -> int:
+    def download(self, table: str, flush_rows: int = 100_000, max_rows: int | None = None,
+                 lo: str | None = None, hi: str | None = None, tag: str = "") -> int:
         """Keyset pagination. `tweets` pages by created_at (indexed; combining a date filter with
         ordering by tweet_id times out on the live API, verified 2026-11-07), using >= on the last
-        timestamp and dropping tweets already seen at that timestamp. Other tables page by their key."""
+        timestamp and dropping tweets already seen at that timestamp. Other tables page by their key.
+        `lo`, `hi` (ISO timestamps) and `tag` restrict a tweets download to one time shard with its own
+        state file, so several shards can run side by side."""
         by_time = table == "tweets"
         key = "created_at" if by_time else KEYSET[table]
         tdir = self.out / table
         tdir.mkdir(parents=True, exist_ok=True)
-        state_path = tdir / "_state.json"
+        sfx = f"-{tag}" if tag else ""
+        state_path = tdir / f"_state{sfx}.json"
         state = json.loads(state_path.read_text()) if state_path.exists() else {"last": None, "part": 0, "rows": 0, "done": False, "seen_at_last": []}
         if state["done"]:
             return state["rows"]
@@ -138,7 +142,7 @@ class RestDownloader:
         def flush():
             if not buf:
                 return
-            write_parquet(pl.DataFrame(buf, infer_schema_length=None), tdir / f"part-{state['part']:05d}.parquet")
+            write_parquet(pl.DataFrame(buf, infer_schema_length=None), tdir / f"part{sfx}-{state['part']:05d}.parquet")
             state["part"] += 1
             buf.clear()
             state_path.write_text(json.dumps(state))
@@ -146,8 +150,11 @@ class RestDownloader:
         while True:
             params = {"select": SELECT[table], "order": f"{key}.asc", "limit": str(self.cfg.page_size)}
             if by_time:
-                start = state["last"] or f"{self.cfg.min_created}T00:00:00+00:00"
-                params[key] = f"gte.{start}"
+                start = state["last"] or lo or f"{self.cfg.min_created}T00:00:00+00:00"
+                if hi:
+                    params["and"] = f"({key}.gte.{start},{key}.lt.{hi})"
+                else:
+                    params[key] = f"gte.{start}"
             elif state["last"] is not None:
                 params[key] = f"gt.{state['last']}"
             rows = self._get(table, params)

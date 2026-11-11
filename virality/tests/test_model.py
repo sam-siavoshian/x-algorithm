@@ -198,3 +198,53 @@ def test_learns_planted_signal_and_roundtrips(world, tmp_path):
     again = evaluate.predict_rows(train.load(tmp_path / "run" / "best.pt")[0], world, test_rows[:64], tc2)
     assert np.allclose(again["reach_mean"], pred["reach_mean"][:64], atol=1e-5)
     assert res["best"]["step"] > 0
+
+
+def _cached(model_id: str) -> bool:
+    try:
+        from huggingface_hub import try_to_load_from_cache
+
+        return isinstance(try_to_load_from_cache(model_id, "config.json"), str)
+    except Exception:  # noqa: BLE001
+        return False
+
+
+@pytest.mark.skipif(not _cached("BAAI/bge-small-en-v1.5"), reason="small encoder not in the local cache")
+def test_stage_b_live_encoder_trains_and_reloads(tmp_path):
+    pytest.importorskip("peft")
+    rng = np.random.default_rng(0)
+    words = ["launch", "agent", "model", "startup", "gpu", "open", "source", "demo", "raise", "ship", "eval", "paper"]
+    rows, embs, pid = [], [], 1
+    for a in range(8):
+        t = T0
+        for _ in range(20):
+            t += 6 * 3_600_000
+            good = rng.random() < 0.5
+            text = ("we just shipped a big launch " if good else "random thoughts today ") + " ".join(rng.choice(words, 4))
+            likes = int(rng.poisson(40 if good else 8))
+            rows.append({"post_id": pid, "author_id": a + 1, "author_handle": f"u{a}", "created_at_ms": t, "followers_at_post": 1000,
+                         "likes": likes, "views": None, "text": text, "kind": "original", "w_row": 1.0,
+                         "split": "val" if a == 7 else "train"})
+            embs.append(rng.normal(size=16))
+            pid += 1
+    df = pl.DataFrame(rows)
+    store = EmbeddingStore(tmp_path / "emb", dim=16)
+    store.write(df["post_id"].to_numpy(), np.stack(embs))
+    features.build(df, tmp_path / "table", emb=store)
+    table = FeatureTable.load(tmp_path / "table")
+    assert table.texts is not None and table.texts[0].startswith("@u0") and "shipped" in " ".join(table.texts)
+    mcfg = train.model_cfg_for(table, "nano", dropout=0.0, live={"model_id": "BAAI/bge-small-en-v1.5", "r": 4, "max_tokens": 24})
+    tc = TrainCfg(steps=6, batch_size=8, lr=1e-3, live_lr=1e-3, warmup_steps=1, eval_every=3)
+    res = train.train(table, tmp_path / "run", mcfg, tc, log_every=10_000)
+    ck = torch.load(tmp_path / "run" / "best.pt", weights_only=False)
+    live_keys = [k for k in ck["state"] if k.startswith("live_enc.")]
+    assert live_keys and all("lora_" in k for k in live_keys)            # adapters only, never the frozen encoder
+    assert any(k.startswith("live_proj.") for k in ck["state"])
+    model, tc2, _ = train.load(tmp_path / "run" / "best.pt")
+    rows_t = table.rows_of_split("val")
+    a = evaluate.predict_rows(model, table, rows_t, tc2)
+    b = evaluate.predict_rows(train.load(tmp_path / "run" / "best.pt")[0], table, rows_t, tc2)
+    assert np.allclose(a["like_mean"], b["like_mean"], atol=1e-4)
+    # The adapters receive gradient: at least one LoRA B matrix has moved from its zero initialisation.
+    assert any(v.abs().sum() > 0 for k, v in ck["state"].items() if "lora_B" in k)
+    assert res["params"] < 5_000_000

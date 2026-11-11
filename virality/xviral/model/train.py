@@ -37,11 +37,20 @@ def model_cfg_for(table: FeatureTable, preset: str = "small", **overrides) -> Mo
     return ModelCfg(**kw)
 
 
-def param_groups(model: torch.nn.Module, weight_decay: float) -> list[dict]:
-    decay, no_decay = [], []
+def param_groups(model: torch.nn.Module, weight_decay: float, live_lr_ratio: float = 1.0) -> list[dict]:
+    """Weight decay on matrices only; the stage-B encoder adapters get their own learning-rate ratio."""
+    decay, no_decay, live = [], [], []
     for name, p in model.named_parameters():
-        (decay if p.ndim >= 2 and "emb" not in name.split(".")[-2:] else no_decay).append(p)
-    return [{"params": decay, "weight_decay": weight_decay}, {"params": no_decay, "weight_decay": 0.0}]
+        if not p.requires_grad:
+            continue
+        if name.startswith("live_enc."):
+            live.append(p)
+        else:
+            (decay if p.ndim >= 2 and "emb" not in name.split(".")[-2:] else no_decay).append(p)
+    groups = [{"params": decay, "weight_decay": weight_decay, "ratio": 1.0}, {"params": no_decay, "weight_decay": 0.0, "ratio": 1.0}]
+    if live:
+        groups.append({"params": live, "weight_decay": 0.0, "ratio": live_lr_ratio})
+    return groups
 
 
 def lr_at(step: int, tcfg: TrainCfg) -> float:
@@ -59,18 +68,29 @@ def validate(model: Surrogate, table: FeatureTable, rows: torch.Tensor, tcfg: Tr
     return m
 
 
-def train(table: FeatureTable, out_dir: str | Path, mcfg: ModelCfg, tcfg: TrainCfg, log_every: int = 100) -> dict:
+def train(table: FeatureTable, out_dir: str | Path, mcfg: ModelCfg, tcfg: TrainCfg, log_every: int = 100,
+          init_from: str | Path | None = None) -> dict:
+    """init_from: a checkpoint to warm-start from (stage B starts from the stage-A weights)."""
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
     dev = table.device
     torch.manual_seed(tcfg.seed)
     gen = torch.Generator(device=dev).manual_seed(tcfg.seed)
     model = Surrogate(mcfg, table.meta["action_index"]).to(dev)
-    ema = copy.deepcopy(model).eval()
-    for p in ema.parameters():
-        p.requires_grad_(False)
-    opt = torch.optim.AdamW(param_groups(model, tcfg.weight_decay), lr=tcfg.lr, betas=(0.9, 0.95))
-    n_params = sum(p.numel() for p in model.parameters())
+    if init_from:
+        missing, unexpected = model.load_state_dict(torch.load(init_from, map_location=dev, weights_only=False)["state"], strict=False)
+        log.info("warm start from %s (%d new tensors)", init_from, len(missing))
+    stage_b = model.live_enc is not None
+    if stage_b:
+        if table.texts is None:
+            raise ValueError("stage B needs texts.parquet in the feature table; rebuild it with model-prepare")
+        ema = model   # no second copy of a multi-billion-parameter encoder; the adapters train at a low rate
+    else:
+        ema = copy.deepcopy(model).eval()
+        for p in ema.parameters():
+            p.requires_grad_(False)
+    opt = torch.optim.AdamW(param_groups(model, tcfg.weight_decay, tcfg.live_lr / tcfg.lr), lr=tcfg.lr, betas=(0.9, 0.95))
+    n_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     log.info("model: %.2fM parameters, d=%d, layers=%d", n_params / 1e6, mcfg.d_model, mcfg.n_layers)
 
     train_rows = table.rows_of_split("train")
@@ -91,19 +111,20 @@ def train(table: FeatureTable, out_dir: str | Path, mcfg: ModelCfg, tcfg: TrainC
         cursor += tcfg.batch_size
         model.train()
         for g in opt.param_groups:
-            g["lr"] = lr_at(step, tcfg)
+            g["lr"] = lr_at(step, tcfg) * g["ratio"]
         ep = episodes.build(table, anchors, mcfg, tcfg, train=True, generator=gen)
         with torch.autocast(device_type=dev.type, dtype=torch.bfloat16, enabled=use_amp):
             o = model(table, ep)
         loss, parts = model.loss(ep, o, tcfg)
         opt.zero_grad(set_to_none=True)
         loss.backward()
-        torch.nn.utils.clip_grad_norm_(model.parameters(), tcfg.grad_clip)
+        torch.nn.utils.clip_grad_norm_([p for p in model.parameters() if p.requires_grad], tcfg.grad_clip)
         opt.step()
-        with torch.no_grad():
-            d = min(tcfg.ema_decay, (1 + step) / (10 + step))
-            for pe, pm in zip(ema.parameters(), model.parameters()):
-                pe.mul_(d).add_(pm.detach(), alpha=1 - d)
+        if not stage_b:
+            with torch.no_grad():
+                d = min(tcfg.ema_decay, (1 + step) / (10 + step))
+                for pe, pm in zip(ema.parameters(), model.parameters()):
+                    pe.mul_(d).add_(pm.detach(), alpha=1 - d)
         for k, v in parts.items():
             running[k] = 0.98 * running.get(k, v) + 0.02 * v
         if (step + 1) % log_every == 0:
@@ -124,13 +145,17 @@ def train(table: FeatureTable, out_dir: str | Path, mcfg: ModelCfg, tcfg: TrainC
 
 
 def save(path: Path, model: Surrogate, mcfg: ModelCfg, tcfg: TrainCfg, meta: dict, metrics: dict, temperature: dict | None = None) -> None:
-    torch.save({"state": model.state_dict(), "model_cfg": mcfg.model_dump(), "train_cfg": tcfg.model_dump(),
+    from xviral.model.live import trainable_state
+
+    torch.save({"state": trainable_state(model) if model.live_enc is not None else model.state_dict(), "model_cfg": mcfg.model_dump(), "train_cfg": tcfg.model_dump(),
                 "table_meta": meta, "metrics": metrics, "temperature": temperature or {}}, path)
 
 
 def load(path: str | Path, device: str = "cpu") -> tuple[Surrogate, TrainCfg, dict]:
     ck = torch.load(path, map_location=device, weights_only=False)
     mcfg, tcfg = ModelCfg(**ck["model_cfg"]), TrainCfg(**ck["train_cfg"])
+    if mcfg.live:
+        mcfg.live = {**mcfg.live, "device": device}
     model = Surrogate(mcfg, ck["table_meta"]["action_index"]).to(device)
-    model.load_state_dict(ck["state"])
+    model.load_state_dict(ck["state"], strict=mcfg.live is None)
     return model.eval(), tcfg, ck

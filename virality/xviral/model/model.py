@@ -218,6 +218,23 @@ class Surrogate(nn.Module):
         self.actions = nn.Linear(d, cfg.n_actions)
         self.hist = nn.ModuleDict({k: nn.Linear(d, h.bins) for k, h in cfg.hist_heads.items()})
         self.pair_log_scale = nn.Parameter(torch.tensor(math.log(4.0)))
+        self.live_enc = None
+        if cfg.live:
+            from xviral.model.live import LiveEncoder
+
+            self.live_enc = LiveEncoder(**cfg.live)
+            self.live_proj = nn.Sequential(nn.Linear(self.live_enc.dim, d), nn.GELU(approximate="tanh"), nn.Linear(d, d))
+            nn.init.zeros_(self.live_proj[-1].weight)   # starts as a no-op on a stage-A checkpoint
+            nn.init.zeros_(self.live_proj[-1].bias)
+
+    def live_tokens(self, table: FeatureTable, ep: Episode) -> torch.Tensor:
+        """Stage B: encode the valid candidates' rendered posts with the adapter-tuned encoder."""
+        idx = ep.cand_mask.nonzero(as_tuple=False)
+        rows = ep.cand_rows[ep.cand_mask].tolist()
+        vec = self.live_enc.encode_chunked([table.texts[r] for r in rows])
+        out = vec.new_zeros(*ep.cand_rows.shape, self.live_enc.dim)
+        out[idx[:, 0], idx[:, 1]] = vec
+        return self.live_proj(out)
 
     def forward(self, table: FeatureTable, ep: Episode) -> dict:
         t, cfg = table.t, self.cfg
@@ -241,6 +258,8 @@ class Surrogate(nn.Module):
                    + self.nbr_pool.feat(nfeat) + self.role[2])
             cand = cand + self.nbr_pool(cand_content, nbr, ep.nbr_mask)
 
+        if self.live_enc is not None and cfg.use_content:
+            cand = cand + self.live_tokens(table, ep)
         if cfg.use_hist_knn and cfg.use_history_outcomes and cfg.use_content and "emb" in t:
             cand = cand + self.hist_knn(t["emb"][ep.cand_rows].float(), t["emb"][ep.hist_rows].float(), counts[ep.hist_rows],
                                         ep.hist_visible & t["has_emb"][ep.hist_rows], ep.ctx[:, 3], ep.ctx[:, 5])

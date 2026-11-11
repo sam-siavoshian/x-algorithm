@@ -56,6 +56,9 @@ class ModelCfg(BaseModel):
     use_content: bool = True
     use_neighbors: bool = True
     use_hist_knn: bool = True
+    # Stage B: a LoRA-tuned content encoder on candidates. None = stage A (frozen embeddings only).
+    live: dict | None = None
+    """Keyword arguments for xviral.model.live.LiveEncoder, e.g. {"model_id": "Qwen/Qwen3-VL-Embedding-8B", "r": 16}."""
 
 
 PRESETS: dict[str, dict] = {
@@ -89,6 +92,8 @@ class TrainCfg(BaseModel):
     w_rates: float = 1.0
     w_pair: float = 1.0
     # Live-forecast conditioning (off by default; see MODEL.md section 6).
+    live_lr: float = 1e-4
+    """Learning rate of the stage-B encoder adapters."""
     p_live: float = 0.0
     live_half_life_hours: tuple[float, float] = (0.5, 8.0)
     amp: bool = True

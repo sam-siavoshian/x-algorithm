@@ -119,14 +119,16 @@ def build(rows: pl.DataFrame, out_dir: str | Path, emb=None, sid: pl.DataFrame |
         cat_names.append(col)
     cat = np.stack(cats, axis=1).astype(np.int32) if cats else np.zeros((n, 0), dtype=np.int32)
 
-    counts = rows.select([pl.col(c).cast(pl.Int64, strict=False).fill_null(-1) if c in rows.columns else pl.lit(-1, dtype=pl.Int64).alias(c)
-                          for c in COUNT_COLS]).to_numpy().astype(np.int64)
+    # Absent columns are added to the frame first: a select of literals alone would collapse to one row.
+    rows = rows.with_columns([pl.lit(None, dtype=pl.Int64).alias(c) for c in COUNT_COLS if c not in rows.columns]
+                             + [pl.lit(None, dtype=pl.Float32).alias(a) for a in ACTIONS if a not in rows.columns])
+    counts = rows.select([pl.col(c).cast(pl.Int64, strict=False).fill_null(-1) for c in COUNT_COLS]).to_numpy().astype(np.int64)
     followers = rows["followers_at_post"].cast(pl.Float64, strict=False).fill_null(0).to_numpy()
     likes, views = counts[:, 0].astype(np.float64), counts[:, 4].astype(np.float64)
     y_like = np.where(counts[:, 0] >= 0, np.log10((likes + 1) / (followers + 1)), np.nan).astype(np.float32)
     y_reach = np.where(counts[:, 4] >= 0, np.log10((views + 1) / (followers + 1)), np.nan).astype(np.float32)
-    rates = rows.select([pl.col(a).cast(pl.Float32, strict=False) if a in rows.columns else pl.lit(None, dtype=pl.Float32).alias(a)
-                         for a in ACTIONS]).to_numpy().astype(np.float32)
+    rates = rows.select([pl.col(a).cast(pl.Float32, strict=False) for a in ACTIONS]).to_numpy().astype(np.float32)
+    assert counts.shape[0] == n and rates.shape[0] == n
 
     author = rows["author_id"].to_numpy()
     change = np.r_[True, author[1:] != author[:-1]]
@@ -182,6 +184,15 @@ def build(rows: pl.DataFrame, out_dir: str | Path, emb=None, sid: pl.DataFrame |
                     nbr[i, k], cos[i, k] = r, c
         arrays["nbr_idx"], arrays["nbr_cos"] = nbr, cos
 
+    if "text" in rows.columns:
+        # Rendered post text in table order, for stage B's live encoder (author line + text, t.co links removed,
+        # as phoenix/reference/mm_encoder.py renders a text post).
+        from xviral.embed import mm
+
+        cols = [c for c in ("post_id", "text", "text_note", "author_handle", "author_display_name") if c in rows.columns]
+        texts = [mm.render(mm.build_post(r))[0] for r in rows.select(cols).iter_rows(named=True)]
+        pl.DataFrame({"post_id": ids, "text": texts}).write_parquet(out / "texts.parquet", compression="zstd")
+
     for k, v in arrays.items():
         np.save(out / f"{k}.npy", v)
     meta = {
@@ -203,6 +214,7 @@ class FeatureTable:
 
     meta: dict
     t: dict
+    texts: list | None = None
 
     @classmethod
     def load(cls, directory: str | Path, device: str = "cpu") -> "FeatureTable":
@@ -213,7 +225,8 @@ class FeatureTable:
         t = {}
         for p in sorted(d.glob("*.npy")):
             t[p.stem] = torch.from_numpy(np.load(p)).to(device)
-        return cls(meta=meta, t=t)
+        texts = pl.read_parquet(d / "texts.parquet")["text"].to_list() if (d / "texts.parquet").exists() else None
+        return cls(meta=meta, t=t, texts=texts)
 
     @property
     def n(self) -> int:
