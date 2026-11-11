@@ -163,7 +163,8 @@ def metrics(pred: dict[str, np.ndarray], table: FeatureTable, tcfg: TrainCfg, sc
             res[f"own_p90_auc_{name}"] = auroc(lab, p)
             res[f"own_p90_ece_{name}"] = ece(lab, p)
             res[f"own_p90_rate_{name}"] = float(np.nanmean(lab))
-            res[f"nll_{name}"] = float(np.nanmean(pred[f"nll_{name}"]))
+            if f"nll_{name}" in pred:           # absent when predictions were made without likelihoods
+                res[f"nll_{name}"] = float(np.nanmean(pred[f"nll_{name}"]))
     y = pred["y_reach"]
     if not np.isnan(y).all():
         for mult, thr in (("1x", 0.0), ("10x", 1.0), ("100x", 2.0)):
