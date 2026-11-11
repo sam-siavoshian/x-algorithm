@@ -103,3 +103,18 @@ def hygiene(df: pl.DataFrame, authors: pl.DataFrame, cfg) -> pl.DataFrame:
     ).select("author_id")
     log.info("hygiene: %d accounts dropped", bad.height)
     return df.join(bad, on="author_id", how="anti")
+
+
+def select_accounts(df: pl.DataFrame, cfg) -> pl.DataFrame:
+    """Account-level selection (config.SelectCfg): enough posts, tech-leaning, capped to the latest N."""
+    from xviral.text.tech import is_tech_post
+
+    keep_src = pl.col("source").is_in(cfg.always_keep_sources)
+    stats = df.group_by("author_id").agg(pl.len().alias("_n"), is_tech_post().mean().alias("_tech"), keep_src.any().alias("_keep"))
+    ok = stats.filter(pl.col("_keep") | ((pl.col("_n") >= cfg.min_posts_per_account) & (pl.col("_tech") >= cfg.min_tech_share)))
+    out = df.join(ok.select("author_id"), on="author_id", how="semi")
+    if cfg.max_posts_per_account:
+        out = out.with_columns(pl.col("created_at_ms").rank("ordinal", descending=True).over("author_id").alias("_r")).filter(
+            pl.col("_r") <= cfg.max_posts_per_account).drop("_r")
+    log.info("select: %d -> %d posts, %d -> %d accounts", df.height, out.height, stats.height, out["author_id"].n_unique())
+    return out

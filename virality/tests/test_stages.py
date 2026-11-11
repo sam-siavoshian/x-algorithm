@@ -199,3 +199,16 @@ def test_like_only_rows_keep_weight_and_get_like_labels():
     assert (out["w_row"] > 0).all()
     assert out["y_reach_10x"].null_count() == 4 and out["log_like_ratio"].null_count() == 0
     assert out["y_likes_beat_own_p90"].to_list() == [False, False, True, True]
+
+
+def test_select_accounts():
+    from xviral.config import SelectCfg
+
+    rows = [make_post(snowflake(T0 + i * DAY, i), 1, T0 + i * DAY, text="shipping our open source LLM agent" if i % 2 else "lunch") for i in range(10)]
+    rows += [make_post(snowflake(T0 + i * DAY, 100 + i), 2, T0 + i * DAY, text="football tonight") for i in range(10)]
+    rows += [make_post(snowflake(T0, 200), 3, T0, text="new GPU benchmark")]
+    rows += [make_post(snowflake(T0, 300), 4, T0, text="hello", source="user_scrape")]
+    out = filters.select_accounts(frame(rows), SelectCfg(min_posts_per_account=5, min_tech_share=0.3, max_posts_per_account=4))
+    by = dict(out.group_by("author_id").len().iter_rows())
+    assert by == {1: 4, 4: 1}                      # tech account capped to latest 4; scrape account always kept
+    assert out.filter(pl.col("author_id") == 1)["created_at_ms"].min() == T0 + 6 * DAY

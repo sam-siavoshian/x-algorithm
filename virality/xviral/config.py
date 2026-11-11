@@ -89,6 +89,18 @@ class HygieneCfg(BaseModel):
     max_copypasta_events: int = 20
 
 
+class SelectCfg(BaseModel):
+    """Account selection applied after hygiene. Defaults keep everything."""
+
+    min_posts_per_account: int = 1
+    max_posts_per_account: int | None = None
+    """Keep each account's most recent N posts."""
+    min_tech_share: float = 0.0
+    """Cheap account-level audience gate: share of the account's posts matching the tech regex
+    (xviral.text.tech). A prefilter for very large general corpora; the relevance stage decides."""
+    always_keep_sources: list[str] = Field(default_factory=lambda: ["user_scrape", "analytics"])
+
+
 class RelevanceCfg(BaseModel):
     enabled: bool = True
     """False passes every post through: for corpora that are already on-audience (a seed-account scrape)."""
@@ -174,6 +186,7 @@ class Config(BaseModel):
     community_archive: CommunityArchiveCfg = Field(default_factory=CommunityArchiveCfg)
     filters: FilterCfg = Field(default_factory=FilterCfg)
     hygiene: HygieneCfg = Field(default_factory=HygieneCfg)
+    select: SelectCfg = Field(default_factory=SelectCfg)
     relevance: RelevanceCfg = Field(default_factory=RelevanceCfg)
     labels: LabelCfg = Field(default_factory=LabelCfg)
     splits: SplitCfg = Field(default_factory=SplitCfg)

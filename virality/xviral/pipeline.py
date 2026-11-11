@@ -130,7 +130,7 @@ def author_stage(cfg: Config) -> None:
 def hygiene_stage(cfg: Config) -> None:
     posts = _read(cfg.paths.work / "filtered" / "posts.parquet")
     atab = _read(cfg.paths.work / "authors" / "authors.parquet")
-    kept = filters.hygiene(posts, atab, cfg.hygiene)
+    kept = filters.select_accounts(filters.hygiene(posts, atab, cfg.hygiene), cfg.select)
     write_parquet(kept, cfg.paths.stage("hygiene") / "posts.parquet")
 
 
