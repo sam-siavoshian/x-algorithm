@@ -28,7 +28,7 @@ def _unit(x: np.ndarray) -> np.ndarray:
 
 
 def global_neighbors(meta: pl.DataFrame, emb: np.ndarray, k: int = 16, window_days: int = 7,
-                     density_cos: float = 0.85) -> pl.DataFrame:
+                     density_cos: float = 0.85, max_block_cells: int = 100_000_000) -> pl.DataFrame:
     """meta rows align with emb rows. Needs post_id, author_id, created_at_ms; outcome columns
     log_reach_ratio, log_like_ratio, rate_fav, rate_reply, follower_tier_idx are optional and nullable.
 
@@ -58,12 +58,15 @@ def global_neighbors(meta: pl.DataFrame, emb: np.ndarray, k: int = 16, window_da
     best_like = np.full(n, np.nan)
     ids = meta["post_id"].to_numpy()
     day_sorted = day[order]
+    # One block of queries at a time: a day of a dense corpus against its week is tens of gigabytes otherwise.
+    blocks = []
     for d in days:
-        q_idx = order[np.searchsorted(day_sorted, d, "left"):np.searchsorted(day_sorted, d, "right")]
+        q_day = order[np.searchsorted(day_sorted, d, "left"):np.searchsorted(day_sorted, d, "right")]
         lo, hi = np.searchsorted(day_sorted, d - window_days, "left"), np.searchsorted(day_sorted, d, "left")
-        cand = order[lo:hi]
-        if cand.size == 0:
-            continue
+        if hi > lo:
+            step = max(1, min(len(q_day), max_block_cells // (hi - lo)))
+            blocks += [(q_day[i:i + step], order[lo:hi]) for i in range(0, len(q_day), step)]
+    for q_idx, cand in blocks:
         sims = e[q_idx] @ e[cand].T
         same = authors[q_idx][:, None] == authors[cand][None, :]
         sims[same] = -np.inf

@@ -194,6 +194,7 @@ def test_neighbors_are_strictly_from_earlier_days_and_other_authors():
     })
     emb = rng.normal(size=(n, 16)).astype(np.float32)
     nb = global_neighbors(meta, emb, k=5)
+    assert nb.equals(global_neighbors(meta, emb, k=5, max_block_cells=7))      # query blocking never changes the result
     day = dict(zip(meta["post_id"], meta["created_at_ms"] // DAY))
     auth = dict(zip(meta["post_id"], meta["author_id"]))
     checked = 0
