@@ -94,17 +94,40 @@ def recency(df: pl.DataFrame, cfg: FilterCfg) -> pl.DataFrame:
     return df.filter(pl.col("created_at_ms") >= floor)
 
 
-def language(df: pl.DataFrame, cfg: FilterCfg) -> pl.DataFrame:
-    """Trust X's tag; detect only where it is missing or non-linguistic. Keep text-free media posts."""
+def resolve_language(df: pl.DataFrame, cfg: FilterCfg, cache: pl.DataFrame | None = None) -> pl.DataFrame:
+    """Adds `lang`. Trust X's tag; detect only where it is missing or non-linguistic.
+
+    cache: post_id, lang from an earlier run of this stage. Detection is the slowest step of phase 0
+    (about 5,000 posts a second), so a rerun only detects posts it has not seen.
+    """
     und = set(cfg.undetermined_langs)
+    src = df.select("post_id", "lang_src", "text")
+    if cache is not None and cache.height:
+        src = src.join(cache.select("post_id", pl.col("lang").alias("_cached"), pl.lit(True).alias("_hit")).unique("post_id"),
+                       on="post_id", how="left", maintain_order="left")
+    else:
+        src = src.with_columns(pl.lit(None, dtype=pl.String).alias("_cached"), pl.lit(None, dtype=pl.Boolean).alias("_hit"))
+    hit = src["_hit"].fill_null(False)
+    todo = src.filter(~hit)
     resolved: list[str | None] = []
     step = 250_000                      # texts are materialised as Python strings one slice at a time
-    for i in range(0, df.height, step):
-        part = df.slice(i, step)
+    for i in range(0, todo.height, step):
+        part = todo.slice(i, step)
         resolved += langmod.resolve(part["lang_src"].to_list(), part["text"].to_list(), und)
-    df = df.with_columns(pl.Series("lang", resolved, dtype=pl.String))
-    keep = pl.col("lang").is_in(cfg.keep_langs) | pl.col("lang").is_in(["zxx"]) | pl.col("lang").is_null()
-    return df.filter(keep)
+    fresh = todo.select("post_id").with_columns(pl.Series("_new", resolved, dtype=pl.String))
+    out = src.select("post_id", "_cached", "_hit").join(fresh, on="post_id", how="left", maintain_order="left")
+    lang = pl.when(pl.col("_hit").fill_null(False)).then(pl.col("_cached")).otherwise(pl.col("_new"))
+    log.info("language: %d posts, %d from the cache, %d detected", df.height, int(hit.sum()), todo.height)
+    return df.with_columns(out.select(lang.alias("lang"))["lang"])
+
+
+def keep_languages(df: pl.DataFrame, cfg: FilterCfg) -> pl.DataFrame:
+    """Keep the configured languages and text-free media posts."""
+    return df.filter(pl.col("lang").is_in(cfg.keep_langs) | pl.col("lang").is_in(["zxx"]) | pl.col("lang").is_null())
+
+
+def language(df: pl.DataFrame, cfg: FilterCfg) -> pl.DataFrame:
+    return keep_languages(resolve_language(df, cfg), cfg)
 
 
 def hygiene_bad_accounts(authors: pl.DataFrame, cfg) -> pl.Series:

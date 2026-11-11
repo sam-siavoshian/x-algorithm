@@ -11,7 +11,11 @@ Format facts, checked on real shards (research/08_public_datasets.md and our own
 - Counts are frozen at an unrecorded scrape time. Median views fall steeply for posts from May
   onward, consistent with later months being captured younger. Posts before `mature_before` are
   treated as mature; later posts get no snapshot time and the maturity filter drops them.
-- `id` is the post ID as a string; `profile_id` the author ID; `username` carries a leading '@'.
+- `id` is the post ID as a string; `username` carries a leading '@'.
+- **`profile_id` is not the X user ID** (paulg is 183749519 on X and 1824002576 here). Authors are
+  therefore keyed by handle, and rows get a synthetic negative author ID derived from the handle;
+  unify maps it to the real ID whenever another source knows the handle, so an account's posts from
+  this corpus and from the archive land in one history.
 
 Ingest is two passes so author timelines survive: pass 1 finds authors who post about tech;
 pass 2 keeps every original post by those authors plus every keyword-matching post.
@@ -27,7 +31,7 @@ import polars as pl
 from xviral.schema import MEDIA_STRUCT, URL_STRUCT, conform
 from xviral.text.tech import is_tech_post
 from xviral.text.urls import registrable_domain
-from xviral.util.core import date_to_ms, snowflake_ms_expr, write_parquet
+from xviral.util.core import date_to_ms, snowflake_ms_expr, synthetic_author_id, write_parquet
 
 log = logging.getLogger(__name__)
 
@@ -38,26 +42,30 @@ def _roots(lf: pl.LazyFrame) -> pl.LazyFrame:
     return lf.filter(~pl.col("is-retweet").fill_null(False) & (pl.col("replying-to").list.len().fill_null(0) == 0))
 
 
+_HANDLE = pl.col("username").str.strip_prefix("@").str.to_lowercase()
+
+
 def author_stats(path: str | Path) -> pl.DataFrame:
-    """Per author in one shard: original posts and how many match the tech regex."""
+    """Per author handle in one shard: original posts and how many match the tech regex."""
     return (
-        _roots(pl.scan_parquet(path)).select(pl.col("profile_id").cast(pl.Int64, strict=False).alias("author_id"), is_tech_post().alias("t"))
-        .group_by("author_id").agg(pl.len().alias("posts"), pl.col("t").sum().alias("tech_posts")).collect()
+        _roots(pl.scan_parquet(path)).select(_HANDLE.alias("handle"), is_tech_post().alias("t"))
+        .filter(pl.col("handle").is_not_null() & (pl.col("handle") != ""))
+        .group_by("handle").agg(pl.len().alias("posts"), pl.col("t").sum().alias("tech_posts")).collect()
     )
 
 
-def read_shard(path: str | Path, mature_before: str = "2026-05-01", keep_authors: pl.Series | None = None,
-               keep_handles: pl.Series | None = None) -> pl.DataFrame:
+def read_shard(path: str | Path, mature_before: str = "2026-05-01", keep_handles: pl.Series | None = None) -> pl.DataFrame:
     """Original posts from one shard in the unified schema: tech-keyword matches, plus every post by
-    `keep_authors` (author IDs) or `keep_handles` (lower-case handles without '@')."""
+    `keep_handles` (lower-case handles without '@')."""
     path = Path(path)
-    lf = _roots(pl.scan_parquet(path)).with_columns(pl.col("profile_id").cast(pl.Int64, strict=False).alias("author_id"))
+    lf = _roots(pl.scan_parquet(path))
     keep = is_tech_post()
-    if keep_authors is not None:
-        keep = keep | pl.col("author_id").is_in(keep_authors.implode())
     if keep_handles is not None:
-        keep = keep | pl.col("username").str.strip_prefix("@").str.to_lowercase().is_in(keep_handles.implode())
-    df = lf.filter(keep).collect()
+        keep = keep | _HANDLE.is_in(keep_handles.implode())
+    lf = lf.filter(keep & _HANDLE.is_not_null() & (_HANDLE != ""))
+    df = lf.collect()
+    ids = {h: synthetic_author_id(h) for h in df.select(_HANDLE.alias("h"))["h"].unique().to_list()}
+    df = df.with_columns(_HANDLE.replace_strict(ids, return_dtype=pl.Int64).alias("author_id"))
     cutoff = date_to_ms(mature_before)
     q = pl.col("quoted-post").struct
     df = df.with_columns(
@@ -99,24 +107,24 @@ def read_shard(path: str | Path, mature_before: str = "2026-05-01", keep_authors
 def ingest(shard_dir: str | Path, out_dir: str | Path, mature_before: str = "2026-05-01", min_tech_posts: int = 3,
            min_tech_share: float = 0.3, general_authors: int = 0, general_min_posts: int = 30) -> dict:
     """general_authors: also keep the full timelines of this many other authors with at least
-    `general_min_posts` original posts (chosen by a hash of the author ID). They are the general
+    `general_min_posts` original posts (chosen by a hash of the handle). They are the general
     accounts of filters.select_accounts: same ranking system, different audience."""
     files = sorted(Path(shard_dir).glob("*.parquet"))
     out = Path(out_dir)
-    stats = pl.concat([author_stats(f) for f in files]).group_by("author_id").agg(pl.col("posts", "tech_posts").sum())
+    stats = pl.concat([author_stats(f) for f in files]).group_by("handle").agg(pl.col("posts", "tech_posts").sum())
     is_tech = (pl.col("tech_posts") >= min_tech_posts) & (pl.col("tech_posts") / pl.col("posts") >= min_tech_share)
     authors = stats.filter(is_tech)
     n_tech = authors.height
     if general_authors:
-        general = stats.filter(~is_tech & (pl.col("posts") >= general_min_posts) & pl.col("author_id").is_not_null())
-        authors = pl.concat([authors, general.sort(pl.col("author_id").hash(seed=11)).head(general_authors)])
+        general = stats.filter(~is_tech & (pl.col("posts") >= general_min_posts))
+        authors = pl.concat([authors, general.sort(pl.col("handle").hash(seed=11)).head(general_authors)])
     log.info("nitter_2026: %d authors, %d tech authors, %d general authors kept", stats.height, n_tech, authors.height - n_tech)
     n = 0
     for f in files:
         target = out / "posts" / f"{f.stem}.parquet"
         if target.exists():
             continue
-        df = read_shard(f, mature_before, authors["author_id"])
+        df = read_shard(f, mature_before, authors["handle"])
         write_parquet(df, target)
         n += df.height
         log.info("nitter_2026 %s: kept %d", f.name, df.height)

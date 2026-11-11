@@ -100,8 +100,17 @@ def filter_rows(cfg: Config) -> None:
     posts = flog.apply("maturity", posts, lambda d: filters.maturity(d, cfg.filters, usc_audit), exempt_analytics=False)
     posts = flog.apply("recency", posts, lambda d: filters.recency(d, cfg.filters))
     posts = flog.apply("volume", posts, lambda d: filters.account_volume(d, cfg.select), exempt_analytics=False)
-    posts = flog.apply("language", posts, lambda d: filters.language(d, cfg.filters))
     out = cfg.paths.stage("filtered")
+    # Language detection is cached by post ID across runs of this stage. The first cache is taken from
+    # an earlier output of the stage when there is one (its kept rows carry their language).
+    cache_path = out / "lang_cache.parquet"
+    cache = _maybe(cache_path)
+    if cache is None and (out / "posts.parquet").exists():
+        cache = pl.scan_parquet(out / "posts.parquet").select("post_id", "lang").collect()
+    posts = filters.resolve_language(posts, cfg.filters, cache)
+    fresh = posts.select("post_id", "lang")
+    write_parquet(fresh if cache is None else pl.concat([fresh, cache.join(fresh, on="post_id", how="anti")]), cache_path)
+    posts = flog.apply("language", posts, lambda d: filters.keep_languages(d, cfg.filters))
     write_parquet(posts, out / "posts.parquet")
     write_parquet(flog.frame(), out / "filter_log.parquet")
 

@@ -159,6 +159,11 @@ class LabelCfg(BaseModel):
 
 class SplitCfg(BaseModel):
     test_time_fraction: float = 0.10
+    cutoff_on: str = "views"
+    """Which rows set the time cutoff of the test split. 'views': the newest fraction of the posts that
+    carry view counts, so the test period always has the primary label even when a like-only source runs
+    later than the view-labelled ones; every post after that cutoff is test, whatever its source, so
+    nothing from the test period is trained on. 'all': the newest fraction of all posts."""
     val_author_fraction: float = 0.10
     seed: int = 17
 

@@ -1,7 +1,9 @@
 """Train / validation / test splits (DATA_PIPELINE.md section 9).
 
-test        the newest `test_time_fraction` of rows by creation time, all authors.
-            This is the number reported to anyone.
+test        every post after a time cutoff, all authors. The cutoff is where the newest
+            `test_time_fraction` of the view-labelled posts begins (config splits.cutoff_on), so the
+            test period has view labels even when a like-only source runs later. This is the number
+            reported to anyone.
 validation  a random `val_author_fraction` of authors among the remaining rows,
             held out entirely: model selection and calibration.
 train       the rest.
@@ -17,7 +19,10 @@ from xviral.config import SplitCfg
 
 
 def assign(df: pl.DataFrame, cfg: SplitCfg) -> pl.DataFrame:
-    cut = df["created_at_ms"].quantile(1.0 - cfg.test_time_fraction, interpolation="lower")
+    basis = df.filter(pl.col("views").is_not_null()) if cfg.cutoff_on == "views" and "views" in df.columns else df
+    if basis.height < 100:              # no view-labelled corpus to speak of: cut on everything
+        basis = df
+    cut = basis["created_at_ms"].quantile(1.0 - cfg.test_time_fraction, interpolation="lower")
     authors = df.filter(pl.col("created_at_ms") < cut).select("author_id").unique().sort("author_id")
     val = authors.sample(fraction=cfg.val_author_fraction, seed=cfg.seed, shuffle=True)
     return df.with_columns(

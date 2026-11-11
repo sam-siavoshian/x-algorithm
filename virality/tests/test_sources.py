@@ -200,6 +200,10 @@ def test_nitter_2026_reader_fixes_the_column_shift(tmp_path):
     assert by["new GPU benc"]["snapshot_kind"] == "unknown"                            # immature: no snapshot time
     assert by["startup foun"]["kind"] == "quote" and by["startup foun"]["quoted_text"] == "quoted text"
     assert res["tech_authors"] == 1
+    # The corpus's profile_id is not an X user ID: authors are keyed by handle and get a synthetic ID for unify to resolve.
+    from xviral.util.core import synthetic_author_id
+
+    assert set(df["author_id"].to_list()) == {synthetic_author_id("dev")} and synthetic_author_id("dev") < 0
     # The validity filter accepts minute-resolution timestamps from this source and still rejects real disagreement.
     from xviral import filters
     from xviral.config import FilterCfg

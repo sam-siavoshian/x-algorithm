@@ -75,6 +75,11 @@ def test_language_filter_trusts_x_tag_and_keeps_media_only_posts():
     ])
     out = filters.language(df, cfg)
     assert sorted(p & 0x3FFFFF for p in out["post_id"].to_list()) == [1, 3, 5]
+    # A cache from an earlier run is used as is, and only unseen posts are detected.
+    cache = pl.DataFrame({"post_id": [snowflake(T0, 3), snowflake(T0, 4), snowflake(T0, 5)], "lang": ["fr", "en", None]})
+    res = filters.resolve_language(df, cfg, cache).sort("post_id")
+    assert res["lang"].to_list() == ["en", "es", "fr", "en", None]            # rows 1 and 2 detected or trusted, 3 to 5 from the cache
+    assert res["post_id"].to_list() == df.sort("post_id")["post_id"].to_list()
 
 
 def _author_posts(n=40, seed=0):
@@ -238,3 +243,18 @@ def test_account_volume_prefilter_never_changes_selection():
     assert dict(pre.group_by("author_id").len().iter_rows()) == {1: 6, 3: 2}       # the scrape account is kept whole
     assert filters.select_accounts(pre, cfg).sort("post_id").equals(filters.select_accounts(df, cfg).sort("post_id"))
     assert filters.account_volume(df, SelectCfg()).height == df.height
+
+
+def test_split_cutoff_follows_the_view_labelled_posts():
+    from xviral.config import SplitCfg
+
+    rows = []
+    for i in range(400):                                   # views for the first 200 days only; likes run for 400
+        rows.append(make_post(snowflake(T0 + i * DAY, i), 1 + i % 8, T0 + i * DAY, views=1000 if i < 200 else None,
+                              views_state="count" if i < 200 else "absent"))
+    df = frame(rows)
+    by_views = splits.assign(df, SplitCfg(test_time_fraction=0.1))
+    test = by_views.filter(pl.col("split") == "test")
+    assert test["views"].is_not_null().sum() == 21 and test.height == 221        # the test period has view labels; later posts are test too
+    assert by_views.filter(pl.col("split") != "test")["created_at_ms"].max() < test["created_at_ms"].min()
+    assert splits.assign(df, SplitCfg(test_time_fraction=0.1, cutoff_on="all")).filter(pl.col("split") == "test")["views"].is_not_null().sum() == 0
