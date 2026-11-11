@@ -267,12 +267,36 @@ def _ts(col: str) -> pl.Expr:
     return pl.col(col).str.to_datetime(time_zone="UTC", strict=False).dt.epoch("ms")
 
 
-def to_unified(ca_dir: str | Path) -> dict[str, pl.DataFrame]:
-    """Join the CA tables into unified posts, accounts and follow edges."""
+def to_unified(ca_dir: str | Path, prefilter: bool = True, maturity_hours: float = 72.0) -> dict[str, pl.DataFrame]:
+    """Join the CA tables into unified posts, accounts and follow edges.
+
+    With `prefilter`, replies, reposts and rows whose counts were read under `maturity_hours` after
+    posting are dropped before the wide rows are built (the same rows the kind and maturity filters
+    would drop later); on the full archive that is two thirds of 16M rows. Per-author reply and
+    repost volume is counted first and returned as `activity`.
+    """
     ca_dir = Path(ca_dir)
     tweets = _read(ca_dir, "tweets")
     if tweets is None:
         raise FileNotFoundError(f"no tweets table under {ca_dir}")
+    tweets = tweets.unique("tweet_id")
+    activity = None
+    if prefilter:
+        is_rt = pl.col("full_text").fill_null("").str.starts_with("RT @")
+        is_reply = pl.col("reply_to_tweet_id").is_not_null()
+        cr = _ts("created_at")
+        activity = tweets.group_by(_i64("account_id").alias("author_id")).agg(
+            pl.len().alias("rows"), is_reply.sum().alias("replies"), is_rt.sum().alias("reposts"),
+            (~is_reply & ~is_rt).sum().alias("originals"), cr.min().alias("first_ms"), cr.max().alias("last_ms"),
+        ).with_columns(pl.lit("community_archive").alias("source"))
+        up0 = _read(ca_dir, "archive_upload")
+        snap = _ts("updated_at") if "updated_at" in tweets.columns else pl.lit(None, dtype=pl.Int64)
+        if up0 is not None and "archive_at" in up0.columns:
+            arch = dict(zip(up0["id"].cast(pl.Int64).to_list(), up0.select(_ts("archive_at"))["archive_at"].to_list()))
+            snap = pl.coalesce(pl.col("archive_upload_id").cast(pl.Int64, strict=False).replace_strict(arch, default=None, return_dtype=pl.Int64), snap)
+        n0 = tweets.height
+        tweets = tweets.filter(~is_rt & ~is_reply & ((snap - cr) >= int(maturity_hours * 3_600_000)))
+        log.info("CA prefilter: %d -> %d mature original posts", n0, tweets.height)
     acct = _read(ca_dir, "all_account")
     prof = _read(ca_dir, "profile")
     media = _read(ca_dir, "tweet_media")
@@ -405,6 +429,8 @@ def to_unified(ca_dir: str | Path) -> dict[str, pl.DataFrame]:
     donors = pl.concat(donor_ids).unique() if donor_ids else pl.DataFrame(schema={"author_id": pl.Int64})
 
     out = {"posts": posts, "accounts": accounts, "edges": edge_df, "donors": donors}
+    if activity is not None:
+        out["activity"] = activity
     likes = _read(ca_dir, "likes")
     if likes is not None:
         out["viewer_likes"] = likes.select(_i64("account_id").alias("viewer_id"), _i64("liked_tweet_id").alias("post_id")).unique()

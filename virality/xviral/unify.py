@@ -49,10 +49,8 @@ def reconcile_synthetic(posts: pl.DataFrame) -> pl.DataFrame:
     return posts.join(matched, on="post_id", how="anti")
 
 
-def merge_posts(frames: list[pl.DataFrame]) -> pl.DataFrame:
-    posts = pl.concat([conform(f) for f in frames], how="vertical_relaxed")
-    n0 = posts.height
-    posts = reconcile_synthetic(posts)
+def _merge_duplicates(posts: pl.DataFrame) -> pl.DataFrame:
+    """Field-level merge of rows sharing a post ID (see module docstring for the priority)."""
     posts = posts.with_columns(
         pl.col("views").is_null().alias("_no_views"),
         pl.col("snapshot_at_ms").fill_null(0).alias("_snap"),
@@ -68,9 +66,21 @@ def merge_posts(frames: list[pl.DataFrame]) -> pl.DataFrame:
         pl.col("media").sort_by(pl.col("media").list.len(), descending=True).first().alias("media"),
         pl.col("urls").sort_by(pl.col("urls").list.len(), descending=True).first().alias("urls"),
     )
-    merged = merged.drop("media", "urls").join(lists, on="post_id", how="left")
-    log.info("merge: %d rows -> %d unique posts", n0, merged.height)
-    return merged.select([*POSTS_SCHEMA.keys(), "sources_all"])
+    return merged.drop("media", "urls").join(lists, on="post_id", how="left").select([*POSTS_SCHEMA.keys(), "sources_all"])
+
+
+def merge_posts(frames: list[pl.DataFrame]) -> pl.DataFrame:
+    posts = pl.concat([conform(f) for f in frames], how="vertical_relaxed")
+    n0 = posts.height
+    posts = reconcile_synthetic(posts)
+    # Almost every post ID appears once. Only the repeated ones go through the grouped merge, which
+    # keeps memory flat on corpora of tens of millions of rows.
+    dup = posts["post_id"].is_duplicated()
+    single = posts.filter(~dup).with_columns(pl.col("source").alias("sources_all"))
+    merged = pl.concat([single.select([*POSTS_SCHEMA.keys(), "sources_all"]), _merge_duplicates(posts.filter(dup))], how="vertical_relaxed") \
+        if dup.any() else single.select([*POSTS_SCHEMA.keys(), "sources_all"])
+    log.info("merge: %d rows -> %d unique posts (%d rows shared an ID)", n0, merged.height, int(dup.sum()))
+    return merged
 
 
 def merge_accounts(frames: list[pl.DataFrame], posts: pl.DataFrame) -> pl.DataFrame:
@@ -128,7 +138,8 @@ def run(stage_dirs: dict[str, Path], out_dir: Path) -> dict[str, pl.DataFrame]:
         out["activity"] = (
             pl.concat(act_frames, how="vertical_relaxed")
             .group_by("author_id")
-            .agg(pl.col("rows", "replies", "reposts", "originals").sum(), pl.col("first_ms").min(), pl.col("last_ms").max())
+            .agg(pl.col("rows", "replies", "reposts", "originals").sum(), pl.col("first_ms").min(), pl.col("last_ms").max(),
+                 pl.col("source").unique().sort().str.join("+").alias("source"))
         )
     if like_frames:
         out["viewer_likes"] = pl.concat(like_frames).unique()

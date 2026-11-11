@@ -82,12 +82,16 @@ def filter_rows(cfg: Config) -> None:
 
     # Author activity (reply volume) needs every kind, so it is computed before the kind filter
     # and merged with the USC side table, which counted rows before the USC prefilter.
-    act_posts = posts.filter(pl.col("source") != "usc").group_by("author_id").agg(
+    # Sources that prefilter at ingest (USC, Community Archive) bring their own activity counts, taken
+    # before the prefilter; for the rest it is counted here.
+    act_side = _maybe(u / "activity.parquet")
+    counted = set("+".join(act_side["source"].unique().to_list()).split("+")) if act_side is not None and "source" in act_side.columns else set()
+    act_posts = posts.filter(~pl.col("source").is_in(list(counted))).group_by("author_id").agg(
         pl.len().alias("rows"), (pl.col("kind") == "reply").sum().alias("replies"),
         (pl.col("kind") == "repost").sum().alias("reposts"), pl.col("kind").is_in(["original", "quote"]).sum().alias("originals"),
         pl.col("created_at_ms").min().alias("first_ms"), pl.col("created_at_ms").max().alias("last_ms"))
-    act_usc = _maybe(u / "activity.parquet")
-    act = pl.concat([a for a in (act_posts, act_usc) if a is not None], how="vertical_relaxed").group_by("author_id").agg(
+    parts = [act_posts] + ([act_side.drop("source")] if act_side is not None and "source" in act_side.columns else [act_side] if act_side is not None else [])
+    act = pl.concat(parts, how="vertical_relaxed").group_by("author_id").agg(
         pl.col("rows", "replies", "reposts", "originals").sum(), pl.col("first_ms").min(), pl.col("last_ms").max())
     write_parquet(act, cfg.paths.stage("filtered") / "activity.parquet")
 
