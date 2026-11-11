@@ -116,6 +116,12 @@ reports = scorer.score(history, [{"text": "draft one"}, {"text": "draft two"}], 
 ```
 
 `history` is the account's past posts in the unified schema (any source reader in `xviral/sources` produces it).
+Each report carries the view and like quantiles, the odds against the account's own history, X's
+weighted score and the deterministic distribution gates. From the command line:
+
+```bash
+.venv/bin/python scripts/score_drafts.py --checkpoint data/work/model/run/best.pt --posts data/work/hygiene/posts.parquet --handle acme --draft "first version" --draft "second version" --timing
+```
 
 ## Test
 
