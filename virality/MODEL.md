@@ -173,6 +173,31 @@ Ablations, from the run before the input-scale fix below (so compare them with e
 
 **Not yet measured.** Reach (views), because this corpus has none; images and video; the 8B encoder; stage B. These need a GPU and view-labeled data (sections 8 and 10).
 
+### 9.2 First run with view labels (2026-11-11, CPU only)
+
+**Data.** The full archive merged with the 2026 view corpus (DATA_PIPELINE.md 15.4): 465,675 posts from 7,221 accounts, of which 4,221 are audience accounts and 3,000 are general accounts kept to test whether volume from outside the audience helps. 154,660 posts carry views. Test: every post after 23 April 2026; metrics are on audience accounts only: 95,357 posts, 24,481 same-account pairs on views and 683,152 on likes. Same stand-ins as 9.1: a 33M text-only encoder and the 1.5M-parameter preset, 4,000 steps, about 15 minutes per model on four CPU cores. Inputs now include the vetted text-structure columns, quoted-post text and semantic IDs.
+
+| Model | Pairwise, views | Within-account Spearman, views | Pairwise, likes | Own top-10% AUROC, views | 10x-followers AUROC | Calibration error, 10x |
+|---|---|---|---|---|---|---|
+| Account median | 42.9% | -0.23 | 46.0% | | | |
+| Trees, tabular | 57.8% | 0.164 | 56.2% | | | |
+| Trees, tabular + embedding | 60.5% | 0.195 | 58.5% | | | |
+| Trees, tabular + embedding, audience accounts only | 59.9% | 0.183 | 58.5% | | | |
+| **Surrogate, all accounts** | 61.3% | 0.257 | 59.7% | 0.694 | 0.914 | 0.002 |
+| **Surrogate, audience accounts only** | **62.6%** | 0.261 | 59.8% | 0.685 | 0.897 | 0.004 |
+| Surrogate (all accounts) averaged with trees | 61.7% | 0.240 | 60.1% | | | |
+
+**What this shows.**
+
+1. The design carries over to views. On posts from a period it never saw, the surrogate ranks two posts by the same account correctly 61 to 63% of the time, ahead of trees with the same inputs, and its rank correlation within an account is a third higher than the trees' (0.26 against 0.20).
+2. The odds are usable as stated: the probability of reaching ten times the follower count separates outcomes with an AUROC of 0.91 and a calibration error of 0.002 to 0.004.
+3. **General accounts do not improve ranking for the audience.** Training on audience accounts alone gives the best pairwise accuracy on views (62.6% against 61.3%); adding 3,000 general accounts improves the fit of the distributions (likelihood, the 10x odds) and nothing else. One seed each, so the 1.3-point gap is suggestive, not established. The practical reading is unchanged either way: the lever is more view-labelled posts from the audience, not more posts.
+4. The account-median baseline falls below 50% on views. Within the week-long windows of the view corpus an account's posts regress toward its median, so "the account's usual level" is not a ranker at all; everything above 50% comes from content, timing and history.
+
+**Text-structure groups, re-vetted on views** (development slice, base 59.6%; `research/12_text_structure_vetting_views.json`): opening +0.6, layout +0.5, voice +0.5, typography +0.6 and history-relative +0.8 each pass; link placement, which passed on likes, does not (+0.2). All six together add 1.1 points. Voice, typography and history-relative were held back on the like-only evidence; on view labels they earn their place. They are to be admitted once the combination has been checked on both labels.
+
+**Still not measured.** Images and video, X's own encoder, stage B, the larger presets. The numbers above are the floor of the design on a laptop-class budget.
+
 ## 10. Data now available for the full-scale run
 
 | Source | Size | Labels | Status |
