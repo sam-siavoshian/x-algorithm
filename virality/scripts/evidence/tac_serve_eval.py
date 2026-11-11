@@ -18,6 +18,7 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import os
 
 import numpy as np
 import polars as pl
@@ -78,8 +79,14 @@ def main() -> None:
 
     enc = SentenceEmbedder(args.encoder, device=args.device)
     scorer = DraftScorer(args.checkpoint if len(args.checkpoint) > 1 else args.checkpoint[0], lambda t: enc.encode(t), device=args.device, sid_codebook=args.sid_codebook)
-    recs = []
+    # Every scored pair is appended to a line file as it is produced, and a rerun picks up where it stopped.
+    lines = args.out.replace(".json", ".scored.jsonl")
+    recs = [json.loads(x) for x in open(lines)] if os.path.exists(lines) else []
+    done = {(r["post_id"], r["post_id_b"]) for r in recs}
+    sink = open(lines, "a")
     for i, r in enumerate(todo.iter_rows(named=True)):
+        if (r["post_id"], r["post_id_b"]) in done:
+            continue
         a, b = by_id[r["post_id"]], by_id[r["post_id_b"]]
         hist = by_author[r["author_id"]].filter(pl.col("created_at_ms") < a["created_at_ms"]).tail(args.history)
         account = {"author_id": r["author_id"], "handle": a["author_handle"], "display_name": a["author_display_name"],
@@ -94,9 +101,13 @@ def main() -> None:
                      "likes": a["likes"], "likes_b": b["likes"], "views": a["views"], "views_b": b["views"],
                      "s_likes": float(np.log10(ra["likes"]["q50"] + 1) - np.log10(rb["likes"]["q50"] + 1)),
                      "s_views": float(np.log10(ra["views_24h"]["q50"] + 1) - np.log10(rb["views_24h"]["q50"] + 1))})
+        sink.write(json.dumps(recs[-1]) + "\n")
+        sink.flush()
         if (i + 1) % 100 == 0:
             log.info("scored %d/%d pairs", i + 1, todo.height)
-    R = pl.DataFrame(recs)
+    sink.close()
+    R = pl.DataFrame(recs, schema={"part": pl.String, "post_id": pl.Int64, "post_id_b": pl.Int64, "author_id": pl.Int64, "history": pl.Int64,
+                                   "likes": pl.Int64, "likes_b": pl.Int64, "views": pl.Int64, "views_b": pl.Int64, "s_likes": pl.Float64, "s_views": pl.Float64})
     R.write_parquet(args.out.replace(".json", ".parquet"))
 
     # What differs between the two versions.
