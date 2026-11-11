@@ -1,0 +1,82 @@
+{
+ "has an image or video": {
+  "win_rate": 0.6697819314641744,
+  "lo": 0.6354060500061243,
+  "hi": 0.7028810309556474,
+  "pairs": 2247,
+  "accounts": 622,
+  "median_lift": 2.0
+ },
+ "text at least 1.5x longer": {
+  "win_rate": 0.5894174041297935,
+  "lo": 0.5756868157402765,
+  "hi": 0.6032293898937712,
+  "pairs": 5424,
+  "accounts": 1289,
+  "median_lift": 1.5454545454545456
+ },
+ "three or more lines": {
+  "win_rate": 0.6163934426229508,
+  "lo": 0.5825464577885794,
+  "hi": 0.6481209549189535,
+  "pairs": 1830,
+  "accounts": 672,
+  "median_lift": 1.7142857142857146
+ },
+ "opens with a question": {
+  "win_rate": 0.48850118953211735,
+  "lo": 0.45638432319131983,
+  "hi": 0.519816057088413,
+  "pairs": 1261,
+  "accounts": 435,
+  "median_lift": 0.7500000000000001
+ },
+ "opens in first person": {
+  "win_rate": 0.5171460176991151,
+  "lo": 0.4944956406256968,
+  "hi": 0.5414149905566698,
+  "pairs": 1808,
+  "accounts": 642,
+  "median_lift": 1.3284223283101426
+ },
+ "has a hashtag": {
+  "win_rate": 0.5346534653465347,
+  "lo": 0.45770081752043806,
+  "hi": 0.6157413108921729,
+  "pairs": 202,
+  "accounts": 121,
+  "median_lift": 1.3333333333333333
+ },
+ "mentions another account": {
+  "win_rate": 0.507532956685499,
+  "lo": 0.4657276522035439,
+  "hi": 0.5463938586607415,
+  "pairs": 1062,
+  "accounts": 453,
+  "median_lift": 1.284160551870897
+ },
+ "link at the very end (link topics)": {
+  "win_rate": 0.4857142857142857,
+  "lo": 0.4073966408268734,
+  "hi": 0.5683088869715271,
+  "pairs": 175,
+  "accounts": 125,
+  "median_lift": 0.7364864864864866
+ },
+ "link in the first line (link topics)": {
+  "win_rate": 0.3818770226537217,
+  "lo": 0.31766544188496476,
+  "hi": 0.45348075348075345,
+  "pairs": 309,
+  "accounts": 173,
+  "median_lift": 0.5714285714285714
+ },
+ "posted first of the two": {
+  "win_rate": 0.40670164779526835,
+  "lo": 0.38406989618523013,
+  "hi": 0.43341414866121203,
+  "pairs": 10863,
+  "accounts": 1783,
+  "median_lift": 0.6027397260273972
+ }
+}

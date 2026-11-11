@@ -1,0 +1,302 @@
+{
+ "external link in the post": {
+  "views": {
+   "accounts": 259,
+   "posts_with": 4327,
+   "ratio": 0.9701316983948919,
+   "lo": 0.8956317809361418,
+   "hi": 1.0627986170821757,
+   "share_accounts_positive": 0.4980694980694981
+  },
+  "likes": {
+   "accounts": 1238,
+   "posts_with": 19603,
+   "ratio": 1.0261013695758823,
+   "lo": 0.9796127432441718,
+   "hi": 1.0729108275428436,
+   "share_accounts_positive": 0.5129240710823909
+  }
+ },
+ "image attached": {
+  "views": {
+   "accounts": 686,
+   "posts_with": 13309,
+   "ratio": 1.2447253409303354,
+   "lo": 1.168743265188724,
+   "hi": 1.3232492246464758,
+   "share_accounts_positive": 0.6064139941690962
+  },
+  "likes": {
+   "accounts": 2702,
+   "posts_with": 61629,
+   "ratio": 1.3575543482387291,
+   "lo": 1.3157327865317185,
+   "hi": 1.3986238787482874,
+   "share_accounts_positive": 0.6776461880088823
+  }
+ },
+ "video attached": {
+  "views": null,
+  "likes": {
+   "accounts": 817,
+   "posts_with": 12565,
+   "ratio": 2.010819413674424,
+   "lo": 1.88838856037346,
+   "hi": 2.1440762836297678,
+   "share_accounts_positive": 0.7943696450428397
+  }
+ },
+ "quote post": {
+  "views": {
+   "accounts": 508,
+   "posts_with": 7108,
+   "ratio": 1.4343855221046606,
+   "lo": 1.330822772564495,
+   "hi": 1.5310879143508624,
+   "share_accounts_positive": 0.6909448818897638
+  },
+  "likes": {
+   "accounts": 1959,
+   "posts_with": 39734,
+   "ratio": 0.844585221045088,
+   "lo": 0.8189865535144826,
+   "hi": 0.87061543574603,
+   "share_accounts_positive": 0.4002041858090863
+  }
+ },
+ "opens with a question": {
+  "views": {
+   "accounts": 688,
+   "posts_with": 10044,
+   "ratio": 1.1992109140875467,
+   "lo": 1.1508406956448387,
+   "hi": 1.2581089000688728,
+   "share_accounts_positive": 0.622093023255814
+  },
+  "likes": {
+   "accounts": 1628,
+   "posts_with": 22985,
+   "ratio": 0.8057584265329611,
+   "lo": 0.7801025102756921,
+   "hi": 0.8323707911173474,
+   "share_accounts_positive": 0.3488943488943489
+  }
+ },
+ "opens with announcement phrasing": {
+  "views": null,
+  "likes": {
+   "accounts": 121,
+   "posts_with": 1177,
+   "ratio": 2.312827251062661,
+   "lo": 2.02307034587781,
+   "hi": 2.6619259666476953,
+   "share_accounts_positive": 0.8677685950413223
+  }
+ },
+ "opens with a number": {
+  "views": {
+   "accounts": 130,
+   "posts_with": 2199,
+   "ratio": 0.4643511267821914,
+   "lo": 0.3843994518685009,
+   "hi": 0.5718881879749397,
+   "share_accounts_positive": 0.26153846153846155
+  },
+  "likes": {
+   "accounts": 221,
+   "posts_with": 2903,
+   "ratio": 0.4964080403711706,
+   "lo": 0.41723178810196865,
+   "hi": 0.5846934050925835,
+   "share_accounts_positive": 0.3212669683257919
+  }
+ },
+ "opens in first person": {
+  "views": {
+   "accounts": 171,
+   "posts_with": 1511,
+   "ratio": 1.1122563873083646,
+   "lo": 1.0032378145443643,
+   "hi": 1.2275402166548255,
+   "share_accounts_positive": 0.5614035087719298
+  },
+  "likes": {
+   "accounts": 1556,
+   "posts_with": 21260,
+   "ratio": 1.1617139273148418,
+   "lo": 1.1250935642368858,
+   "hi": 1.1966392010146034,
+   "share_accounts_positive": 0.6053984575835476
+  }
+ },
+ "opens with an @mention": {
+  "views": null,
+  "likes": {
+   "accounts": 170,
+   "posts_with": 1912,
+   "ratio": 0.33129472229094653,
+   "lo": 0.2865203225056731,
+   "hi": 0.389607390771709,
+   "share_accounts_positive": 0.11176470588235295
+  }
+ },
+ "has bullet lines": {
+  "views": {
+   "accounts": 97,
+   "posts_with": 1766,
+   "ratio": 0.3973706299809359,
+   "lo": 0.3115148923116407,
+   "hi": 0.5032170412188909,
+   "share_accounts_positive": 0.1958762886597938
+  },
+  "likes": {
+   "accounts": 798,
+   "posts_with": 9822,
+   "ratio": 1.2071939796962103,
+   "lo": 1.1319211398139113,
+   "hi": 1.285637060327646,
+   "share_accounts_positive": 0.6403508771929824
+  }
+ },
+ "three or more lines": {
+  "views": null,
+  "likes": {
+   "accounts": 2148,
+   "posts_with": 46246,
+   "ratio": 1.7998339737962328,
+   "lo": 1.7390964183085,
+   "hi": 1.8671417005631687,
+   "share_accounts_positive": 0.8058659217877095
+  }
+ },
+ "long post (over 280)": {
+  "views": {
+   "accounts": 458,
+   "posts_with": 12879,
+   "ratio": 1.7443300206878314,
+   "lo": 1.6265241068721743,
+   "hi": 1.870710846855838,
+   "share_accounts_positive": 0.7816593886462883
+  },
+  "likes": {
+   "accounts": 1777,
+   "posts_with": 41864,
+   "ratio": 1.2185784019953236,
+   "lo": 1.1685690710490435,
+   "hi": 1.2673632349212864,
+   "share_accounts_positive": 0.6364659538548115
+  }
+ },
+ "very short (under 60 chars)": {
+  "views": null,
+  "likes": {
+   "accounts": 1575,
+   "posts_with": 28218,
+   "ratio": 0.7625948557400691,
+   "lo": 0.7350087852935598,
+   "hi": 0.7901866196330662,
+   "share_accounts_positive": 0.3314285714285714
+  }
+ },
+ "has a hashtag": {
+  "views": {
+   "accounts": 198,
+   "posts_with": 4115,
+   "ratio": 1.153903918918143,
+   "lo": 1.0434809334669177,
+   "hi": 1.2725954759473201,
+   "share_accounts_positive": 0.6262626262626263
+  },
+  "likes": {
+   "accounts": 330,
+   "posts_with": 5933,
+   "ratio": 0.9866668886137923,
+   "lo": 0.9096284117864893,
+   "hi": 1.065598201431779,
+   "share_accounts_positive": 0.503030303030303
+  }
+ },
+ "mentions another account": {
+  "views": {
+   "accounts": 430,
+   "posts_with": 7122,
+   "ratio": 1.2138532070156567,
+   "lo": 1.1299603957191389,
+   "hi": 1.304533692238659,
+   "share_accounts_positive": 0.6069767441860465
+  },
+  "likes": {
+   "accounts": 1772,
+   "posts_with": 28015,
+   "ratio": 0.8992493782081152,
+   "lo": 0.8681155319217636,
+   "hi": 0.9335395448601889,
+   "share_accounts_positive": 0.46896162528216706
+  }
+ },
+ "posted within 2h of previous post": {
+  "views": {
+   "accounts": 465,
+   "posts_with": 8092,
+   "ratio": 0.7227534684995537,
+   "lo": 0.6790793716343829,
+   "hi": 0.7638578442305819,
+   "share_accounts_positive": 0.2903225806451613
+  },
+  "likes": {
+   "accounts": 1295,
+   "posts_with": 25774,
+   "ratio": 0.6442288134941182,
+   "lo": 0.6196534398190192,
+   "hi": 0.6684861570224953,
+   "share_accounts_positive": 0.22239382239382238
+  }
+ },
+ "posted on a weekend": {
+  "views": {
+   "accounts": 951,
+   "posts_with": 11531,
+   "ratio": 1.0817604722355547,
+   "lo": 1.046163843885631,
+   "hi": 1.1203656754653577,
+   "share_accounts_positive": 0.5594111461619348
+  },
+  "likes": {
+   "accounts": 2749,
+   "posts_with": 46915,
+   "ratio": 1.07290812564656,
+   "lo": 1.048876686136482,
+   "hi": 1.0981392725271613,
+   "share_accounts_positive": 0.5416515096398691
+  }
+ },
+ "link in first line (among link posts)": {
+  "views": null,
+  "likes": {
+   "accounts": 1205,
+   "posts_with": 25483,
+   "ratio": 0.781769405411459,
+   "lo": 0.7430179826846213,
+   "hi": 0.8218960170463415,
+   "share_accounts_positive": 0.38340248962655604
+  }
+ },
+ "link at the very end (among link posts)": {
+  "views": {
+   "accounts": 53,
+   "posts_with": 1268,
+   "ratio": 1.103018116999967,
+   "lo": 0.9027872912812769,
+   "hi": 1.3282868310949958,
+   "share_accounts_positive": 0.5094339622641509
+  },
+  "likes": {
+   "accounts": 219,
+   "posts_with": 8577,
+   "ratio": 1.23955313102323,
+   "lo": 1.0990320993100509,
+   "hi": 1.4062168187341384,
+   "share_accounts_positive": 0.547945205479452
+  }
+ }
+}
