@@ -144,7 +144,8 @@ def hygiene_stage(cfg: Config) -> None:
     atab = _read(cfg.paths.work / "authors" / "authors.parquet")
     bad = filters.hygiene_bad_accounts(atab, cfg.hygiene)
     narrow = pl.scan_parquet(path).select(filters.SELECT_COLUMNS).filter(~pl.col("author_id").is_in(bad.implode())).collect()
-    keys = filters.account_selection(narrow, cfg.select)
+    seeds = cfg.paths.seed_accounts.read_text().split() if cfg.paths.seed_accounts else None
+    keys = filters.account_selection(narrow, cfg.select, seeds)
     del narrow
     kept = pl.scan_parquet(path).join(keys.lazy(), on="post_id", how="inner").collect()
     write_parquet(kept, cfg.paths.stage("hygiene") / "posts.parquet")

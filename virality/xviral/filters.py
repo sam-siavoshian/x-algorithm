@@ -158,20 +158,26 @@ def account_volume(df: pl.DataFrame, cfg) -> pl.DataFrame:
     return df.filter(keep)
 
 
-SELECT_COLUMNS = ("post_id", "author_id", "created_at_ms", "source", "text")
+SELECT_COLUMNS = ("post_id", "author_id", "author_handle", "created_at_ms", "source", "text")
 
 
-def account_selection(narrow: pl.DataFrame, cfg) -> pl.DataFrame:
+def account_selection(narrow: pl.DataFrame, cfg, seed_handles: list[str] | None = None) -> pl.DataFrame:
     """Which posts survive account selection (config.SelectCfg), decided on SELECT_COLUMNS alone.
 
     Returns post_id, acct_tech_share, acct_off_share, in_audience for the kept posts. Audience accounts:
     enough posts, tech-leaning, not dominated by off-audience vocabulary. Optionally a fixed number of
     general accounts with enough posts is kept too, flagged `in_audience` = false. Working on five narrow
     columns keeps a corpus of millions of posts from being copied while the decision is made.
+
+    seed_handles: accounts that are the audience by definition (config paths.seed_accounts). They are kept
+    whatever their vocabulary or post count, the same way the always-keep sources are.
     """
     from xviral.text.tech import is_off_audience_post, is_tech_post
 
     keep_src = pl.col("source").is_in(cfg.always_keep_sources)
+    if seed_handles:
+        seeds = sorted({h.lower().lstrip("@") for h in seed_handles if h.strip()})
+        keep_src = keep_src | pl.col("author_handle").str.to_lowercase().is_in(seeds)
     stats = narrow.group_by("author_id").agg(
         pl.len().alias("_n"), is_tech_post(strong=True).mean().alias("acct_tech_share"),
         is_off_audience_post().mean().alias("acct_off_share"), keep_src.any().alias("_keep"))
@@ -197,6 +203,6 @@ def account_selection(narrow: pl.DataFrame, cfg) -> pl.DataFrame:
     return keys.select("post_id", "acct_tech_share", "acct_off_share", "in_audience")
 
 
-def select_accounts(df: pl.DataFrame, cfg) -> pl.DataFrame:
+def select_accounts(df: pl.DataFrame, cfg, seed_handles: list[str] | None = None) -> pl.DataFrame:
     """Account-level selection on an in-memory frame; adds `acct_tech_share`, `acct_off_share` and `in_audience`."""
-    return df.join(account_selection(df.select(SELECT_COLUMNS), cfg), on="post_id", how="inner")
+    return df.join(account_selection(df.select(SELECT_COLUMNS), cfg, seed_handles), on="post_id", how="inner")

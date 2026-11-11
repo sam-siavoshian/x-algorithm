@@ -31,7 +31,8 @@ class Paths(BaseModel):
     twitter100m_users: Path | None = None
     """The users Parquet file of enryu43/twitter100m_users."""
     seed_accounts: Path | None = None
-    """Optional text file of handles that define the target audience, one per line."""
+    """Optional text file of handles that define the target audience, one per line. Account selection
+    keeps these accounts as audience whatever their vocabulary; the tech pattern then only finds more."""
 
     def stage(self, name: str) -> Path:
         p = self.work / name

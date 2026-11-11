@@ -223,6 +223,9 @@ def test_select_accounts():
     by = dict(out.group_by("author_id").len().iter_rows())
     assert by == {1: 4, 4: 1}                      # tech account capped to latest 4; scrape account always kept
     assert out["in_audience"].all() and out.filter(pl.col("author_id") == 1)["acct_tech_share"][0] == 0.5
+    # A seed handle is audience by definition, whatever it posts and however little.
+    seeded = filters.select_accounts(frame(rows), cfg, seed_handles=["@USER2", "user3"])
+    assert set(seeded.filter(pl.col("in_audience"))["author_id"].unique()) == {1, 2, 3, 4}
     # General accounts can be kept alongside, flagged, with their own cap.
     both = filters.select_accounts(frame(rows), cfg.model_copy(update={"general_accounts": 2, "general_max_posts_per_account": 3}))
     g = both.filter(~pl.col("in_audience"))
