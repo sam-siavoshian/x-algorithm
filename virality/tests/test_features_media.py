@@ -194,7 +194,11 @@ def test_neighbors_are_strictly_from_earlier_days_and_other_authors():
     })
     emb = rng.normal(size=(n, 16)).astype(np.float32)
     nb = global_neighbors(meta, emb, k=5)
-    assert nb.equals(global_neighbors(meta, emb, k=5, max_block_cells=7))      # query blocking never changes the result
+    # Query blocking never changes the result (cosines agree to float rounding, which depends on the block shape).
+    nb2 = global_neighbors(meta, emb, k=5, max_block_cells=7)
+    assert nb["nbr_post_id"].equals(nb2["nbr_post_id"]) and nb["nbr_density_7d"].equals(nb2["nbr_density_7d"])
+    for a, b in zip(nb["nbr_cos"].to_list(), nb2["nbr_cos"].to_list()):
+        assert (a is None and b is None) or np.allclose(a, b, atol=1e-5)
     day = dict(zip(meta["post_id"], meta["created_at_ms"] // DAY))
     auth = dict(zip(meta["post_id"], meta["author_id"]))
     checked = 0
