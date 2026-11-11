@@ -84,6 +84,8 @@ class TrainCfg(BaseModel):
     eval_every: int = 1000
     eval_max_rows: int = 20_000
     seed: int = 0
+    train_audience_only: bool = False
+    """Train on audience accounts only (ablation: what the general accounts add). Default trains on all rows."""
     # Episode construction.
     pair_window_days: float = 7.0
     outcome_mask_hours: float = 24.0

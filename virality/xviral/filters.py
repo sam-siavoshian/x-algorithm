@@ -105,6 +105,18 @@ def hygiene(df: pl.DataFrame, authors: pl.DataFrame, cfg) -> pl.DataFrame:
     return df.join(bad, on="author_id", how="anti")
 
 
+def account_volume(df: pl.DataFrame, cfg) -> pl.DataFrame:
+    """Drop accounts that cannot reach `select.min_posts_per_account`, before the expensive language pass.
+
+    Every later filter only removes rows, so an account below the minimum here is below it at selection
+    too: the final dataset is unchanged, and on a general corpus most rows never reach language detection.
+    """
+    if cfg.min_posts_per_account <= 1:
+        return df
+    keep = (pl.len().over("author_id") >= cfg.min_posts_per_account) | pl.col("source").is_in(cfg.always_keep_sources).any().over("author_id")
+    return df.filter(keep)
+
+
 def select_accounts(df: pl.DataFrame, cfg) -> pl.DataFrame:
     """Account-level selection (config.SelectCfg). Adds `acct_tech_share`, `acct_off_share` and `in_audience`.
 

@@ -99,6 +99,7 @@ def filter_rows(cfg: Config) -> None:
     usc_audit = _maybe(cfg.paths.work / "sources" / "usc" / "audit")
     posts = flog.apply("maturity", posts, lambda d: filters.maturity(d, cfg.filters, usc_audit), exempt_analytics=False)
     posts = flog.apply("recency", posts, lambda d: filters.recency(d, cfg.filters))
+    posts = flog.apply("volume", posts, lambda d: filters.account_volume(d, cfg.select), exempt_analytics=False)
     posts = flog.apply("language", posts, lambda d: filters.language(d, cfg.filters))
     out = cfg.paths.stage("filtered")
     write_parquet(posts, out / "posts.parquet")

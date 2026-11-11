@@ -224,3 +224,17 @@ def test_select_accounts():
     assert g["author_id"].n_unique() == 2 and set(g["author_id"].unique()) <= {2, 5, 6} and g.group_by("author_id").len()["len"].to_list() == [3, 3]
     assert dict(both.filter(pl.col("in_audience")).group_by("author_id").len().iter_rows()) == by
     assert out.filter(pl.col("author_id") == 1)["created_at_ms"].min() == T0 + 6 * DAY
+
+
+def test_account_volume_prefilter_never_changes_selection():
+    from xviral.config import SelectCfg
+
+    rows = [make_post(snowflake(T0 + i * DAY, i), 1, T0 + i * DAY, text="open source LLM") for i in range(6)]
+    rows += [make_post(snowflake(T0 + i * DAY, 50 + i), 2, T0 + i * DAY, text="github api") for i in range(3)]
+    rows += [make_post(snowflake(T0, 90), 3, T0, text="hello", source="user_scrape"), make_post(snowflake(T0 + DAY, 91), 3, T0 + DAY, text="hi")]
+    df = frame(rows)
+    cfg = SelectCfg(min_posts_per_account=5, min_tech_share=0.3)
+    pre = filters.account_volume(df, cfg)
+    assert dict(pre.group_by("author_id").len().iter_rows()) == {1: 6, 3: 2}       # the scrape account is kept whole
+    assert filters.select_accounts(pre, cfg).sort("post_id").equals(filters.select_accounts(df, cfg).sort("post_id"))
+    assert filters.account_volume(df, SelectCfg()).height == df.height

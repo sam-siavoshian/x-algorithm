@@ -27,7 +27,7 @@ KEYS = ["pairwise_likes", "within_rho_likes", "own_p90_auc_rel_like", "own_p90_e
         "pairwise_views", "within_rho_views", "own_p90_auc_rel_view", "auc_reach_10x", "ece_reach_10x", "nll_views"]
 
 
-def gbdt_scores(table: FeatureTable, target: str, with_emb: bool, seed: int = 0) -> np.ndarray:
+def gbdt_scores(table: FeatureTable, target: str, with_emb: bool, seed: int = 0, audience_only: bool = False, threads: int = 3) -> np.ndarray:
     import lightgbm as lgb
 
     t = table.t
@@ -40,9 +40,10 @@ def gbdt_scores(table: FeatureTable, target: str, with_emb: bool, seed: int = 0)
         E = t["emb"].float().cpu().numpy()
         X = np.concatenate([X, PCA(n_components=min(48, E.shape[1]), random_state=seed).fit(E[split == 0]).transform(E)], axis=1)
     ok = ~np.isnan(y)
-    tr, va = (split == 0) & ok, (split == 1) & ok
+    aud = t["audience"].cpu().numpy() if "audience" in t else np.ones(len(y), bool)
+    tr, va = (split == 0) & ok & (aud | (not audience_only)), (split == 1) & ok & aud
     params = dict(objective="huber", learning_rate=0.05, num_leaves=63, min_data_in_leaf=50, feature_fraction=0.8,
-                  bagging_fraction=0.8, bagging_freq=1, lambda_l2=1.0, verbose=-1, seed=seed)
+                  bagging_fraction=0.8, bagging_freq=1, lambda_l2=1.0, verbose=-1, seed=seed, num_threads=threads)
     dtr = lgb.Dataset(X[tr], y[tr])
     model = lgb.train(params, dtr, num_boost_round=3000, valid_sets=[lgb.Dataset(X[va], y[va], reference=dtr)],
                       callbacks=[lgb.early_stopping(100, verbose=False)])
@@ -58,7 +59,7 @@ def main() -> None:
     ap.add_argument("--batch-size", type=int, default=64)
     ap.add_argument("--lr", type=float, default=1e-3)
     ap.add_argument("--device", default="cpu")
-    ap.add_argument("--variants", nargs="*", default=["full", "no_history_outcomes", "no_content", "no_neighbors"])
+    ap.add_argument("--variants", nargs="*", default=["full", "audience_only_training", "no_history_outcomes", "no_content", "no_neighbors"])
     ap.add_argument("--seed", type=int, default=0)
     args = ap.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
@@ -69,13 +70,15 @@ def main() -> None:
     val = table.rows_of_split("val", audience_only=True)
     results: dict[str, dict] = {}
     overrides = {"full": {}, "no_history_outcomes": {"use_history_outcomes": False}, "no_content": {"use_content": False},
-                 "no_neighbors": {"use_neighbors": False}}
+                 "no_neighbors": {"use_neighbors": False}, "audience_only_training": {}}
+    has_general = "audience" in table.t and not bool(table.t["audience"].all())
     ref_pred = None
     for name in args.variants:
-        if name == "no_neighbors" and "nbr_idx" not in table.t:
+        if (name == "no_neighbors" and "nbr_idx" not in table.t) or (name == "audience_only_training" and not has_general):
             continue
         mcfg = train.model_cfg_for(table, args.preset, **overrides[name])
-        tcfg = TrainCfg(steps=args.steps, batch_size=args.batch_size, lr=args.lr, eval_every=max(args.steps // 6, 1), seed=args.seed)
+        tcfg = TrainCfg(steps=args.steps, batch_size=args.batch_size, lr=args.lr, eval_every=max(args.steps // 6, 1), seed=args.seed,
+                        train_audience_only=name == "audience_only_training")
         res = train.train(table, out / name, mcfg, tcfg)
         model, tcfg, ck = train.load(out / name / "best.pt", args.device)
         temps = evaluate.fit_temperature(model, table, val, tcfg)
@@ -94,11 +97,13 @@ def main() -> None:
     base = evaluate.baseline_author_median(table, test, mcfg, tcfg)
     rank_only = lambda m: {k: v for k, v in m.items() if k.startswith(("pairwise", "within_rho", "global_rho", "pairs", "n"))}  # noqa: E731
     results["author_median"] = rank_only(evaluate.metrics({**ref_pred, **base}, table, tcfg))
-    for with_emb in (False, True):
+    for with_emb, aud_only in ((False, False), (True, False), (True, True)):
+        if aud_only and not has_general:
+            continue
         scores = {}
         for target, key in (("y_likes", "likes_mean"), ("y_views", "views_mean")):
             if not torch.isnan(table.t[target]).all():
-                scores[key] = gbdt_scores(table, target, with_emb, args.seed)[rows]
+                scores[key] = gbdt_scores(table, target, with_emb, args.seed, audience_only=aud_only)[rows]
         # Trees give one score per post; it also ranks posts for the own-top-10% question.
         pred = {**ref_pred, **scores}
         if "likes_mean" in scores:
@@ -108,8 +113,8 @@ def main() -> None:
             for mult in ("1x", "10x", "100x"):
                 pred[f"p_reach_{mult}"] = scores["views_mean"]
         m = evaluate.metrics(pred, table, tcfg)
-        results["gbdt_tabular" + ("_plus_embedding" if with_emb else "")] = rank_only(m)
-        if with_emb and "full" in results:
+        results["gbdt_tabular" + ("_plus_embedding" if with_emb else "") + ("_audience_only_training" if aud_only else "")] = rank_only(m)
+        if with_emb and not aud_only and "full" in results:
             # Stage C preview: the model and the trees averaged, each score standardised first.
             z = lambda a: (a - np.nanmean(a)) / (np.nanstd(a) + 1e-9)  # noqa: E731
             ens = {k: 0.5 * z(ref_pred[k]) + 0.5 * z(v) for k, v in scores.items()}
