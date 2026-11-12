@@ -316,6 +316,20 @@ class FeatureTable:
     def device(self):
         return self.t["post_id"].device
 
+    def without_num(self, drop) -> "FeatureTable":
+        """A view of the table without the numeric inputs whose base name satisfies `drop` (and their missing
+        indicators). The stored transforms are narrowed with it, so a model trained on the view serves
+        drafts correctly. Used to compare feature sets without rebuilding the table."""
+        m = self.meta
+        base, names = list(m["num_base"]), list(m["num_names"])
+        kb = [i for i, n in enumerate(base) if not drop(n)]
+        keep = [i for i, n in enumerate(names) if not drop(n.removesuffix("__missing"))]
+        new_index = {old: new for new, old in enumerate(kb)}
+        meta = {**m, "num_base": [base[i] for i in kb], "num_names": [names[i] for i in keep],
+                "num_mean": [m["num_mean"][i] for i in kb], "num_std": [m["num_std"][i] for i in kb],
+                "num_missing_cols": [new_index[i] for i in m["num_missing_cols"] if i in new_index]}
+        return FeatureTable(meta=meta, t={**self.t, "num": self.t["num"][:, keep]}, texts=self.texts)
+
     def rows_of_split(self, name: str, audience_only: bool = False):
         """Row indices of a split; with audience_only, only posts by audience accounts (see filters.select_accounts)."""
         import torch

@@ -276,3 +276,19 @@ def test_ensemble_is_a_calibrated_mixture(world):
     other = Surrogate(train.model_cfg_for(world, "nano", dropout=0.0, max_history=8), world.meta["action_index"])
     with pytest.raises(AssertionError):
         Ensemble([members[0], other])
+
+
+def test_feature_set_view_narrows_inputs_and_transforms(world):
+    names = world.meta["num_names"]
+    drop = lambda n: n == world.meta["num_base"][0]                      # noqa: E731
+    view = world.without_num(drop)
+    gone = [n for n in names if drop(n.removesuffix("__missing"))]
+    assert gone and view.t["num"].shape[1] == len(names) - len(gone) == len(view.meta["num_names"])
+    assert len(view.meta["num_base"]) == len(view.meta["num_mean"]) == len(view.meta["num_std"]) == len(world.meta["num_base"]) - 1
+    # Remaining columns are untouched and the missing-indicator indices still point at the same features.
+    keep = [i for i, n in enumerate(names) if n not in gone]
+    assert torch.equal(view.t["num"], world.t["num"][:, keep])
+    assert [view.meta["num_base"][i] for i in view.meta["num_missing_cols"]] == [world.meta["num_base"][i] for i in world.meta["num_missing_cols"]
+                                                                                 if not drop(world.meta["num_base"][i])]
+    assert world.t["num"].shape[1] == len(names)                         # the original table is not modified
+    assert train.model_cfg_for(view, "nano").n_num == view.t["num"].shape[1]
