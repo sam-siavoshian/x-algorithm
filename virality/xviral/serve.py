@@ -63,6 +63,17 @@ def feature_frame(posts: pl.DataFrame, snapshots: pl.DataFrame | None = None, ac
     return df.join(suppression.url_features(df, set()), on="post_id", how="left")
 
 
+_KEEP = ("post_id", "author_id", "author_handle", "author_display_name", "created_at_ms", "source", "kind", "text", "text_note", "quoted_text",
+         "in_audience", "w_row", *features.COUNT_COLS, *[c for c, _ in features.NUM_SPEC], *[c for c, _ in features.CAT_SPEC])
+
+
+def compact(posts: pl.DataFrame) -> pl.DataFrame:
+    """The columns the feature table reads, copied into buffers of their own. A frame sliced out of a large
+    corpus keeps that corpus's string buffers alive, and pickling it writes them all."""
+    f = posts.select([c for c in dict.fromkeys(_KEEP) if c in posts.columns])
+    return pl.DataFrame(f.to_dict(as_series=False), schema=f.schema)
+
+
 class DraftScorer:
     def __init__(self, checkpoint: str | Path | list, embed_fn: Callable[[list[str]], np.ndarray], device: str = "cpu",
                  sid_codebook: str | Path | None = None):
@@ -135,7 +146,7 @@ class DraftScorer:
 
                 sid = sidmod.phoenix_codes(sidmod.assign(emb, self.sid_codebook))
             if key is not None:
-                self.feature_cache[key] = (posts, emb, sid)
+                self.feature_cache[key] = (compact(posts), emb, sid)
         return features.transform(posts, self.meta, emb=emb, sid=sid, device=self.device)
 
     @torch.no_grad()
