@@ -24,6 +24,7 @@ import numpy as np
 import polars as pl
 
 from xviral.features import text_structure as ts
+from xviral.model import evaluate
 
 log = logging.getLogger("tac")
 COLS = ["post_id", "author_id", "author_handle", "author_display_name", "created_at_ms", "snapshot_at_ms", "text", "kind", "media", "urls",
@@ -131,10 +132,9 @@ def main() -> None:
                "later_version_wins": float((~first_wins[test_m]).mean()), "model_prefers_later": float((s[test_m] < 0).mean()),
                "with_history_20_plus": float(correct[test_m & (q["history"].to_numpy() >= 20)].mean())}
         if cal_m.sum() >= 100:
-            y = first_wins[cal_m].astype(float)
-            grid = np.linspace(0.2, 30, 150)
             sig = lambda k, v: 1 / (1 + np.exp(-k * v))       # noqa: E731
-            k = float(grid[int(np.argmin([-(y * np.log(sig(g, s[cal_m]) + 1e-9) + (1 - y) * np.log(1 - sig(g, s[cal_m]) + 1e-9)).mean() for g in grid]))])
+            k = evaluate.fit_pair_scale(s[cal_m], first_wins[cal_m])
+            out["confidence_scale"] = k
             conf = np.maximum(sig(k, s), 1 - sig(k, s))
             out["by_confidence"] = []
             for lo, hi in ((0.5, 0.55), (0.55, 0.6), (0.6, 0.7), (0.7, 0.8), (0.8, 1.01)):

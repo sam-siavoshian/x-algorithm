@@ -134,6 +134,10 @@ class DraftScorer:
         n = len(drafts)
         first = table.n - n                        # drafts are the newest rows of the single author
         by_id = {r["post_id"]: r for r in Predictor(self.model, table, self.tcfg, self.temperature).report_joint(first, n, mutual_share=mutual_share)}
+        if hasattr(self.model, "models") and len(self.model.models) > 1:      # ensemble: each member's medians, for agreement checks
+            for m, T in zip(self.model.models, self.model.temperatures):
+                for r in Predictor(m, table, self.tcfg, T).report_joint(first, n, mutual_share=mutual_share):
+                    by_id[r["post_id"]].setdefault("members", []).append({"views_q50": r["views_24h"]["q50"], "likes_q50": r["likes"]["q50"]})
         acct = {"author_id": int(rows["author_id"][0]), **account}
         feat = {r["post_id"]: r for r in rows.tail(n).iter_rows(named=True)}
         recent = int((rows.head(first)["created_at_ms"] >= when_ms - 48 * 3_600_000).sum())

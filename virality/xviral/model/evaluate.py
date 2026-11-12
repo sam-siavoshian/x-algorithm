@@ -209,3 +209,22 @@ def baseline_author_median(table: FeatureTable, rows: torch.Tensor, mcfg: ModelC
         out["likes_mean"].append(ep.ctx[:, 3].cpu().numpy())   # log10 median likes in visible history
         out["views_mean"].append(ep.ctx[:, 5].cpu().numpy())
     return {k: np.concatenate(v) for k, v in out.items()}
+
+
+def fit_pair_scale(score_diff: np.ndarray, first_wins: np.ndarray) -> float:
+    """k such that P(A beats B) = sigmoid(k * (score_A - score_B)), by maximum likelihood on held-out pairs.
+
+    Scores are log10 medians, so the difference is how many orders of magnitude apart the model puts the
+    two versions; k turns that into a probability that means what it says (MODEL.md 9.3).
+    """
+    y = np.asarray(first_wins, dtype=np.float64)
+    s = np.asarray(score_diff, dtype=np.float64)
+    grid = np.geomspace(0.05, 60, 240)
+    def nll(k):
+        p = 1.0 / (1.0 + np.exp(-k * s))
+        return -(y * np.log(p + 1e-9) + (1 - y) * np.log(1 - p + 1e-9)).mean()
+    return float(grid[int(np.argmin([nll(k) for k in grid]))])
+
+
+def pair_probability(score_a: float, score_b: float, k: float) -> float:
+    return float(1.0 / (1.0 + np.exp(-k * (score_a - score_b))))

@@ -41,7 +41,10 @@ def corpus(rng) -> pl.DataFrame:
     return frame(rows)
 
 
-def test_draft_scoring_end_to_end(tmp_path):
+@pytest.fixture(scope="module")
+def trained(tmp_path_factory):
+    """A nano model trained on a corpus with a planted signal: posts that say 'launch' do several times better."""
+    tmp_path = tmp_path_factory.mktemp("serve")
     rng = np.random.default_rng(0)
     posts = corpus(rng)
     df = serve.feature_frame(posts)
@@ -53,6 +56,11 @@ def test_draft_scoring_end_to_end(tmp_path):
     mcfg = train.model_cfg_for(table, "nano", dropout=0.0)
     train.train(table, tmp_path / "run", mcfg, TrainCfg(steps=300, batch_size=32, lr=2e-3, warmup_steps=30, eval_every=150, ema_decay=0.98), log_every=10_000)
 
+    return tmp_path, posts, table, mcfg
+
+
+def test_draft_scoring_end_to_end(trained):
+    tmp_path, posts, table, mcfg = trained
     scorer = serve.DraftScorer(tmp_path / "run" / "best.pt", embed)
     history = posts.filter(pl.col("author_id") == 23)
     when = int(history["created_at_ms"].max()) + 30 * HOUR
@@ -103,3 +111,74 @@ def test_draft_scoring_end_to_end(tmp_path):
     # An account with no history still gets a report; the lift fields are empty.
     cold = scorer.score(history.head(0), drafts[:1], {"handle": "newco", "followers": 150, "author_id": 999}, when)[0]
     assert cold["lift_vs_own_median"]["views"] is None and cold["views_24h"]["q50"] >= 0
+
+
+def test_advice_gates(trained):
+    from xviral import advise
+
+    tmp_path, posts, _, _ = trained
+    ck = tmp_path / "run" / "best.pt"
+    scorer = serve.DraftScorer([ck, ck], embed)                       # a two-member ensemble, so the agreement gate has members to read
+    history = posts.filter(pl.col("author_id") == 23)
+    when = int(history["created_at_ms"].max()) + 30 * HOUR
+    account = {"handle": "user23", "followers": 46_000, "following": 300}
+    adv = advise.Advisor(scorer, scales={"views": 6.0, "likes": 6.0})
+    # The planted signal: the user's launch version is recommended over a plain draft, with members in agreement.
+    plain = {"text": "some thoughts on the week ahead"}
+    out = adv.advise(history, plain, account, when, alternatives=[{"text": "launch day: we shipped the new agent today", "label": "launch version"}])
+    lv = {c["change"]: c for c in out["changes"]}["launch version"]
+    assert lv["status"].startswith("recommended") and lv["p_better"] > 0.7 and lv["members_agree"] is True and lv["predicted_ratio"] > 1.5
+    assert out["changes"][0]["change"] == "launch version" and out["outcome_compared"] == "views"
+    # Every applicable operator is tried, each as one change, and each carries its measured evidence.
+    draft = {"text": "https://foo.dev some thoughts on the week. It was long. It was good. #monday"}
+    ops = {c["operator"]: c for c in adv.advise(history, draft, account, when)["changes"] if c["operator"]}
+    assert set(ops) == {"attach_image", "link_out_of_first_line", "remove_hashtags"}     # the link leads, so line layout is not applied on top
+    assert ops["attach_image"]["adds_media"] and ops["attach_image"]["evidence"]["supported"] and ops["attach_image"]["evidence"]["pairs"] > 1000
+    assert ops["link_out_of_first_line"]["text"].endswith("https://foo.dev") and not ops["link_out_of_first_line"]["text"].startswith("http")
+    # A change the model likes but that has no measured effect is never recommended.
+    assert not ops["remove_hashtags"]["evidence"]["supported"] and not ops["remove_hashtags"]["status"].startswith("recommended")
+    assert adv._status({"p_better": 0.9, "members_agree": True}, {"supported": False})[0] == "untested"
+    assert adv._status({"p_better": 0.9, "members_agree": True}, {"supported": True})[0] == "recommended_likely"
+    assert adv._status({"p_better": 0.65, "members_agree": True}, {"supported": True})[0] == "recommended"
+    assert adv._status({"p_better": 0.9, "members_agree": False}, {"supported": True})[0] == "no_confident_difference"
+    assert adv._status({"p_better": 0.55, "members_agree": True}, {"supported": True})[0] == "no_confident_difference"
+    assert adv._status({"p_better": 0.9, "members_agree": True}, {"supported": True}, meaning_ok=False)[0] == "no_confident_difference"
+    assert adv._status({"p_better": 0.1, "members_agree": True}, {"supported": True})[0] == "predicted_worse"
+    assert advise.Advisor(scorer, scales={}).advise(history, draft, account, when)["changes"][0]["status"] == "uncalibrated"
+    # Disagreeing members are detected from their medians.
+    cmp = adv._compare({"views_24h": {"q50": 100}, "likes": {"q50": 5}, "members": [{"views_q50": 100, "likes_q50": 5}, {"views_q50": 100, "likes_q50": 5}]},
+                       {"views_24h": {"q50": 400}, "likes": {"q50": 9}, "members": [{"views_q50": 900, "likes_q50": 9}, {"views_q50": 60, "likes_q50": 9}]}, "views")
+    assert cmp["members_agree"] is False and cmp["p_better"] > 0.9
+    # Spacing: a draft 30 minutes behind the previous post is compared with itself two hours behind.
+    soon = adv.advise(history, {"text": "some thoughts on the week"}, account, int(history["created_at_ms"].max()) + HOUR // 2)
+    w = [c for c in soon["changes"] if c["operator"] == "wait_for_gap"]
+    assert len(w) == 1 and w[0]["evidence"]["ratio_when_closer"] < 1 and any(g["gate"] == "author_diversity" for g in soon["rules"])
+    # The account's own record states only differences its history supports, and the text report holds together.
+    rec = advise.own_record(history.with_columns(pl.when(pl.col("text").str.contains("launch")).then(pl.lit([dict(advise.PHOTO)], dtype=history.schema["media"]))
+                                                 .otherwise(pl.col("media")).alias("media")))
+    assert [f["attribute"] for f in rec] == ["an image or video"] and rec[0]["ratio"] > 3 and rec[0]["ratio_lo"] > 1
+    assert advise.own_record(history) == []
+    text = advise.render(out)
+    assert "better (" in text and "launch version" in text and "Also checked:" in text and "Changes we stand behind:" in text
+    assert "No single change we can stand behind" in advise.render(advise.Advisor(scorer, scales={}).advise(history, draft, account, when))
+
+
+def test_operators_change_one_thing():
+    from xviral import advise
+
+    ops = {o.name: o for o in advise.OPERATORS}
+    d = {"text": "We shipped a thing. It is fast. It is cheap.\nhttps://x.dev/blog"}
+    lines = ops["one_point_per_line"].apply(d, {})["text"]
+    assert lines.split("\n\n") == ["We shipped a thing.", "It is fast.", "It is cheap.", "https://x.dev/blog"]
+    assert ops["link_out_of_first_line"].apply(d, {}) is None                      # the link is not in the first line: nothing to move
+    one = {"text": "We shipped a thing. It is fast. It is cheap. https://x.dev/blog"}
+    assert ops["link_out_of_first_line"].apply(one, {})["text"] == "We shipped a thing. It is fast. It is cheap.\n\nhttps://x.dev/blog"
+    assert ops["one_point_per_line"].apply(one, {}) is None                        # would move the link too: two changes at once
+    assert ops["one_point_per_line"].apply({"text": "a\nb\nc"}, {}) is None and ops["one_point_per_line"].apply({"text": "Short. Two."}, {}) is None
+    assert ops["attach_image"].apply({"text": "x", "media": [dict(advise.PHOTO)]}, {}) is None and ops["remove_hashtags"].apply({"text": "no tags"}, {}) is None
+    grow = lambda text, instruction: text + " It cuts build time from 90 to 54 seconds on a 200-file project, with no config change."   # noqa: E731
+    assert ops["add_detail"].apply({"text": "Builds are faster now."}, {"rewrite_fn": grow})["text"].startswith("Builds are faster now.")
+    assert ops["add_detail"].apply({"text": "Builds are faster now."}, {"rewrite_fn": lambda t, i: t + " Really."}) is None   # not the tested change
+    ev = advise.load_evidence()
+    assert ev["media"]["supported"] and ev["lines"]["supported"] and ev["longer"]["supported"] and ev["link_not_first"]["supported"]
+    assert not ev["question_open"]["supported"] and not ev["no_hashtag"]["supported"]
