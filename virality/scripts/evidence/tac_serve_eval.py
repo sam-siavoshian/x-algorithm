@@ -19,6 +19,7 @@ import argparse
 import json
 import logging
 import os
+import pickle
 
 import numpy as np
 import polars as pl
@@ -59,6 +60,8 @@ def main() -> None:
     ap.add_argument("--device", default="cpu")
     ap.add_argument("--sid-codebook", default=None, help="<work>/emb/sid_codebook.npz when the model was trained with semantic IDs")
     ap.add_argument("--out", required=True)
+    ap.add_argument("--feature-cache", default=None, help="pickle file of model-independent features and embeddings per pair; "
+                    "built on the first run, after which scoring another model on the same pairs takes minutes")
     args = ap.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
     from xviral.embed.text_small import SentenceEmbedder
@@ -82,6 +85,9 @@ def main() -> None:
     scorer = DraftScorer(args.checkpoint if len(args.checkpoint) > 1 else args.checkpoint[0], lambda t: enc.encode(t), device=args.device, sid_codebook=args.sid_codebook)
     # Every scored pair is appended to a line file as it is produced, and a rerun picks up where it stopped.
     lines = args.out.replace(".json", ".scored.jsonl")
+    if args.feature_cache:
+        scorer.feature_cache = pickle.load(open(args.feature_cache, "rb")) if os.path.exists(args.feature_cache) else {}
+        log.info("feature cache: %d entries", len(scorer.feature_cache))
     recs = [json.loads(x) for x in open(lines)] if os.path.exists(lines) else []
     done = {(r["post_id"], r["post_id_b"]) for r in recs}
     sink = open(lines, "a")
@@ -107,6 +113,9 @@ def main() -> None:
         if (i + 1) % 100 == 0:
             log.info("scored %d/%d pairs", i + 1, todo.height)
     sink.close()
+    if args.feature_cache:
+        with open(args.feature_cache, "wb") as fc:
+            pickle.dump(scorer.feature_cache, fc)
     R = pl.DataFrame(recs, schema={"part": pl.String, "post_id": pl.Int64, "post_id_b": pl.Int64, "author_id": pl.Int64, "history": pl.Int64,
                                    "likes": pl.Int64, "likes_b": pl.Int64, "views": pl.Int64, "views_b": pl.Int64, "s_likes": pl.Float64, "s_views": pl.Float64})
     R.write_parquet(args.out.replace(".json", ".parquet"))

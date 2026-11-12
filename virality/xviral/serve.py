@@ -78,6 +78,7 @@ class DraftScorer:
         self.meta = ck["table_meta"]
         self._embed_raw, self.device, self.sid_codebook = embed_fn, device, sid_codebook
         self._emb_cache: dict[str, np.ndarray] = {}
+        self.feature_cache: dict | None = None
 
     def embed_fn(self, texts: list[str]) -> np.ndarray:
         """The encoder with a cache by rendered text: an account's history is embedded once across calls."""
@@ -110,19 +111,31 @@ class DraftScorer:
         hist = conform(history).filter(pl.col("created_at_ms") < when_ms).with_columns(pl.lit(account["author_id"]).alias("author_id"))
         now = pl.DataFrame({"author_id": [account["author_id"]], "snapshot_at_ms": [when_ms], "followers": [account.get("followers")]},
                            schema={"author_id": pl.Int64, "snapshot_at_ms": pl.Int64, "followers": pl.Int64}).filter(pl.col("followers").is_not_null())
-        parts: list[pl.DataFrame] = []
-        for i, d in enumerate(drafts):
-            f = feature_frame(pl.concat([hist, self._draft_row(d, i, account, when_ms)], how="vertical_relaxed"), now, account)
-            if not parts:
-                parts.append(f.filter(pl.col("source") != "draft"))
-            parts.append(f.filter(pl.col("source") == "draft"))
-        posts = pl.concat(parts, how="vertical_relaxed")
-        emb = np.asarray(self.embed_fn(features.render_texts(posts))) if self.meta["emb_dim"] else None
-        sid = None
-        if self.sid_codebook and emb is not None and self.meta["sid_levels"]:
-            from xviral.embed import sid as sidmod
+        # Everything up to here is independent of the model; only the last line applies a checkpoint's
+        # transforms. With `feature_cache` set (a dict), that model-independent part is kept, so a second
+        # model scores the same drafts without recomputing features or embeddings (the pair benchmark).
+        key = None
+        if self.feature_cache is not None:
+            key = stable_hash64(account["author_id"], when_ms, hist.height, int(hist["post_id"][-1]) if hist.height else 0,
+                                *[(d.get("text"), len(d.get("media") or []), len(d.get("urls") or []), d.get("quoted_text"), d.get("kind")) for d in drafts])
+        if key is not None and key in self.feature_cache:
+            posts, emb, sid = self.feature_cache[key]
+        else:
+            parts: list[pl.DataFrame] = []
+            for i, d in enumerate(drafts):
+                f = feature_frame(pl.concat([hist, self._draft_row(d, i, account, when_ms)], how="vertical_relaxed"), now, account)
+                if not parts:
+                    parts.append(f.filter(pl.col("source") != "draft"))
+                parts.append(f.filter(pl.col("source") == "draft"))
+            posts = pl.concat(parts, how="vertical_relaxed")
+            emb = np.asarray(self.embed_fn(features.render_texts(posts))) if self.meta["emb_dim"] else None
+            sid = None
+            if self.sid_codebook and emb is not None and self.meta["sid_levels"]:
+                from xviral.embed import sid as sidmod
 
-            sid = sidmod.phoenix_codes(sidmod.assign(emb, self.sid_codebook))
+                sid = sidmod.phoenix_codes(sidmod.assign(emb, self.sid_codebook))
+            if key is not None:
+                self.feature_cache[key] = (posts, emb, sid)
         return features.transform(posts, self.meta, emb=emb, sid=sid, device=self.device)
 
     @torch.no_grad()

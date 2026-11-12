@@ -98,6 +98,13 @@ def test_draft_scoring_end_to_end(trained):
     assert g["exploration_target"]["views_needed"]["24h"] == round(0.03 * 46_000) and g["out_of_network_factor"]["factor"] == 0.75
     big = scorer.score(history, drafts[:1], {**account, "followers": 900_000}, when)[0]
     assert {x["gate"]: x for x in big["gates"]}["cold_start_slot"]["status"] == "info"
+    # With a feature cache, a second scorer reuses the model-independent part and returns the same report.
+    scorer.feature_cache = {}
+    first_pass = scorer.score(history, drafts, account, when)
+    other = serve.DraftScorer(tmp_path / "run" / "best.pt", lambda texts: (_ for _ in ()).throw(AssertionError("embedded again")))
+    other.feature_cache = scorer.feature_cache
+    assert len(other.feature_cache) == 1 and other.score(history, drafts, account, when)[1]["views_24h"] == first_pass[1]["views_24h"]
+    scorer.feature_cache = None
     # Posting-time sweep and link variants reuse the cached history embeddings.
     calls = []
     scorer._embed_raw = lambda texts: (calls.append(len(texts)), embed(texts))[1]

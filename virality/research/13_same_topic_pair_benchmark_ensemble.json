@@ -1,0 +1,70 @@
+{
+  "scored_pairs": 1000,
+  "accounts": 438,
+  "likes": {
+    "pairs": 571,
+    "accuracy": 0.5919439579684763,
+    "accuracy_order_balanced": 0.5874275496362067,
+    "later_version_wins": 0.5359019264448336,
+    "model_prefers_later": 0.5691768826619965,
+    "with_history_20_plus": 0.590339892665474,
+    "confidence_scale": 1.5155993537841583,
+    "by_confidence": [
+      {
+        "stated": "0.50 to 0.55",
+        "pairs": 410,
+        "accuracy": 0.5853658536585366
+      },
+      {
+        "stated": "0.55 to 0.60",
+        "pairs": 111,
+        "accuracy": 0.5855855855855856
+      },
+      {
+        "stated": "0.60 to 0.70",
+        "pairs": 46,
+        "accuracy": 0.6956521739130435
+      },
+      {
+        "stated": "0.70 to 0.80",
+        "pairs": 4,
+        "accuracy": 0.25
+      },
+      {
+        "stated": "0.80 to 1.00",
+        "pairs": 0,
+        "accuracy": null
+      }
+    ],
+    "when_confident_0.6_plus": {
+      "share_of_pairs": 0.08756567425569177,
+      "accuracy": 0.66
+    },
+    "per_change": {
+      "image or video": {
+        "pairs": 74,
+        "model_accuracy": 0.7162162162162162,
+        "version_with_it_wins": 0.6756756756756757,
+        "model_prefers_version_with_it": 0.8243243243243243
+      },
+      "three or more lines": {
+        "pairs": 108,
+        "model_accuracy": 0.5648148148148148,
+        "version_with_it_wins": 0.5648148148148148,
+        "model_prefers_version_with_it": 0.8333333333333334
+      },
+      "1.5x more words": {
+        "pairs": 337,
+        "model_accuracy": 0.6023738872403561,
+        "version_with_it_wins": 0.5133531157270029,
+        "model_prefers_version_with_it": 0.7922848664688428
+      },
+      "link in first line": {
+        "pairs": 159,
+        "model_accuracy": 0.6792452830188679,
+        "version_with_it_wins": 0.4779874213836478,
+        "model_prefers_version_with_it": 0.4591194968553459
+      }
+    }
+  }
+}
