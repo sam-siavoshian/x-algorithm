@@ -67,6 +67,8 @@ Method B, same account and same topic: pairs of posts by one account that quote 
 | Mentions another account | 1.21x | 0.90x | 50.8% (46.6 to 54.6) | Nothing |
 | Opens with a number | 0.46x | 0.50x | too few pairs | Confounded: these are list items and status updates, a different kind of post |
 
+With posting order balanced (`scripts/evidence/build_edit_evidence.py`, the table the product reads): image or video 64.9% (61.5 to 68.2); three or more lines 61.5% (58.2 to 64.5); link not in the first line 61.3% (54.1 to 68.0); text 1.5x longer 58.7% (57.1 to 60.1); link at the very end 48.5%; opens with a question 48.9%; first person 51.7%; hashtag 53.4% (45.3 to 61.1); mention 50.9%. The first four are the supported kinds of change.
+
 Three things this table teaches:
 
 - **Within-account averages are not enough.** "Opens with a question" looks like +20% on views and -19% on likes. With the topic held fixed it is exactly 50/50. A product that recommended from method A, or from a model that learned method A's patterns, would hand out advice that does nothing.

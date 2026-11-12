@@ -123,6 +123,13 @@ weighted score and the deterministic distribution gates. From the command line:
 .venv/bin/python scripts/score_drafts.py --checkpoint data/work/model/run/best.pt --posts data/work/hygiene/posts.parquet --handle acme --draft "first version" --draft "second version" --timing
 ```
 
+For reasons and fixes (rules from X's code, the account's own record, and single changes that pass
+every gate in `xviral/advise.py`):
+
+```bash
+.venv/bin/python scripts/advise_draft.py --checkpoint a/best.pt --checkpoint b/best.pt --scales pair_confidence.json --posts data/work/hygiene/posts.parquet --handle acme --draft "the draft"
+```
+
 ## Test
 
 ```bash

@@ -125,6 +125,36 @@ Every report also carries the deterministic distribution gates from X's code (`x
 
 Not wired into serving yet: the classifier-based pre-flight checks (adult content, violence, spam sub-types), neighbour retrieval against a corpus index, and media embeddings for drafts.
 
+### 7.2 Reasons and fixes (`xviral/advise.py`)
+
+Design and evidence: `research/11_reasons_and_fixes.md`. `Advisor.advise` returns three kinds of statement and nothing else.
+
+1. **Rules.** The gates of `xalgo/gates.py` that warn or fail for this draft.
+2. **The account's own record.** `own_record` compares the median outcome of the account's past posts with and without an attribute (image, link, three or more lines, posted within 2 hours of the previous post) and keeps a comparison only when both groups have at least 8 posts and the bootstrap interval excludes no difference.
+3. **Scored single changes.** Each operator makes one defined change to the draft, and the draft and all changed versions are scored against the same history in one pass.
+
+| Operator | The one thing that changes | Measured effect in controlled pairs, order balanced |
+|---|---|---|
+| `attach_image` | An image is attached | Version with it wins 64.9% (61.5 to 68.2), 2,247 pairs |
+| `one_point_per_line` | Each sentence gets its own line | 61.5% (58.2 to 64.5), 1,830 pairs |
+| `link_out_of_first_line` | The link moves from the first line to the end | 61.3% (54.1 to 68.0), 309 pairs |
+| `add_detail` (needs a rewriter) | Same message, more concrete detail, at least 1.5x longer | 58.7% (57.1 to 60.1), 5,424 pairs |
+| `wait_for_gap` | Goes out 2 hours after the previous post | 0.72x views when closer (0.68 to 0.76), within account; mechanism in X's code |
+| `remove_hashtags` | Hashtags removed | 46.6% (39.0 to 54.4): no effect, so never recommended |
+
+The table lives in `xviral/data/edit_evidence.json` and is rebuilt by `scripts/evidence/build_edit_evidence.py`. Win rates are averaged over the two posting orders, because of two posts on one topic the later one wins more often.
+
+A change is **recommended** only if all of these hold:
+
+- its kind is supported in that table (the interval's lower end is above 50%);
+- the calibrated probability that the changed version does better is at least 60% ("probably better") or 70% ("likely better"); the probability is a logistic function of the difference in predicted log medians, with the scale fitted on held-out pairs (`scripts/fit_pair_confidence.py`);
+- every member of the ensemble prefers the same version;
+- for a rewrite, the embedding of the new text stays close to the draft's.
+
+Anything else is reported as "no confident difference", "predicted worse", or "untested kind of change". The user's own alternative versions are compared the same way and never given a reason, since more than one thing differs between them. A language model appears only as the optional `rewrite_fn` that carries out the `add_detail` instruction; it decides nothing.
+
+`scripts/advise_draft.py` prints the report.
+
 ## 8. Training plan with the larger compute budget
 
 | Stage | What | Why | Status |
