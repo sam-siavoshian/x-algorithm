@@ -22,6 +22,11 @@ snapshot_download("$REPO", repo_type="dataset", local_dir="data", allow_patterns
 PYEOF
 OUT=data/runs/$NAME
 $PY scripts/train_one.py --table data/work/model/table --out $OUT --seed $SEED --features $FEATS --preset $PRESET --steps $STEPS "$@" 2>&1 | tee $OUT.train.log | grep -E "val @|pairwise" || true
+# The benchmark's feature cache is built once by the coordinating session; wait for it rather than rebuild it here.
+for i in $(seq 1 120); do
+  [ -s data/bench/tac_cache.pkl ] && break
+  $PY -c "from huggingface_hub import hf_hub_download; hf_hub_download('$REPO', 'bench/tac_cache.pkl', repo_type='dataset', local_dir='data')" 2>/dev/null || sleep 60
+done
 $PY scripts/evidence/tac_serve_eval.py --posts data/work/filtered/posts.parquet --checkpoint $OUT/best.pt --after 2026-04-23 \
    --trained-accounts data/work/dataset/rows.parquet --max-pairs 700 --max-calibration-pairs 300 --history 56 \
    --sid-codebook data/work/emb/sid_codebook.npz --feature-cache data/bench/tac_cache.pkl --out $OUT/tac.json > $OUT.tac.log 2>&1
