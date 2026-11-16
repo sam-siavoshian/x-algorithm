@@ -74,7 +74,24 @@ CAT_SPEC: list[tuple[str, list[str] | int]] = [
     ("local_hour_idx", 25),   # Phoenix's hour-of-day cardinality
     ("local_dow", 7),
     ("follower_tier_idx", 6),
+    # How the source sampled the account's posts (expand track): the Community Archive holds posts that were already
+    # travelling, so an account's likes there run about four times its full timeline. Only in tables built with the column.
+    ("src_regime", ["unknown", "stream_sample", "search_sample", "full_timeline"]),
 ]
+
+SRC_REGIME = {"community_archive": "stream_sample", "nitter_2026": "search_sample", "usc": "search_sample",
+              "twitter100m": "full_timeline", "zenodo_brands": "full_timeline", "twitterapi_io": "full_timeline",
+              "user_scrape": "full_timeline", "analytics": "full_timeline"}
+
+
+def with_src_regime(rows: pl.DataFrame) -> pl.DataFrame:
+    """Adds `src_regime` from `source`. A row without a known source (a draft) takes the commonest regime of its
+    account's other rows: a draft is judged in the regime its history was sampled in."""
+    if "source" not in rows.columns:
+        return rows.with_columns(pl.lit("unknown").alias("src_regime"))
+    r = pl.col("source").replace_strict(SRC_REGIME, default=None, return_dtype=pl.String)
+    return rows.with_columns(r.alias("_rg")).with_columns(
+        pl.coalesce(pl.col("_rg"), pl.col("_rg").drop_nulls().mode().first().over("author_id"), pl.lit("unknown")).alias("src_regime")).drop("_rg")
 
 COUNT_COLS = ("likes", "replies", "reposts", "quotes", "views")  # Phoenix's ENGAGEMENT_COUNT_ORDER
 ACTIONS = list(HEAD_INDEX)                                       # rate_fav, rate_reply, ...
@@ -124,6 +141,8 @@ def _arrays(rows: pl.DataFrame, meta: dict | None = None) -> tuple[dict, dict, p
     num_names = names + [f"{names[i]}__missing" for i in miss_cols]
 
     # categorical
+    if meta and "src_regime" in meta["cat_names"] and "src_regime" not in rows.columns:
+        rows = with_src_regime(rows)
     cats, cards, cat_names = [], [], []
     spec_of = dict(CAT_SPEC)
     for col in (meta["cat_names"] if meta else [c for c, _ in CAT_SPEC if c in rows.columns]):
@@ -338,6 +357,13 @@ class FeatureTable:
                 "num_mean": [m["num_mean"][i] for i in kb], "num_std": [m["num_std"][i] for i in kb],
                 "num_missing_cols": [new_index[i] for i in m["num_missing_cols"] if i in new_index]}
         return FeatureTable(meta=meta, t={**self.t, "num": self.t["num"][:, keep]}, texts=self.texts)
+
+    def without_cat(self, names) -> "FeatureTable":
+        """A view of the table without the named categorical inputs (the stored layout is narrowed with it)."""
+        m = self.meta
+        keep = [i for i, n in enumerate(m["cat_names"]) if n not in set(names)]
+        meta = {**m, "cat_names": [m["cat_names"][i] for i in keep], "cat_cards": [m["cat_cards"][i] for i in keep]}
+        return FeatureTable(meta=meta, t={**self.t, "cat": self.t["cat"][:, keep]}, texts=self.texts)
 
     def rows_of_split(self, name: str, audience_only: bool = False):
         """Row indices of a split; with audience_only, only posts by audience accounts (see filters.select_accounts)."""

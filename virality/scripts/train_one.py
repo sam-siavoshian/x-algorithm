@@ -39,10 +39,24 @@ def main() -> None:
     ap.add_argument("--features", default="ts20", choices=list(FEATURE_SETS))
     ap.add_argument("--train-audience-only", action="store_true")
     ap.add_argument("--device", default="cpu")
+    ap.add_argument("--drop-cat", default="", help="comma-separated categorical inputs to leave out (e.g. src_regime)")
+    ap.add_argument("--train-exclude", default=None, help="npy of post ids left out of training and validation (they stay in the table as "
+                    "their accounts' history only): trains on a subset of an expanded table without rebuilding it")
+    ap.add_argument("--eval-rows", default=None, help="npy of post ids: the test metrics are computed on these rows only "
+                    "(the original test rows of an expanded table), so runs on different tables report the same posts")
     args = ap.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
     out = Path(args.out)
     table = FeatureTable.load(args.table, args.device).without_num(FEATURE_SETS[args.features])
+    if args.drop_cat:
+        table = table.without_cat([c for c in args.drop_cat.split(",") if c])
+    if args.train_exclude:
+        import numpy as np
+        import torch
+
+        drop = torch.from_numpy(np.isin(table.t["post_id"].numpy(), np.load(args.train_exclude)))
+        table.t["split"] = torch.where(drop, torch.full_like(table.t["split"], 3), table.t["split"])       # 3: no split, never an anchor or a candidate
+        logging.info("left out of training: %d rows", int(drop.sum()))
     mcfg = train.model_cfg_for(table, args.preset)
     tcfg = TrainCfg(steps=args.steps, batch_size=args.batch_size, lr=args.lr, eval_every=max(args.steps // 6, 1), seed=args.seed,
                     train_audience_only=args.train_audience_only)
@@ -50,7 +64,13 @@ def main() -> None:
     model, tcfg, ck = train.load(out / "best.pt", args.device)
     temps = evaluate.fit_temperature(model, table, table.rows_of_split("val", audience_only=True), tcfg)
     train.save(out / "best.pt", model, model.cfg, tcfg, ck["table_meta"], ck["metrics"], temps)
-    pred = evaluate.predict_rows(model, table, table.rows_of_split("test", audience_only=True), tcfg, temperature=temps)
+    test_rows = table.rows_of_split("test", audience_only=True)
+    if args.eval_rows:
+        import numpy as np
+        import torch
+
+        test_rows = test_rows[torch.from_numpy(np.isin(table.t["post_id"][test_rows].numpy(), np.load(args.eval_rows)))]
+    pred = evaluate.predict_rows(model, table, test_rows, tcfg, temperature=temps)
     m = evaluate.metrics(pred, table, tcfg) | {"params": res["params"], "best_step": res["best"].get("step"), "temperature": temps,
                                                "args": vars(args), "n_num": int(table.t["num"].shape[1])}
     (out / "metrics.json").write_text(json.dumps(m, indent=2, default=float))

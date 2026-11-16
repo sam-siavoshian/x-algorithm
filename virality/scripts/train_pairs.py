@@ -50,12 +50,18 @@ def main() -> None:
     ap.add_argument("--dev-frac", type=float, default=0.15)
     ap.add_argument("--max-train-pairs", type=int, default=0)
     ap.add_argument("--pair-info", default=None, help="parquet with (post_id, post_id_b, tier, tac, cos) from select_pairs.py")
+    ap.add_argument("--drop-cat", default="", help="comma-separated categorical inputs to leave out of both tables (e.g. src_regime)")
+    ap.add_argument("--eval-rows", default=None, help="npy of post ids: the test metrics are computed on these rows only")
     ap.add_argument("--only", default=None, help="train only on pairs of these tiers, comma separated: tac (same link or quoted post), strict, loose")
     args = ap.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
     out = Path(args.out)
     table = FeatureTable.load(args.table, "cpu").without_num(FEATURE_SETS[args.features])
     ptable, frame = pairs.load(args.pair_table, FEATURE_SETS[args.features])
+    if args.drop_cat:
+        drop = [c for c in args.drop_cat.split(",") if c]
+        table, ptable = table.without_cat(drop), ptable.without_cat(drop)
+    assert table.meta["cat_names"] == ptable.meta["cat_names"], "the pair table and the training table differ in categorical inputs"
     if args.pair_info:
         info = pl.read_parquet(args.pair_info).select("post_id", "post_id_b", "tier", "tac", "cos")
         frame = frame.join(info, on=["post_id", "post_id_b"], how="left", maintain_order="left")
@@ -88,7 +94,12 @@ def main() -> None:
     model, tcfg, ck = train.load(out / "best.pt", "cpu")
     temps = evaluate.fit_temperature(model, table, table.rows_of_split("val", audience_only=True), tcfg)
     train.save(out / "best.pt", model, model.cfg, tcfg, ck["table_meta"], ck["metrics"], temps)
-    pred = evaluate.predict_rows(model, table, table.rows_of_split("test", audience_only=True), tcfg, temperature=temps)
+    test_rows = table.rows_of_split("test", audience_only=True)
+    if args.eval_rows:
+        import torch
+
+        test_rows = test_rows[torch.from_numpy(np.isin(table.t["post_id"][test_rows].numpy(), np.load(args.eval_rows)))]
+    pred = evaluate.predict_rows(model, table, test_rows, tcfg, temperature=temps)
     m = evaluate.metrics(pred, table, tcfg) | {"picked_step": pick["step"], "history": hist, "temperature": temps, "args": vars(args),
                                                "ctl_train_pairs": len(ctl), "ctl_dev_pairs": len(ctl_dev)}
     (out / "metrics.json").write_text(json.dumps(m, indent=1, default=float))
