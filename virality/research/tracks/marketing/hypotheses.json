@@ -1,0 +1,4424 @@
+{
+ "_how_to_read": "verdict is our corpus against the outside claim: confirmed, contradicted, not_confirmed (tested, nothing passes the rule), untestable. result = win rate of the version WITH the trait in same-account, order-balanced pairs of launch posts (50% = no effect), 95% interval from resampling accounts, likes ratio with/without inside accounts, adjusted ratio holding the other traits fixed. Outcome is likes relative to the account's own trailing median.",
+ "hypotheses": [
+  {
+   "id": "H01",
+   "claim": "A launch post should end with a call to action to use the product (try it, get started, sign up).",
+   "sources": [
+    "PB050",
+    "PB072",
+    "R:K07"
+   ],
+   "source_grade": "anecdote",
+   "ai_startup_specific": false,
+   "trait": "cta_try",
+   "direction": 1,
+   "from": "marketing",
+   "note": "Lee, Hosanagar and Nair (R:K07/R:B01, 106k Facebook brand posts) point the other way for overtly persuasive content.",
+   "result": {
+    "win_rate": 0.526,
+    "interval": [
+     0.4564,
+     0.5954
+    ],
+    "pairs": 1113,
+    "accounts": 114,
+    "likes_ratio": [
+     1.1,
+     0.926,
+     1.304
+    ],
+    "posts_with": 223,
+    "posts_without": 801,
+    "adjusted_likes_ratio": [
+     1.019,
+     0.851,
+     1.202
+    ]
+   },
+   "status": "none",
+   "grade_ours": null,
+   "level": "company and founder accounts",
+   "posts_with_trait": 263,
+   "strict_subset": {
+    "win_rate": 0.4705,
+    "interval": [
+     0.381,
+     0.5675
+    ],
+    "pairs": 409,
+    "accounts": 57,
+    "likes_ratio": [
+     0.856,
+     0.641,
+     1.135
+    ],
+    "posts_with": 103,
+    "posts_without": 346,
+    "adjusted_likes_ratio": [
+     0.814,
+     0.629,
+     1.079
+    ]
+   },
+   "all_accounts": {
+    "win_rate": 0.5169,
+    "interval": [
+     0.4524,
+     0.5806
+    ],
+    "pairs": 1256,
+    "accounts": 150,
+    "likes_ratio": [
+     1.052,
+     0.905,
+     1.222
+    ],
+    "posts_with": 279,
+    "posts_without": 968,
+    "adjusted_likes_ratio": [
+     0.941,
+     0.79,
+     1.106
+    ]
+   },
+   "verdict": "not_confirmed",
+   "evidence_key": "cta_try"
+  },
+  {
+   "id": "H02",
+   "claim": "Gating access behind a waitlist, invites or a research preview makes the launch post travel further (scarcity).",
+   "sources": [
+    "PB012",
+    "PB036",
+    "PB029",
+    "PB046",
+    "PB047",
+    "R:P04"
+   ],
+   "source_grade": "anecdote",
+   "ai_startup_specific": true,
+   "trait": "cta_waitlist",
+   "direction": 1,
+   "from": "marketing",
+   "result": {
+    "win_rate": 0.5129,
+    "interval": [
+     0.3658,
+     0.6818
+    ],
+    "pairs": 355,
+    "accounts": 35,
+    "likes_ratio": [
+     0.928,
+     0.626,
+     1.352
+    ],
+    "posts_with": 51,
+    "posts_without": 391,
+    "adjusted_likes_ratio": [
+     0.94,
+     0.609,
+     1.306
+    ]
+   },
+   "status": "none",
+   "grade_ours": null,
+   "level": "company and founder accounts",
+   "posts_with_trait": 53,
+   "strict_subset": {
+    "win_rate": 0.5647,
+    "interval": [
+     0.3826,
+     0.7204
+    ],
+    "pairs": 155,
+    "accounts": 17,
+    "likes_ratio": [
+     0.766,
+     0.467,
+     1.15
+    ],
+    "posts_with": 22,
+    "posts_without": 161,
+    "adjusted_likes_ratio": [
+     0.928,
+     0.462,
+     1.508
+    ]
+   },
+   "all_accounts": {
+    "win_rate": 0.5174,
+    "interval": [
+     0.3863,
+     0.662
+    ],
+    "pairs": 393,
+    "accounts": 48,
+    "likes_ratio": [
+     0.901,
+     0.64,
+     1.239
+    ],
+    "posts_with": 65,
+    "posts_without": 462,
+    "adjusted_likes_ratio": [
+     0.916,
+     0.602,
+     1.248
+    ]
+   },
+   "verdict": "not_confirmed",
+   "evidence_key": "cta_waitlist"
+  },
+  {
+   "id": "H03",
+   "claim": "A waitlist launch does better than an available-now launch.",
+   "sources": [
+    "PB012",
+    "PB036"
+   ],
+   "source_grade": "anecdote",
+   "ai_startup_specific": true,
+   "trait": "waitlist_vs_available_now",
+   "direction": 1,
+   "from": "marketing",
+   "result": {
+    "win_rate": 0.5292,
+    "interval": [
+     0.3631,
+     0.6802
+    ],
+    "pairs": 219,
+    "accounts": 26,
+    "likes_ratio": [
+     1.061,
+     0.793,
+     1.354
+    ],
+    "posts_with": 46,
+    "posts_without": 177,
+    "adjusted_likes_ratio": [
+     0.916,
+     0.602,
+     1.248
+    ]
+   },
+   "status": "none",
+   "grade_ours": null,
+   "level": "every account pooled (too thin among company and founder accounts)",
+   "posts_with_trait": 85,
+   "strict_subset": {
+    "win_rate": 0.5725,
+    "interval": [
+     0.2613,
+     0.7298
+    ],
+    "pairs": 49,
+    "accounts": 14,
+    "likes_ratio": [
+     1.011,
+     0.613,
+     1.442
+    ],
+    "posts_with": 18,
+    "posts_without": 50,
+    "adjusted_likes_ratio": [
+     0.871,
+     0.517,
+     1.417
+    ]
+   },
+   "all_accounts": {
+    "win_rate": 0.5292,
+    "interval": [
+     0.3631,
+     0.6802
+    ],
+    "pairs": 219,
+    "accounts": 26,
+    "likes_ratio": [
+     1.061,
+     0.793,
+     1.354
+    ],
+    "posts_with": 46,
+    "posts_without": 177,
+    "adjusted_likes_ratio": [
+     0.916,
+     0.602,
+     1.248
+    ]
+   },
+   "verdict": "not_confirmed",
+   "evidence_key": "waitlist_vs_available_now"
+  },
+  {
+   "id": "H04",
+   "claim": "Asking for a reply or repost in exchange for access ('comment X and I'll DM you', 'RT for an invite') lifts the post.",
+   "sources": [
+    "PB076",
+    "X:S08",
+    "X:C14"
+   ],
+   "source_grade": "anecdote",
+   "ai_startup_specific": false,
+   "trait": "cta_engagement_bait",
+   "direction": 1,
+   "from": "marketing",
+   "note": "X's code labels engagement bait as spam (no out-of-network distribution) and X said in 2026 that Grok pushes solicitation down; no effectiveness data exists outside either.",
+   "result": {
+    "win_rate": 0.2679,
+    "interval": [
+     0.05,
+     0.9
+    ],
+    "pairs": 18,
+    "accounts": 5,
+    "likes_ratio": [
+     1.169,
+     0.59,
+     3.617
+    ],
+    "posts_with": 10,
+    "posts_without": 50,
+    "adjusted_likes_ratio": [
+     1.406,
+     0.817,
+     3.714
+    ]
+   },
+   "status": "too_thin",
+   "grade_ours": null,
+   "level": "every account pooled (too thin among company and founder accounts)",
+   "posts_with_trait": 17,
+   "strict_subset": null,
+   "all_accounts": {
+    "win_rate": 0.2679,
+    "interval": [
+     0.05,
+     0.9
+    ],
+    "pairs": 18,
+    "accounts": 5,
+    "likes_ratio": [
+     1.169,
+     0.59,
+     3.617
+    ],
+    "posts_with": 10,
+    "posts_without": 50,
+    "adjusted_likes_ratio": [
+     1.406,
+     0.817,
+     3.714
+    ]
+   },
+   "verdict": "untestable",
+   "evidence_key": "no_engagement_bait"
+  },
+  {
+   "id": "H05",
+   "claim": "Explicitly asking readers to share or support ('please RT', 'would love your support') raises sharing.",
+   "sources": [
+    "R:W02",
+    "R:K06"
+   ],
+   "source_grade": "controlled study",
+   "ai_startup_specific": false,
+   "trait": "cta_any_ask",
+   "direction": 1,
+   "from": "marketing",
+   "note": "Tan, Lee and Pang 2014: same author, same link, 11,404 pairs; 2014 Twitter.",
+   "result": {
+    "win_rate": 0.7507,
+    "interval": [
+     0.4673,
+     0.884
+    ],
+    "pairs": 64,
+    "accounts": 14,
+    "likes_ratio": [
+     1.466,
+     0.901,
+     2.464
+    ],
+    "posts_with": 18,
+    "posts_without": 115,
+    "adjusted_likes_ratio": [
+     1.62,
+     0.995,
+     2.725
+    ]
+   },
+   "status": "too_thin",
+   "grade_ours": null,
+   "level": "every account pooled (too thin among company and founder accounts)",
+   "posts_with_trait": 28,
+   "strict_subset": {
+    "win_rate": 0.8438,
+    "interval": [
+     0.4821,
+     0.9474
+    ],
+    "pairs": 28,
+    "accounts": 5,
+    "likes_ratio": [
+     1.737,
+     0.961,
+     3.43
+    ],
+    "posts_with": 5,
+    "posts_without": 38,
+    "adjusted_likes_ratio": [
+     1.656,
+     0.626,
+     4.729
+    ]
+   },
+   "all_accounts": {
+    "win_rate": 0.7507,
+    "interval": [
+     0.4673,
+     0.884
+    ],
+    "pairs": 64,
+    "accounts": 14,
+    "likes_ratio": [
+     1.466,
+     0.901,
+     2.464
+    ],
+    "posts_with": 18,
+    "posts_without": 115,
+    "adjusted_likes_ratio": [
+     1.62,
+     0.995,
+     2.725
+    ]
+   },
+   "verdict": "untestable",
+   "evidence_key": "cta_any_ask"
+  },
+  {
+   "id": "H06",
+   "claim": "Saying the product is free lifts the launch post (zero-price effect).",
+   "sources": [
+    "R:P03",
+    "PB008"
+   ],
+   "source_grade": "controlled study",
+   "ai_startup_specific": false,
+   "trait": "offer_free",
+   "direction": 1,
+   "from": "marketing",
+   "note": "The controlled evidence is on purchase choice in lab experiments, not on social posts.",
+   "result": {
+    "win_rate": 0.501,
+    "interval": [
+     0.3939,
+     0.5976
+    ],
+    "pairs": 486,
+    "accounts": 47,
+    "likes_ratio": [
+     1.107,
+     0.79,
+     1.536
+    ],
+    "posts_with": 74,
+    "posts_without": 441,
+    "adjusted_likes_ratio": [
+     1.114,
+     0.825,
+     1.452
+    ]
+   },
+   "status": "none",
+   "grade_ours": null,
+   "level": "company and founder accounts",
+   "posts_with_trait": 82,
+   "strict_subset": {
+    "win_rate": 0.4764,
+    "interval": [
+     0.3175,
+     0.6232
+    ],
+    "pairs": 222,
+    "accounts": 31,
+    "likes_ratio": [
+     1.124,
+     0.666,
+     1.982
+    ],
+    "posts_with": 42,
+    "posts_without": 239,
+    "adjusted_likes_ratio": [
+     1.441,
+     0.908,
+     2.364
+    ]
+   },
+   "all_accounts": {
+    "win_rate": 0.5252,
+    "interval": [
+     0.4315,
+     0.6197
+    ],
+    "pairs": 529,
+    "accounts": 57,
+    "likes_ratio": [
+     1.305,
+     0.944,
+     1.797
+    ],
+    "posts_with": 90,
+    "posts_without": 500,
+    "adjusted_likes_ratio": [
+     1.253,
+     0.939,
+     1.649
+    ]
+   },
+   "verdict": "not_confirmed",
+   "evidence_key": "offer_free"
+  },
+  {
+   "id": "H07",
+   "claim": "Open-source / open-weights releases travel further than closed launches.",
+   "sources": [
+    "PB006",
+    "PB007",
+    "PB008",
+    "PB009",
+    "PB010",
+    "PB025",
+    "PB030",
+    "R:B08"
+   ],
+   "source_grade": "anecdote",
+   "ai_startup_specific": true,
+   "trait": "offer_open_source",
+   "direction": 1,
+   "from": "marketing",
+   "note": "R:B08 (controlled, 2,370 repositories) is about tweets raising GitHub stars, not about open-source posts getting more engagement.",
+   "result": {
+    "win_rate": 0.588,
+    "interval": [
+     0.5118,
+     0.6622
+    ],
+    "pairs": 1129,
+    "accounts": 102,
+    "likes_ratio": [
+     1.328,
+     1.079,
+     1.673
+    ],
+    "posts_with": 228,
+    "posts_without": 786,
+    "adjusted_likes_ratio": [
+     1.284,
+     1.026,
+     1.598
+    ]
+   },
+   "status": "survives",
+   "grade_ours": "B",
+   "level": "company and founder accounts",
+   "posts_with_trait": 275,
+   "strict_subset": {
+    "win_rate": 0.5871,
+    "interval": [
+     0.4984,
+     0.6932
+    ],
+    "pairs": 557,
+    "accounts": 55,
+    "likes_ratio": [
+     1.435,
+     1.093,
+     1.899
+    ],
+    "posts_with": 122,
+    "posts_without": 331,
+    "adjusted_likes_ratio": [
+     1.247,
+     0.946,
+     1.702
+    ]
+   },
+   "all_accounts": {
+    "win_rate": 0.5829,
+    "interval": [
+     0.5166,
+     0.6562
+    ],
+    "pairs": 1252,
+    "accounts": 135,
+    "likes_ratio": [
+     1.362,
+     1.116,
+     1.664
+    ],
+    "posts_with": 290,
+    "posts_without": 925,
+    "adjusted_likes_ratio": [
+     1.36,
+     1.101,
+     1.645
+    ]
+   },
+   "verdict": "confirmed",
+   "evidence_key": "offer_open_source"
+  },
+  {
+   "id": "H08",
+   "claim": "Offering credits, a discount, a launch deal or a prize lifts the launch post.",
+   "sources": [
+    "PB022",
+    "PB073",
+    "R:B01"
+   ],
+   "source_grade": "anecdote",
+   "ai_startup_specific": false,
+   "trait": "offer_credits_discount",
+   "direction": 1,
+   "from": "marketing",
+   "note": "R:B01 (large observational, Facebook) found price and deal content LOWERS engagement; our result agrees with that study and contradicts the playbook.",
+   "result": {
+    "win_rate": 0.2748,
+    "interval": [
+     0.175,
+     0.4256
+    ],
+    "pairs": 211,
+    "accounts": 27,
+    "likes_ratio": [
+     0.548,
+     0.367,
+     0.842
+    ],
+    "posts_with": 33,
+    "posts_without": 241,
+    "adjusted_likes_ratio": [
+     0.478,
+     0.346,
+     0.703
+    ]
+   },
+   "status": "survives",
+   "grade_ours": "C",
+   "level": "every account pooled (too thin among company and founder accounts)",
+   "posts_with_trait": 47,
+   "strict_subset": {
+    "win_rate": 0.2019,
+    "interval": [
+     0.1272,
+     0.3334
+    ],
+    "pairs": 95,
+    "accounts": 15,
+    "likes_ratio": [
+     0.434,
+     0.246,
+     0.878
+    ],
+    "posts_with": 17,
+    "posts_without": 104,
+    "adjusted_likes_ratio": [
+     0.359,
+     0.187,
+     0.746
+    ]
+   },
+   "all_accounts": {
+    "win_rate": 0.2748,
+    "interval": [
+     0.175,
+     0.4256
+    ],
+    "pairs": 211,
+    "accounts": 27,
+    "likes_ratio": [
+     0.548,
+     0.367,
+     0.842
+    ],
+    "posts_with": 33,
+    "posts_without": 241,
+    "adjusted_likes_ratio": [
+     0.478,
+     0.346,
+     0.703
+    ]
+   },
+   "verdict": "contradicted",
+   "evidence_key": "no_credits_or_discount_offer"
+  },
+  {
+   "id": "H09",
+   "claim": "Stating the price lowers engagement with a brand post.",
+   "sources": [
+    "R:B01"
+   ],
+   "source_grade": "large observational",
+   "ai_startup_specific": false,
+   "trait": "price_stated",
+   "direction": -1,
+   "from": "marketing",
+   "result": {
+    "win_rate": 0.3504,
+    "interval": [
+     0.1754,
+     0.5516
+    ],
+    "pairs": 159,
+    "accounts": 18,
+    "likes_ratio": [
+     1.034,
+     0.634,
+     1.742
+    ],
+    "posts_with": 22,
+    "posts_without": 195,
+    "adjusted_likes_ratio": [
+     0.932,
+     0.551,
+     1.582
+    ]
+   },
+   "status": "too_thin",
+   "grade_ours": null,
+   "level": "every account pooled (too thin among company and founder accounts)",
+   "posts_with_trait": 27,
+   "strict_subset": {
+    "win_rate": 0.258,
+    "interval": [
+     0.05,
+     0.4311
+    ],
+    "pairs": 76,
+    "accounts": 7,
+    "likes_ratio": [
+     0.404,
+     0.224,
+     0.726
+    ],
+    "posts_with": 8,
+    "posts_without": 74,
+    "adjusted_likes_ratio": [
+     0.451,
+     0.24,
+     0.846
+    ]
+   },
+   "all_accounts": {
+    "win_rate": 0.3504,
+    "interval": [
+     0.1754,
+     0.5516
+    ],
+    "pairs": 159,
+    "accounts": 18,
+    "likes_ratio": [
+     1.034,
+     0.634,
+     1.742
+    ],
+    "posts_with": 22,
+    "posts_without": 195,
+    "adjusted_likes_ratio": [
+     0.932,
+     0.551,
+     1.582
+    ]
+   },
+   "verdict": "untestable",
+   "evidence_key": "no_price_stated"
+  },
+  {
+   "id": "H10",
+   "claim": "Naming customers or users (social proof) lifts the launch post.",
+   "sources": [
+    "R:B07",
+    "PB010",
+    "PB028"
+   ],
+   "source_grade": "large observational",
+   "ai_startup_specific": false,
+   "trait": "names_customer",
+   "direction": 1,
+   "from": "marketing",
+   "note": "R:B07 is Kickstarter pitch wording (45k projects), not X.",
+   "result": {
+    "win_rate": 0.4434,
+    "interval": [
+     0.3308,
+     0.6019
+    ],
+    "pairs": 178,
+    "accounts": 25,
+    "likes_ratio": [
+     1.611,
+     0.901,
+     3.208
+    ],
+    "posts_with": 32,
+    "posts_without": 293,
+    "adjusted_likes_ratio": [
+     1.38,
+     0.774,
+     2.671
+    ]
+   },
+   "status": "too_thin",
+   "grade_ours": null,
+   "level": "every account pooled (too thin among company and founder accounts)",
+   "posts_with_trait": 41,
+   "strict_subset": {
+    "win_rate": 0.4451,
+    "interval": [
+     0.3143,
+     0.8846
+    ],
+    "pairs": 54,
+    "accounts": 9,
+    "likes_ratio": [
+     2.351,
+     0.814,
+     9.139
+    ],
+    "posts_with": 11,
+    "posts_without": 75,
+    "adjusted_likes_ratio": [
+     2.397,
+     0.718,
+     9.551
+    ]
+   },
+   "all_accounts": {
+    "win_rate": 0.4434,
+    "interval": [
+     0.3308,
+     0.6019
+    ],
+    "pairs": 178,
+    "accounts": 25,
+    "likes_ratio": [
+     1.611,
+     0.901,
+     3.208
+    ],
+    "posts_with": 32,
+    "posts_without": 293,
+    "adjusted_likes_ratio": [
+     1.38,
+     0.774,
+     2.671
+    ]
+   },
+   "verdict": "untestable",
+   "evidence_key": "names_customer"
+  },
+  {
+   "id": "H11",
+   "claim": "Naming investors or an accelerator (backed by, YC) lifts the launch post.",
+   "sources": [
+    "PB079",
+    "PB080",
+    "PB055"
+   ],
+   "source_grade": "anecdote",
+   "ai_startup_specific": false,
+   "trait": "backed_by",
+   "direction": 1,
+   "from": "marketing",
+   "result": {
+    "win_rate": 0.5125,
+    "interval": [
+     0.395,
+     0.6458
+    ],
+    "pairs": 178,
+    "accounts": 34,
+    "likes_ratio": [
+     1.278,
+     0.879,
+     1.961
+    ],
+    "posts_with": 48,
+    "posts_without": 220,
+    "adjusted_likes_ratio": [
+     1.245,
+     0.917,
+     1.803
+    ]
+   },
+   "status": "too_thin",
+   "grade_ours": null,
+   "level": "every account pooled (too thin among company and founder accounts)",
+   "posts_with_trait": 86,
+   "strict_subset": {
+    "win_rate": 0.3656,
+    "interval": [
+     0.2976,
+     0.5152
+    ],
+    "pairs": 72,
+    "accounts": 12,
+    "likes_ratio": [
+     1.066,
+     0.681,
+     2.051
+    ],
+    "posts_with": 18,
+    "posts_without": 74,
+    "adjusted_likes_ratio": [
+     1.043,
+     0.646,
+     2.064
+    ]
+   },
+   "all_accounts": {
+    "win_rate": 0.5125,
+    "interval": [
+     0.395,
+     0.6458
+    ],
+    "pairs": 178,
+    "accounts": 34,
+    "likes_ratio": [
+     1.278,
+     0.879,
+     1.961
+    ],
+    "posts_with": 48,
+    "posts_without": 220,
+    "adjusted_likes_ratio": [
+     1.245,
+     0.917,
+     1.803
+    ]
+   },
+   "verdict": "untestable",
+   "evidence_key": "backed_by"
+  },
+  {
+   "id": "H12",
+   "claim": "A concrete number anywhere in the post (informativeness) makes it travel further.",
+   "sources": [
+    "R:W03",
+    "R:P01",
+    "PB060"
+   ],
+   "source_grade": "controlled study",
+   "ai_startup_specific": false,
+   "trait": "number_anywhere",
+   "direction": 1,
+   "from": "marketing",
+   "note": "Launch track: a number in the FIRST line passed at 55.8% (50.5 to 60.9), its weakest finding.",
+   "result": {
+    "win_rate": 0.5537,
+    "interval": [
+     0.5026,
+     0.6075
+    ],
+    "pairs": 1759,
+    "accounts": 165,
+    "likes_ratio": [
+     1.152,
+     0.987,
+     1.345
+    ],
+    "posts_with": 438,
+    "posts_without": 875,
+    "adjusted_likes_ratio": [
+     1.034,
+     0.885,
+     1.211
+    ]
+   },
+   "status": "leaning",
+   "grade_ours": null,
+   "level": "company and founder accounts",
+   "posts_with_trait": 568,
+   "strict_subset": {
+    "win_rate": 0.5329,
+    "interval": [
+     0.4578,
+     0.6044
+    ],
+    "pairs": 904,
+    "accounts": 88,
+    "likes_ratio": [
+     1.156,
+     0.937,
+     1.432
+    ],
+    "posts_with": 228,
+    "posts_without": 447,
+    "adjusted_likes_ratio": [
+     1.067,
+     0.859,
+     1.343
+    ]
+   },
+   "all_accounts": {
+    "win_rate": 0.5541,
+    "interval": [
+     0.5065,
+     0.6018
+    ],
+    "pairs": 2061,
+    "accounts": 247,
+    "likes_ratio": [
+     1.194,
+     1.045,
+     1.366
+    ],
+    "posts_with": 591,
+    "posts_without": 1157,
+    "adjusted_likes_ratio": [
+     1.073,
+     0.93,
+     1.229
+    ]
+   },
+   "verdict": "not_confirmed",
+   "evidence_key": "number_anywhere"
+  },
+  {
+   "id": "H13",
+   "claim": "Leading with a benchmark result (state of the art, x times faster, a leaderboard rank) makes an AI launch travel.",
+   "sources": [
+    "PB005",
+    "PB006",
+    "PB037",
+    "PB004"
+   ],
+   "source_grade": "anecdote",
+   "ai_startup_specific": true,
+   "trait": "benchmark_claim",
+   "direction": 1,
+   "from": "marketing",
+   "result": {
+    "win_rate": 0.5452,
+    "interval": [
+     0.4873,
+     0.6045
+    ],
+    "pairs": 1359,
+    "accounts": 106,
+    "likes_ratio": [
+     1.258,
+     1.029,
+     1.551
+    ],
+    "posts_with": 293,
+    "posts_without": 727,
+    "adjusted_likes_ratio": [
+     1.097,
+     0.934,
+     1.298
+    ]
+   },
+   "status": "leaning",
+   "grade_ours": null,
+   "level": "company and founder accounts",
+   "posts_with_trait": 362,
+   "strict_subset": {
+    "win_rate": 0.505,
+    "interval": [
+     0.4302,
+     0.5859
+    ],
+    "pairs": 770,
+    "accounts": 65,
+    "likes_ratio": [
+     1.167,
+     0.904,
+     1.526
+    ],
+    "posts_with": 177,
+    "posts_without": 364,
+    "adjusted_likes_ratio": [
+     1.044,
+     0.846,
+     1.334
+    ]
+   },
+   "all_accounts": {
+    "win_rate": 0.5529,
+    "interval": [
+     0.4989,
+     0.6054
+    ],
+    "pairs": 1507,
+    "accounts": 151,
+    "likes_ratio": [
+     1.192,
+     1.003,
+     1.418
+    ],
+    "posts_with": 374,
+    "posts_without": 895,
+    "adjusted_likes_ratio": [
+     1.074,
+     0.911,
+     1.257
+    ]
+   },
+   "verdict": "not_confirmed",
+   "evidence_key": "benchmark_claim"
+  },
+  {
+   "id": "H14",
+   "claim": "A benchmark chart image does better than another image.",
+   "sources": [
+    "PB005",
+    "PB006",
+    "PB004"
+   ],
+   "source_grade": "anecdote",
+   "ai_startup_specific": true,
+   "trait": "benchmark_with_image",
+   "direction": 1,
+   "from": "marketing",
+   "note": "Text proxy: a benchmark claim in a post with an image. What the image shows is not read here (media track).",
+   "result": {
+    "win_rate": 0.5268,
+    "interval": [
+     0.401,
+     0.6446
+    ],
+    "pairs": 298,
+    "accounts": 35,
+    "likes_ratio": [
+     1.063,
+     0.725,
+     1.509
+    ],
+    "posts_with": 103,
+    "posts_without": 145
+   },
+   "status": "none",
+   "grade_ours": null,
+   "level": "company and founder accounts",
+   "posts_with_trait": 156,
+   "strict_subset": {
+    "win_rate": 0.4175,
+    "interval": [
+     0.2542,
+     0.6572
+    ],
+    "pairs": 133,
+    "accounts": 18,
+    "likes_ratio": [
+     0.976,
+     0.567,
+     1.743
+    ],
+    "posts_with": 56,
+    "posts_without": 65
+   },
+   "all_accounts": {
+    "win_rate": 0.5215,
+    "interval": [
+     0.4005,
+     0.6352
+    ],
+    "pairs": 321,
+    "accounts": 46,
+    "likes_ratio": [
+     0.97,
+     0.693,
+     1.312
+    ],
+    "posts_with": 126,
+    "posts_without": 173
+   },
+   "verdict": "not_confirmed",
+   "evidence_key": "benchmark_with_image"
+  },
+  {
+   "id": "H15",
+   "claim": "Comparing against a named competitor or incumbent lifts the launch post.",
+   "sources": [
+    "R:P02",
+    "PB037",
+    "PB030",
+    "PB006"
+   ],
+   "source_grade": "controlled study",
+   "ai_startup_specific": false,
+   "trait": "compares_named",
+   "direction": 1,
+   "from": "marketing",
+   "note": "R:P02 is a meta-analysis of comparative advertising, not social posts.",
+   "result": {
+    "win_rate": 0.5907,
+    "interval": [
+     0.4263,
+     0.7444
+    ],
+    "pairs": 301,
+    "accounts": 33,
+    "likes_ratio": [
+     1.442,
+     0.828,
+     2.688
+    ],
+    "posts_with": 43,
+    "posts_without": 391,
+    "adjusted_likes_ratio": [
+     1.313,
+     0.831,
+     2.168
+    ]
+   },
+   "status": "none",
+   "grade_ours": null,
+   "level": "company and founder accounts",
+   "posts_with_trait": 47,
+   "strict_subset": {
+    "win_rate": 0.4971,
+    "interval": [
+     0.3803,
+     0.6686
+    ],
+    "pairs": 140,
+    "accounts": 19,
+    "likes_ratio": [
+     1.186,
+     0.672,
+     2.284
+    ],
+    "posts_with": 24,
+    "posts_without": 130,
+    "adjusted_likes_ratio": [
+     1.198,
+     0.774,
+     2.289
+    ]
+   },
+   "all_accounts": {
+    "win_rate": 0.5817,
+    "interval": [
+     0.4482,
+     0.7241
+    ],
+    "pairs": 340,
+    "accounts": 42,
+    "likes_ratio": [
+     1.276,
+     0.799,
+     2.115
+    ],
+    "posts_with": 54,
+    "posts_without": 434,
+    "adjusted_likes_ratio": [
+     1.13,
+     0.743,
+     1.719
+    ]
+   },
+   "verdict": "not_confirmed",
+   "evidence_key": "compares_named"
+  },
+  {
+   "id": "H16",
+   "claim": "Pitching by analogy to a known product ('Cursor for X') lifts the post.",
+   "sources": [
+    "PB030"
+   ],
+   "source_grade": "anecdote",
+   "ai_startup_specific": false,
+   "trait": "analogy_pitch",
+   "direction": 1,
+   "from": "marketing",
+   "result": {
+    "win_rate": 0.4586,
+    "interval": [
+     0.3553,
+     0.8
+    ],
+    "pairs": 92,
+    "accounts": 9,
+    "likes_ratio": [
+     1.252,
+     0.682,
+     2.56
+    ],
+    "posts_with": 10,
+    "posts_without": 120,
+    "adjusted_likes_ratio": [
+     0.867,
+     0.422,
+     2.025
+    ]
+   },
+   "status": "too_thin",
+   "grade_ours": null,
+   "level": "every account pooled (too thin among company and founder accounts)",
+   "posts_with_trait": 13,
+   "strict_subset": {
+    "win_rate": 0.3852,
+    "interval": [
+     0.1855,
+     0.9
+    ],
+    "pairs": 75,
+    "accounts": 5,
+    "likes_ratio": [
+     1.154,
+     0.49,
+     4.119
+    ],
+    "posts_with": 6,
+    "posts_without": 67,
+    "adjusted_likes_ratio": [
+     0.877,
+     0.237,
+     3.876
+    ]
+   },
+   "all_accounts": {
+    "win_rate": 0.4586,
+    "interval": [
+     0.3553,
+     0.8
+    ],
+    "pairs": 92,
+    "accounts": 9,
+    "likes_ratio": [
+     1.252,
+     0.682,
+     2.56
+    ],
+    "posts_with": 10,
+    "posts_without": 120,
+    "adjusted_likes_ratio": [
+     0.867,
+     0.422,
+     2.025
+    ]
+   },
+   "verdict": "untestable",
+   "evidence_key": "analogy_pitch"
+  },
+  {
+   "id": "H17",
+   "claim": "A 'first / best / most capable' claim (the first AI software engineer, our most capable model) makes the launch travel.",
+   "sources": [
+    "PB027",
+    "PB005"
+   ],
+   "source_grade": "anecdote",
+   "ai_startup_specific": true,
+   "trait": "superlative_first",
+   "direction": 1,
+   "from": "marketing",
+   "result": {
+    "win_rate": 0.6144,
+    "interval": [
+     0.5599,
+     0.669
+    ],
+    "pairs": 1500,
+    "accounts": 137,
+    "likes_ratio": [
+     1.526,
+     1.29,
+     1.813
+    ],
+    "posts_with": 291,
+    "posts_without": 947,
+    "adjusted_likes_ratio": [
+     1.303,
+     1.099,
+     1.519
+    ]
+   },
+   "status": "survives",
+   "grade_ours": "A",
+   "level": "company and founder accounts",
+   "posts_with_trait": 340,
+   "strict_subset": {
+    "win_rate": 0.5873,
+    "interval": [
+     0.5174,
+     0.654
+    ],
+    "pairs": 737,
+    "accounts": 73,
+    "likes_ratio": [
+     1.406,
+     1.139,
+     1.737
+    ],
+    "posts_with": 148,
+    "posts_without": 469,
+    "adjusted_likes_ratio": [
+     1.212,
+     1.008,
+     1.484
+    ]
+   },
+   "all_accounts": {
+    "win_rate": 0.6105,
+    "interval": [
+     0.5564,
+     0.6596
+    ],
+    "pairs": 1721,
+    "accounts": 188,
+    "likes_ratio": [
+     1.416,
+     1.229,
+     1.634
+    ],
+    "posts_with": 385,
+    "posts_without": 1139,
+    "adjusted_likes_ratio": [
+     1.239,
+     1.069,
+     1.409
+    ]
+   },
+   "verdict": "confirmed",
+   "evidence_key": "superlative_first"
+  },
+  {
+   "id": "H18",
+   "claim": "Opening with stated excitement ('excited to announce') hurts; state the news instead.",
+   "sources": [
+    "PB072",
+    "R:W05"
+   ],
+   "source_grade": "anecdote",
+   "ai_startup_specific": false,
+   "trait": "open_excited",
+   "direction": -1,
+   "from": "marketing",
+   "note": "R:W05 (controlled) says sentiment words help in general; the playbooks say this particular opener is wasted.",
+   "result": {
+    "win_rate": 0.4042,
+    "interval": [
+     0.3152,
+     0.4999
+    ],
+    "pairs": 599,
+    "accounts": 75,
+    "likes_ratio": [
+     0.828,
+     0.638,
+     1.065
+    ],
+    "posts_with": 124,
+    "posts_without": 583,
+    "adjusted_likes_ratio": [
+     0.901,
+     0.686,
+     1.16
+    ]
+   },
+   "status": "leaning",
+   "grade_ours": null,
+   "level": "company and founder accounts",
+   "posts_with_trait": 165,
+   "strict_subset": {
+    "win_rate": 0.3718,
+    "interval": [
+     0.0833,
+     0.6178
+    ],
+    "pairs": 31,
+    "accounts": 9,
+    "likes_ratio": [
+     1.062,
+     0.528,
+     2.172
+    ],
+    "posts_with": 10,
+    "posts_without": 60,
+    "adjusted_likes_ratio": [
+     1.041,
+     0.479,
+     2.336
+    ]
+   },
+   "all_accounts": {
+    "win_rate": 0.441,
+    "interval": [
+     0.3651,
+     0.5344
+    ],
+    "pairs": 733,
+    "accounts": 126,
+    "likes_ratio": [
+     1.016,
+     0.81,
+     1.279
+    ],
+    "posts_with": 212,
+    "posts_without": 721,
+    "adjusted_likes_ratio": [
+     1.037,
+     0.838,
+     1.31
+    ]
+   },
+   "verdict": "not_confirmed",
+   "evidence_key": "no_stated_excitement_opener"
+  },
+  {
+   "id": "H19",
+   "claim": "Telling the backstory (how long it took, why it was built) lifts the post (build in public).",
+   "sources": [
+    "PB060",
+    "PB063",
+    "R:B01"
+   ],
+   "source_grade": "small observational",
+   "ai_startup_specific": false,
+   "trait": "backstory",
+   "direction": 1,
+   "from": "marketing",
+   "result": {
+    "win_rate": 0.4438,
+    "interval": [
+     0.2137,
+     0.7379
+    ],
+    "pairs": 111,
+    "accounts": 24,
+    "likes_ratio": [
+     1.499,
+     0.762,
+     3.222
+    ],
+    "posts_with": 32,
+    "posts_without": 164,
+    "adjusted_likes_ratio": [
+     1.338,
+     0.622,
+     2.872
+    ]
+   },
+   "status": "too_thin",
+   "grade_ours": null,
+   "level": "every account pooled (too thin among company and founder accounts)",
+   "posts_with_trait": 54,
+   "strict_subset": {
+    "win_rate": 0.2333,
+    "interval": [
+     0.0488,
+     0.7088
+    ],
+    "pairs": 32,
+    "accounts": 7,
+    "likes_ratio": [
+     1.623,
+     0.322,
+     10.904
+    ],
+    "posts_with": 9,
+    "posts_without": 50,
+    "adjusted_likes_ratio": [
+     1.267,
+     0.226,
+     11.147
+    ]
+   },
+   "all_accounts": {
+    "win_rate": 0.4438,
+    "interval": [
+     0.2137,
+     0.7379
+    ],
+    "pairs": 111,
+    "accounts": 24,
+    "likes_ratio": [
+     1.499,
+     0.762,
+     3.222
+    ],
+    "posts_with": 32,
+    "posts_without": 164,
+    "adjusted_likes_ratio": [
+     1.338,
+     0.622,
+     2.872
+    ]
+   },
+   "verdict": "untestable",
+   "evidence_key": "backstory"
+  },
+  {
+   "id": "H20",
+   "claim": "Addressing the reader directly (you / your) in the first line lifts the post.",
+   "sources": [
+    "R:K07"
+   ],
+   "source_grade": "small observational",
+   "ai_startup_specific": false,
+   "trait": "addresses_you",
+   "direction": 1,
+   "from": "marketing",
+   "result": {
+    "win_rate": 0.5048,
+    "interval": [
+     0.4173,
+     0.5849
+    ],
+    "pairs": 874,
+    "accounts": 94,
+    "likes_ratio": [
+     0.988,
+     0.765,
+     1.267
+    ],
+    "posts_with": 157,
+    "posts_without": 753,
+    "adjusted_likes_ratio": [
+     1.049,
+     0.836,
+     1.354
+    ]
+   },
+   "status": "none",
+   "grade_ours": null,
+   "level": "company and founder accounts",
+   "posts_with_trait": 213,
+   "strict_subset": {
+    "win_rate": 0.5859,
+    "interval": [
+     0.4731,
+     0.6766
+    ],
+    "pairs": 373,
+    "accounts": 50,
+    "likes_ratio": [
+     1.135,
+     0.843,
+     1.524
+    ],
+    "posts_with": 81,
+    "posts_without": 334,
+    "adjusted_likes_ratio": [
+     1.289,
+     0.975,
+     1.784
+    ]
+   },
+   "all_accounts": {
+    "win_rate": 0.5122,
+    "interval": [
+     0.4405,
+     0.5775
+    ],
+    "pairs": 1063,
+    "accounts": 151,
+    "likes_ratio": [
+     0.938,
+     0.774,
+     1.147
+    ],
+    "posts_with": 250,
+    "posts_without": 978,
+    "adjusted_likes_ratio": [
+     1.014,
+     0.85,
+     1.257
+    ]
+   },
+   "verdict": "not_confirmed",
+   "evidence_key": "addresses_you"
+  },
+  {
+   "id": "H21",
+   "claim": "Pointing at a demonstration (demo, watch, see it in action) lifts the launch post.",
+   "sources": [
+    "PB027",
+    "PB072",
+    "PB036"
+   ],
+   "source_grade": "anecdote",
+   "ai_startup_specific": true,
+   "trait": "demo_words",
+   "direction": 1,
+   "from": "marketing",
+   "result": {
+    "win_rate": 0.5212,
+    "interval": [
+     0.436,
+     0.6084
+    ],
+    "pairs": 982,
+    "accounts": 109,
+    "likes_ratio": [
+     1.229,
+     0.994,
+     1.556
+    ],
+    "posts_with": 227,
+    "posts_without": 645,
+    "adjusted_likes_ratio": [
+     1.076,
+     0.89,
+     1.342
+    ]
+   },
+   "status": "none",
+   "grade_ours": null,
+   "level": "company and founder accounts",
+   "posts_with_trait": 289,
+   "strict_subset": {
+    "win_rate": 0.5194,
+    "interval": [
+     0.39,
+     0.6542
+    ],
+    "pairs": 412,
+    "accounts": 54,
+    "likes_ratio": [
+     1.163,
+     0.89,
+     1.573
+    ],
+    "posts_with": 112,
+    "posts_without": 274,
+    "adjusted_likes_ratio": [
+     1.003,
+     0.764,
+     1.278
+    ]
+   },
+   "all_accounts": {
+    "win_rate": 0.5073,
+    "interval": [
+     0.4354,
+     0.582
+    ],
+    "pairs": 1147,
+    "accounts": 157,
+    "likes_ratio": [
+     1.182,
+     0.977,
+     1.425
+    ],
+    "posts_with": 304,
+    "posts_without": 846,
+    "adjusted_likes_ratio": [
+     1.053,
+     0.895,
+     1.235
+    ]
+   },
+   "verdict": "not_confirmed",
+   "evidence_key": "demo_words"
+  },
+  {
+   "id": "H22",
+   "claim": "A launch video that is framed as a demo does better than another launch video.",
+   "sources": [
+    "PB027",
+    "PB072"
+   ],
+   "source_grade": "anecdote",
+   "ai_startup_specific": true,
+   "trait": "demo_video",
+   "direction": 1,
+   "from": "marketing",
+   "result": {
+    "win_rate": 0.4951,
+    "interval": [
+     0.3406,
+     0.6413
+    ],
+    "pairs": 220,
+    "accounts": 39,
+    "likes_ratio": [
+     0.964,
+     0.645,
+     1.362
+    ],
+    "posts_with": 79,
+    "posts_without": 156
+   },
+   "status": "none",
+   "grade_ours": null,
+   "level": "company and founder accounts",
+   "posts_with_trait": 117,
+   "strict_subset": {
+    "win_rate": 0.5052,
+    "interval": [
+     0.3,
+     0.6723
+    ],
+    "pairs": 88,
+    "accounts": 22,
+    "likes_ratio": [
+     1.101,
+     0.702,
+     1.698
+    ],
+    "posts_with": 40,
+    "posts_without": 87
+   },
+   "all_accounts": {
+    "win_rate": 0.5023,
+    "interval": [
+     0.3484,
+     0.6469
+    ],
+    "pairs": 229,
+    "accounts": 47,
+    "likes_ratio": [
+     1.048,
+     0.722,
+     1.478
+    ],
+    "posts_with": 89,
+    "posts_without": 166
+   },
+   "verdict": "not_confirmed",
+   "evidence_key": "demo_video"
+  },
+  {
+   "id": "H23",
+   "claim": "Saying the product is available now (labs' availability line) lifts the post.",
+   "sources": [
+    "PB008",
+    "PB014"
+   ],
+   "source_grade": "anecdote",
+   "ai_startup_specific": true,
+   "trait": "availability_now",
+   "direction": 1,
+   "from": "marketing",
+   "result": {
+    "win_rate": 0.495,
+    "interval": [
+     0.4458,
+     0.5515
+    ],
+    "pairs": 1871,
+    "accounts": 185,
+    "likes_ratio": [
+     1.077,
+     0.934,
+     1.25
+    ],
+    "posts_with": 577,
+    "posts_without": 828,
+    "adjusted_likes_ratio": [
+     1.064,
+     0.921,
+     1.225
+    ]
+   },
+   "status": "none",
+   "grade_ours": null,
+   "level": "company and founder accounts",
+   "posts_with_trait": 710,
+   "strict_subset": {
+    "win_rate": 0.5191,
+    "interval": [
+     0.4317,
+     0.6053
+    ],
+    "pairs": 891,
+    "accounts": 87,
+    "likes_ratio": [
+     1.238,
+     0.995,
+     1.53
+    ],
+    "posts_with": 230,
+    "posts_without": 432,
+    "adjusted_likes_ratio": [
+     1.146,
+     0.937,
+     1.438
+    ]
+   },
+   "all_accounts": {
+    "win_rate": 0.5054,
+    "interval": [
+     0.4584,
+     0.5533
+    ],
+    "pairs": 2212,
+    "accounts": 270,
+    "likes_ratio": [
+     1.07,
+     0.941,
+     1.213
+    ],
+    "posts_with": 750,
+    "posts_without": 1099,
+    "adjusted_likes_ratio": [
+     1.061,
+     0.936,
+     1.193
+    ]
+   },
+   "verdict": "not_confirmed",
+   "evidence_key": "availability_now"
+  },
+  {
+   "id": "H24",
+   "claim": "Announcing something that is not yet available ('coming soon') does worse.",
+   "sources": [
+    "PB039",
+    "PB042"
+   ],
+   "source_grade": "anecdote",
+   "ai_startup_specific": false,
+   "trait": "coming_soon",
+   "direction": -1,
+   "from": "marketing",
+   "result": {
+    "win_rate": 0.5198,
+    "interval": [
+     0.3973,
+     0.6445
+    ],
+    "pairs": 280,
+    "accounts": 29,
+    "likes_ratio": [
+     1.045,
+     0.69,
+     1.575
+    ],
+    "posts_with": 37,
+    "posts_without": 292,
+    "adjusted_likes_ratio": [
+     0.985,
+     0.619,
+     1.452
+    ]
+   },
+   "status": "none",
+   "grade_ours": null,
+   "level": "company and founder accounts",
+   "posts_with_trait": 43,
+   "strict_subset": {
+    "win_rate": 0.49,
+    "interval": [
+     0.3499,
+     0.6176
+    ],
+    "pairs": 115,
+    "accounts": 15,
+    "likes_ratio": [
+     0.867,
+     0.584,
+     1.351
+    ],
+    "posts_with": 18,
+    "posts_without": 134,
+    "adjusted_likes_ratio": [
+     0.819,
+     0.545,
+     1.263
+    ]
+   },
+   "all_accounts": {
+    "win_rate": 0.5242,
+    "interval": [
+     0.3982,
+     0.648
+    ],
+    "pairs": 305,
+    "accounts": 38,
+    "likes_ratio": [
+     0.988,
+     0.648,
+     1.42
+    ],
+    "posts_with": 48,
+    "posts_without": 324,
+    "adjusted_likes_ratio": [
+     0.947,
+     0.668,
+     1.437
+    ]
+   },
+   "verdict": "not_confirmed",
+   "evidence_key": "coming_soon"
+  },
+  {
+   "id": "H25",
+   "claim": "Celebration emoji (rocket, party, fire) lift the post.",
+   "sources": [
+    "R:B01"
+   ],
+   "source_grade": "large observational",
+   "ai_startup_specific": false,
+   "trait": "rocket_emoji",
+   "direction": 1,
+   "from": "marketing",
+   "result": {
+    "win_rate": 0.5085,
+    "interval": [
+     0.3935,
+     0.6115
+    ],
+    "pairs": 394,
+    "accounts": 46,
+    "likes_ratio": [
+     1.117,
+     0.781,
+     1.609
+    ],
+    "posts_with": 111,
+    "posts_without": 253,
+    "adjusted_likes_ratio": [
+     0.924,
+     0.637,
+     1.281
+    ]
+   },
+   "status": "none",
+   "grade_ours": null,
+   "level": "company and founder accounts",
+   "posts_with_trait": 131,
+   "strict_subset": {
+    "win_rate": 0.5389,
+    "interval": [
+     0.4462,
+     0.6727
+    ],
+    "pairs": 147,
+    "accounts": 19,
+    "likes_ratio": [
+     1.356,
+     0.781,
+     2.526
+    ],
+    "posts_with": 52,
+    "posts_without": 90,
+    "adjusted_likes_ratio": [
+     1.168,
+     0.702,
+     2.07
+    ]
+   },
+   "all_accounts": {
+    "win_rate": 0.5037,
+    "interval": [
+     0.3922,
+     0.5922
+    ],
+    "pairs": 435,
+    "accounts": 62,
+    "likes_ratio": [
+     1.162,
+     0.857,
+     1.625
+    ],
+    "posts_with": 138,
+    "posts_without": 325,
+    "adjusted_likes_ratio": [
+     0.995,
+     0.734,
+     1.314
+    ]
+   },
+   "verdict": "not_confirmed",
+   "evidence_key": "rocket_emoji"
+  },
+  {
+   "id": "H26",
+   "claim": "Mentioning the Product Hunt / Hacker News launch in the X post helps it.",
+   "sources": [
+    "PB057",
+    "PB059",
+    "PB020"
+   ],
+   "source_grade": "anecdote",
+   "ai_startup_specific": false,
+   "trait": "product_hunt",
+   "direction": 1,
+   "from": "marketing",
+   "result": {
+    "win_rate": 0.5188,
+    "interval": [
+     0.3186,
+     0.7145
+    ],
+    "pairs": 67,
+    "accounts": 13,
+    "likes_ratio": [
+     0.888,
+     0.525,
+     1.411
+    ],
+    "posts_with": 20,
+    "posts_without": 88,
+    "adjusted_likes_ratio": [
+     0.998,
+     0.565,
+     1.626
+    ]
+   },
+   "status": "too_thin",
+   "grade_ours": null,
+   "level": "every account pooled (too thin among company and founder accounts)",
+   "posts_with_trait": 26,
+   "strict_subset": {
+    "win_rate": 0.7619,
+    "interval": [
+     0.45,
+     0.95
+    ],
+    "pairs": 13,
+    "accounts": 6,
+    "likes_ratio": [
+     1.479,
+     0.605,
+     2.658
+    ],
+    "posts_with": 9,
+    "posts_without": 19,
+    "adjusted_likes_ratio": [
+     1.37,
+     0.186,
+     3.976
+    ]
+   },
+   "all_accounts": {
+    "win_rate": 0.5188,
+    "interval": [
+     0.3186,
+     0.7145
+    ],
+    "pairs": 67,
+    "accounts": 13,
+    "likes_ratio": [
+     0.888,
+     0.525,
+     1.411
+    ],
+    "posts_with": 20,
+    "posts_without": 88,
+    "adjusted_likes_ratio": [
+     0.998,
+     0.565,
+     1.626
+    ]
+   },
+   "verdict": "untestable",
+   "evidence_key": "product_hunt"
+  },
+  {
+   "id": "H27",
+   "claim": "For a model release, a video of the model doing something beats no media.",
+   "sources": [
+    "PB027",
+    "PB036",
+    "PB041",
+    "PB045"
+   ],
+   "source_grade": "anecdote",
+   "ai_startup_specific": true,
+   "trait": "video_in_model_release",
+   "direction": 1,
+   "from": "marketing",
+   "result": {
+    "win_rate": 0.6527,
+    "interval": [
+     0.5536,
+     0.7339
+    ],
+    "pairs": 352,
+    "accounts": 47,
+    "likes_ratio": [
+     1.343,
+     0.952,
+     1.822
+    ],
+    "posts_with": 160,
+    "posts_without": 169
+   },
+   "status": "leaning",
+   "grade_ours": null,
+   "level": "company and founder accounts",
+   "posts_with_trait": 242,
+   "strict_subset": {
+    "win_rate": 0.607,
+    "interval": [
+     0.4902,
+     0.7339
+    ],
+    "pairs": 206,
+    "accounts": 31,
+    "likes_ratio": [
+     1.255,
+     0.862,
+     1.845
+    ],
+    "posts_with": 99,
+    "posts_without": 96
+   },
+   "all_accounts": {
+    "win_rate": 0.6502,
+    "interval": [
+     0.5572,
+     0.7317
+    ],
+    "pairs": 356,
+    "accounts": 51,
+    "likes_ratio": [
+     1.331,
+     0.955,
+     1.819
+    ],
+    "posts_with": 168,
+    "posts_without": 181
+   },
+   "verdict": "not_confirmed",
+   "evidence_key": "video_in_model_release"
+  },
+  {
+   "id": "H28",
+   "claim": "For a model release, an image (typically a benchmark chart) beats no media.",
+   "sources": [
+    "PB005",
+    "PB006",
+    "R:M01"
+   ],
+   "source_grade": "anecdote",
+   "ai_startup_specific": true,
+   "trait": "image_in_model_release",
+   "direction": 1,
+   "from": "marketing",
+   "result": {
+    "win_rate": 0.6057,
+    "interval": [
+     0.525,
+     0.7024
+    ],
+    "pairs": 475,
+    "accounts": 57,
+    "likes_ratio": [
+     1.043,
+     0.807,
+     1.35
+    ],
+    "posts_with": 215,
+    "posts_without": 197
+   },
+   "status": "leaning",
+   "grade_ours": null,
+   "level": "company and founder accounts",
+   "posts_with_trait": 320,
+   "strict_subset": {
+    "win_rate": 0.5416,
+    "interval": [
+     0.3785,
+     0.6848
+    ],
+    "pairs": 210,
+    "accounts": 33,
+    "likes_ratio": [
+     0.904,
+     0.62,
+     1.305
+    ],
+    "posts_with": 116,
+    "posts_without": 94
+   },
+   "all_accounts": {
+    "win_rate": 0.6205,
+    "interval": [
+     0.534,
+     0.7008
+    ],
+    "pairs": 533,
+    "accounts": 72,
+    "likes_ratio": [
+     1.192,
+     0.936,
+     1.5
+    ],
+    "posts_with": 251,
+    "posts_without": 246
+   },
+   "verdict": "not_confirmed",
+   "evidence_key": "image_in_model_release"
+  },
+  {
+   "id": "H29",
+   "claim": "Several images do better than one.",
+   "sources": [
+    "R:M01"
+   ],
+   "source_grade": "large observational",
+   "ai_startup_specific": false,
+   "trait": "multi_image",
+   "direction": 1,
+   "from": "marketing",
+   "result": {
+    "win_rate": 0.3685,
+    "interval": [
+     0.2106,
+     0.5475
+    ],
+    "pairs": 114,
+    "accounts": 24,
+    "likes_ratio": [
+     0.905,
+     0.623,
+     1.338
+    ],
+    "posts_with": 37,
+    "posts_without": 105
+   },
+   "status": "too_thin",
+   "grade_ours": null,
+   "level": "every account pooled (too thin among company and founder accounts)",
+   "posts_with_trait": 115,
+   "strict_subset": {
+    "win_rate": 0.543,
+    "interval": [
+     0.3105,
+     0.76
+    ],
+    "pairs": 43,
+    "accounts": 12,
+    "likes_ratio": [
+     1.756,
+     1.092,
+     3.115
+    ],
+    "posts_with": 16,
+    "posts_without": 44
+   },
+   "all_accounts": {
+    "win_rate": 0.3685,
+    "interval": [
+     0.2106,
+     0.5475
+    ],
+    "pairs": 114,
+    "accounts": 24,
+    "likes_ratio": [
+     0.905,
+     0.623,
+     1.338
+    ],
+    "posts_with": 37,
+    "posts_without": 105
+   },
+   "verdict": "untestable",
+   "evidence_key": "one_image_not_several"
+  },
+  {
+   "id": "H30",
+   "claim": "Within model releases, the open-weights ones travel further.",
+   "sources": [
+    "PB006",
+    "PB008",
+    "PB009"
+   ],
+   "source_grade": "anecdote",
+   "ai_startup_specific": true,
+   "trait": "open_source_in_model_release",
+   "direction": 1,
+   "from": "marketing",
+   "result": {
+    "win_rate": 0.5713,
+    "interval": [
+     0.485,
+     0.6674
+    ],
+    "pairs": 531,
+    "accounts": 54,
+    "likes_ratio": [
+     1.413,
+     1.052,
+     1.879
+    ],
+    "posts_with": 124,
+    "posts_without": 336
+   },
+   "status": "leaning",
+   "grade_ours": null,
+   "level": "company and founder accounts",
+   "posts_with_trait": 163,
+   "strict_subset": {
+    "win_rate": 0.5865,
+    "interval": [
+     0.4617,
+     0.7375
+    ],
+    "pairs": 253,
+    "accounts": 30,
+    "likes_ratio": [
+     1.584,
+     1.065,
+     2.46
+    ],
+    "posts_with": 71,
+    "posts_without": 158
+   },
+   "all_accounts": {
+    "win_rate": 0.5743,
+    "interval": [
+     0.4851,
+     0.6702
+    ],
+    "pairs": 548,
+    "accounts": 62,
+    "likes_ratio": [
+     1.446,
+     1.101,
+     1.933
+    ],
+    "posts_with": 136,
+    "posts_without": 367
+   },
+   "verdict": "not_confirmed",
+   "evidence_key": "open_source_in_model_release"
+  },
+  {
+   "id": "H31",
+   "claim": "Model releases are the launches that travel furthest for an AI account.",
+   "sources": [
+    "PB001",
+    "PB006",
+    "PB009"
+   ],
+   "source_grade": "anecdote",
+   "ai_startup_specific": true,
+   "trait": "ai_model_release",
+   "direction": 1,
+   "from": "marketing",
+   "note": "A topic, not something a writer chooses; reported so that the model can condition on it.",
+   "result": {
+    "win_rate": 0.6118,
+    "interval": [
+     0.5453,
+     0.6747
+    ],
+    "pairs": 1768,
+    "accounts": 148,
+    "likes_ratio": [
+     1.456,
+     1.238,
+     1.708
+    ],
+    "posts_with": 660,
+    "posts_without": 588,
+    "adjusted_likes_ratio": [
+     1.24,
+     1.055,
+     1.435
+    ]
+   },
+   "status": "survives",
+   "grade_ours": "A",
+   "level": "company and founder accounts",
+   "posts_with_trait": 863,
+   "strict_subset": {
+    "win_rate": 0.5906,
+    "interval": [
+     0.5198,
+     0.6596
+    ],
+    "pairs": 868,
+    "accounts": 86,
+    "likes_ratio": [
+     1.439,
+     1.15,
+     1.773
+    ],
+    "posts_with": 365,
+    "posts_without": 284,
+    "adjusted_likes_ratio": [
+     1.351,
+     1.068,
+     1.667
+    ]
+   },
+   "all_accounts": {
+    "win_rate": 0.6023,
+    "interval": [
+     0.5432,
+     0.6605
+    ],
+    "pairs": 2071,
+    "accounts": 218,
+    "likes_ratio": [
+     1.339,
+     1.156,
+     1.548
+    ],
+    "posts_with": 829,
+    "posts_without": 812,
+    "adjusted_likes_ratio": [
+     1.16,
+     1.027,
+     1.314
+    ]
+   },
+   "verdict": "confirmed",
+   "evidence_key": "ai_model_release"
+  },
+  {
+   "id": "H32",
+   "claim": "Launch on a weekday morning Pacific time (06:00 to 11:59 PT).",
+   "sources": [
+    "X:P08",
+    "X:P10",
+    "PB069",
+    "PB001",
+    "PB020"
+   ],
+   "source_grade": "large observational",
+   "ai_startup_specific": false,
+   "trait": "pt_weekday_morning",
+   "direction": 1,
+   "from": "marketing",
+   "note": "Vendor timing studies are pooled across accounts, in the poster's local time, and disagree with each other (X:P09, X:P11).",
+   "result": {
+    "win_rate": 0.5288,
+    "interval": [
+     0.476,
+     0.5841
+    ],
+    "pairs": 1734,
+    "accounts": 174,
+    "likes_ratio": [
+     1.16,
+     1.0,
+     1.348
+    ],
+    "posts_with": 843,
+    "posts_without": 548
+   },
+   "status": "none",
+   "grade_ours": null,
+   "level": "company and founder accounts",
+   "posts_with_trait": 1210,
+   "strict_subset": {
+    "win_rate": 0.4537,
+    "interval": [
+     0.3907,
+     0.512
+    ],
+    "pairs": 801,
+    "accounts": 83,
+    "likes_ratio": [
+     0.946,
+     0.77,
+     1.188
+    ],
+    "posts_with": 423,
+    "posts_without": 227
+   },
+   "all_accounts": {
+    "win_rate": 0.5084,
+    "interval": [
+     0.46,
+     0.5586
+    ],
+    "pairs": 2052,
+    "accounts": 275,
+    "likes_ratio": [
+     1.06,
+     0.936,
+     1.214
+    ],
+    "posts_with": 1052,
+    "posts_without": 829
+   },
+   "verdict": "not_confirmed",
+   "evidence_key": "pt_weekday_morning"
+  },
+  {
+   "id": "H33",
+   "claim": "The 8 to 10am Pacific weekday slot is best.",
+   "sources": [
+    "PB069",
+    "PB070",
+    "PB001"
+   ],
+   "source_grade": "large observational",
+   "ai_startup_specific": false,
+   "trait": "pt_weekday_8_10",
+   "direction": 1,
+   "from": "marketing",
+   "note": "PB070 (79 founder tweets) claims 3 to 5 times the median impressions for the Tuesday / Wednesday morning slot.",
+   "result": {
+    "win_rate": 0.5334,
+    "interval": [
+     0.4892,
+     0.576
+    ],
+    "pairs": 1892,
+    "accounts": 181,
+    "likes_ratio": [
+     1.126,
+     0.975,
+     1.283
+    ],
+    "posts_with": 632,
+    "posts_without": 768
+   },
+   "status": "none",
+   "grade_ours": null,
+   "level": "company and founder accounts",
+   "posts_with_trait": 782,
+   "strict_subset": {
+    "win_rate": 0.5019,
+    "interval": [
+     0.4321,
+     0.5675
+    ],
+    "pairs": 928,
+    "accounts": 96,
+    "likes_ratio": [
+     0.921,
+     0.766,
+     1.099
+    ],
+    "posts_with": 323,
+    "posts_without": 378
+   },
+   "all_accounts": {
+    "win_rate": 0.5254,
+    "interval": [
+     0.4842,
+     0.5667
+    ],
+    "pairs": 2111,
+    "accounts": 258,
+    "likes_ratio": [
+     1.067,
+     0.941,
+     1.197
+    ],
+    "posts_with": 767,
+    "posts_without": 1038
+   },
+   "verdict": "not_confirmed",
+   "evidence_key": "pt_weekday_8_10"
+  },
+  {
+   "id": "H34",
+   "claim": "Tuesday to Thursday morning Pacific is best.",
+   "sources": [
+    "X:P08",
+    "X:P09",
+    "X:P10"
+   ],
+   "source_grade": "large observational",
+   "ai_startup_specific": false,
+   "trait": "pt_tue_thu_morning",
+   "direction": 1,
+   "from": "marketing",
+   "result": {
+    "win_rate": 0.5222,
+    "interval": [
+     0.4726,
+     0.5732
+    ],
+    "pairs": 1953,
+    "accounts": 191,
+    "likes_ratio": [
+     1.091,
+     0.959,
+     1.232
+    ],
+    "posts_with": 712,
+    "posts_without": 735
+   },
+   "status": "none",
+   "grade_ours": null,
+   "level": "company and founder accounts",
+   "posts_with_trait": 901,
+   "strict_subset": {
+    "win_rate": 0.4652,
+    "interval": [
+     0.4081,
+     0.5207
+    ],
+    "pairs": 968,
+    "accounts": 96,
+    "likes_ratio": [
+     0.968,
+     0.825,
+     1.146
+    ],
+    "posts_with": 375,
+    "posts_without": 343
+   },
+   "all_accounts": {
+    "win_rate": 0.5014,
+    "interval": [
+     0.4557,
+     0.5478
+    ],
+    "pairs": 2247,
+    "accounts": 281,
+    "likes_ratio": [
+     0.991,
+     0.886,
+     1.111
+    ],
+    "posts_with": 883,
+    "posts_without": 1018
+   },
+   "verdict": "not_confirmed",
+   "evidence_key": "pt_tue_thu_morning"
+  },
+  {
+   "id": "H35",
+   "claim": "Weekday morning beats weekday afternoon Pacific.",
+   "sources": [
+    "X:P08",
+    "X:P09"
+   ],
+   "source_grade": "large observational",
+   "ai_startup_specific": false,
+   "trait": "pt_morning_vs_afternoon",
+   "direction": 1,
+   "from": "marketing",
+   "note": "Buffer says morning, Sprout says noon to 6pm.",
+   "result": {
+    "win_rate": 0.5526,
+    "interval": [
+     0.4944,
+     0.611
+    ],
+    "pairs": 1207,
+    "accounts": 129,
+    "likes_ratio": [
+     1.222,
+     1.02,
+     1.463
+    ],
+    "posts_with": 720,
+    "posts_without": 324
+   },
+   "status": "none",
+   "grade_ours": null,
+   "level": "company and founder accounts",
+   "posts_with_trait": 1210,
+   "strict_subset": {
+    "win_rate": 0.4747,
+    "interval": [
+     0.4068,
+     0.5354
+    ],
+    "pairs": 592,
+    "accounts": 70,
+    "likes_ratio": [
+     0.959,
+     0.747,
+     1.217
+    ],
+    "posts_with": 379,
+    "posts_without": 156
+   },
+   "all_accounts": {
+    "win_rate": 0.5323,
+    "interval": [
+     0.4729,
+     0.5874
+    ],
+    "pairs": 1375,
+    "accounts": 185,
+    "likes_ratio": [
+     1.135,
+     0.967,
+     1.333
+    ],
+    "posts_with": 855,
+    "posts_without": 453
+   },
+   "verdict": "not_confirmed",
+   "evidence_key": "pt_morning_vs_afternoon"
+  },
+  {
+   "id": "H36",
+   "claim": "Weekday morning beats evening and night Pacific.",
+   "sources": [
+    "X:P08",
+    "X:P11"
+   ],
+   "source_grade": "large observational",
+   "ai_startup_specific": false,
+   "trait": "pt_morning_vs_evening_night",
+   "direction": 1,
+   "from": "marketing",
+   "note": "Metricool says 9pm is best.",
+   "result": {
+    "win_rate": 0.5195,
+    "interval": [
+     0.4108,
+     0.6366
+    ],
+    "pairs": 606,
+    "accounts": 66,
+    "likes_ratio": [
+     0.933,
+     0.726,
+     1.228
+    ],
+    "posts_with": 415,
+    "posts_without": 171
+   },
+   "status": "none",
+   "grade_ours": null,
+   "level": "company and founder accounts",
+   "posts_with_trait": 1210,
+   "strict_subset": {
+    "win_rate": 0.411,
+    "interval": [
+     0.3263,
+     0.5392
+    ],
+    "pairs": 200,
+    "accounts": 26,
+    "likes_ratio": [
+     0.838,
+     0.601,
+     1.267
+    ],
+    "posts_with": 173,
+    "posts_without": 52
+   },
+   "all_accounts": {
+    "win_rate": 0.5114,
+    "interval": [
+     0.4179,
+     0.6142
+    ],
+    "pairs": 693,
+    "accounts": 112,
+    "likes_ratio": [
+     0.898,
+     0.724,
+     1.126
+    ],
+    "posts_with": 532,
+    "posts_without": 274
+   },
+   "verdict": "not_confirmed",
+   "evidence_key": "pt_morning_vs_evening_night"
+  },
+  {
+   "id": "H37",
+   "claim": "Tuesday is the best launch day.",
+   "sources": [
+    "X:P08",
+    "PB058",
+    "PB070"
+   ],
+   "source_grade": "large observational",
+   "ai_startup_specific": false,
+   "trait": "pt_tuesday",
+   "direction": 1,
+   "from": "marketing",
+   "result": {
+    "win_rate": 0.5459,
+    "interval": [
+     0.5,
+     0.5914
+    ],
+    "pairs": 1631,
+    "accounts": 151,
+    "likes_ratio": [
+     1.085,
+     0.937,
+     1.248
+    ],
+    "posts_with": 349,
+    "posts_without": 893
+   },
+   "status": "none",
+   "grade_ours": null,
+   "level": "company and founder accounts",
+   "posts_with_trait": 415,
+   "strict_subset": {
+    "win_rate": 0.5364,
+    "interval": [
+     0.4654,
+     0.6159
+    ],
+    "pairs": 880,
+    "accounts": 89,
+    "likes_ratio": [
+     1.153,
+     0.917,
+     1.44
+    ],
+    "posts_with": 192,
+    "posts_without": 465
+   },
+   "all_accounts": {
+    "win_rate": 0.5336,
+    "interval": [
+     0.4837,
+     0.5809
+    ],
+    "pairs": 1804,
+    "accounts": 213,
+    "likes_ratio": [
+     1.028,
+     0.898,
+     1.174
+    ],
+    "posts_with": 454,
+    "posts_without": 1109
+   },
+   "verdict": "not_confirmed",
+   "evidence_key": "pt_tuesday"
+  },
+  {
+   "id": "H38",
+   "claim": "Weekend launches do worse.",
+   "sources": [
+    "X:P08",
+    "X:P09",
+    "PB070"
+   ],
+   "source_grade": "large observational",
+   "ai_startup_specific": false,
+   "trait": "pt_weekend",
+   "direction": -1,
+   "from": "marketing",
+   "result": {
+    "win_rate": 0.5622,
+    "interval": [
+     0.4133,
+     0.6862
+    ],
+    "pairs": 528,
+    "accounts": 61,
+    "likes_ratio": [
+     1.008,
+     0.663,
+     1.454
+    ],
+    "posts_with": 92,
+    "posts_without": 489
+   },
+   "status": "none",
+   "grade_ours": null,
+   "level": "company and founder accounts",
+   "posts_with_trait": 112,
+   "strict_subset": {
+    "win_rate": 0.5396,
+    "interval": [
+     0.3489,
+     0.7394
+    ],
+    "pairs": 189,
+    "accounts": 18,
+    "likes_ratio": [
+     1.266,
+     0.661,
+     2.234
+    ],
+    "posts_with": 29,
+    "posts_without": 177
+   },
+   "all_accounts": {
+    "win_rate": 0.5641,
+    "interval": [
+     0.4573,
+     0.6589
+    ],
+    "pairs": 761,
+    "accounts": 122,
+    "likes_ratio": [
+     1.032,
+     0.812,
+     1.294
+    ],
+    "posts_with": 210,
+    "posts_without": 718
+   },
+   "verdict": "not_confirmed",
+   "evidence_key": "pt_weekend"
+  },
+  {
+   "id": "H39",
+   "claim": "A teaser in the days before ('tomorrow', 'something is coming') lifts the launch post.",
+   "sources": [
+    "X:S12",
+    "PB001",
+    "PB011",
+    "PB042",
+    "PB081"
+   ],
+   "source_grade": "anecdote",
+   "ai_startup_specific": true,
+   "trait": "teaser_72h",
+   "direction": 1,
+   "from": "marketing",
+   "result": {
+    "win_rate": 0.5492,
+    "interval": [
+     0.4113,
+     0.6784
+    ],
+    "pairs": 262,
+    "accounts": 34,
+    "likes_ratio": [
+     1.074,
+     0.701,
+     1.669
+    ],
+    "posts_with": 45,
+    "posts_without": 323,
+    "adjusted_likes_ratio": [
+     1.017,
+     0.634,
+     1.712
+    ]
+   },
+   "status": "none",
+   "grade_ours": null,
+   "level": "company and founder accounts",
+   "posts_with_trait": 53,
+   "strict_subset": {
+    "win_rate": 0.6148,
+    "interval": [
+     0.3661,
+     0.7821
+    ],
+    "pairs": 103,
+    "accounts": 17,
+    "likes_ratio": [
+     1.425,
+     0.643,
+     3.212
+    ],
+    "posts_with": 17,
+    "posts_without": 142,
+    "adjusted_likes_ratio": [
+     1.144,
+     0.452,
+     2.847
+    ]
+   },
+   "all_accounts": {
+    "win_rate": 0.5509,
+    "interval": [
+     0.4662,
+     0.6371
+    ],
+    "pairs": 474,
+    "accounts": 72,
+    "likes_ratio": [
+     1.092,
+     0.874,
+     1.398
+    ],
+    "posts_with": 127,
+    "posts_without": 487,
+    "adjusted_likes_ratio": [
+     1.094,
+     0.863,
+     1.39
+    ]
+   },
+   "verdict": "not_confirmed",
+   "evidence_key": "teaser_72h"
+  },
+  {
+   "id": "H40",
+   "claim": "A teaser the day before lifts the launch post.",
+   "sources": [
+    "PB001",
+    "PB081"
+   ],
+   "source_grade": "anecdote",
+   "ai_startup_specific": true,
+   "trait": "teaser_36h",
+   "direction": 1,
+   "from": "marketing",
+   "result": {
+    "win_rate": 0.5368,
+    "interval": [
+     0.4383,
+     0.6373
+    ],
+    "pairs": 352,
+    "accounts": 51,
+    "likes_ratio": [
+     1.181,
+     0.871,
+     1.655
+    ],
+    "posts_with": 76,
+    "posts_without": 400
+   },
+   "status": "none",
+   "grade_ours": null,
+   "level": "every account pooled (too thin among company and founder accounts)",
+   "posts_with_trait": 107,
+   "strict_subset": {
+    "win_rate": 0.5685,
+    "interval": [
+     0.3571,
+     0.7333
+    ],
+    "pairs": 95,
+    "accounts": 16,
+    "likes_ratio": [
+     1.326,
+     0.706,
+     2.742
+    ],
+    "posts_with": 20,
+    "posts_without": 133
+   },
+   "all_accounts": {
+    "win_rate": 0.5368,
+    "interval": [
+     0.4383,
+     0.6373
+    ],
+    "pairs": 352,
+    "accounts": 51,
+    "likes_ratio": [
+     1.181,
+     0.871,
+     1.655
+    ],
+    "posts_with": 76,
+    "posts_without": 400
+   },
+   "verdict": "not_confirmed",
+   "evidence_key": "teaser_36h"
+  },
+  {
+   "id": "H41",
+   "claim": "Do not post in the 24 hours before the launch (an account's posts compete with each other).",
+   "sources": [
+    "X:C04",
+    "X:L02",
+    "R:T01"
+   ],
+   "source_grade": "platform code",
+   "ai_startup_specific": false,
+   "trait": "quiet_prev24h",
+   "direction": 1,
+   "from": "marketing",
+   "note": "The code decays an author's 2nd and 3rd post within one feed request; the launch track found the 2-hour version (grade C).",
+   "result": {
+    "win_rate": 0.5745,
+    "interval": [
+     0.5186,
+     0.6241
+    ],
+    "pairs": 1510,
+    "accounts": 140,
+    "likes_ratio": [
+     1.428,
+     1.181,
+     1.714
+    ],
+    "posts_with": 854,
+    "posts_without": 369
+   },
+   "status": "survives",
+   "grade_ours": "B",
+   "level": "company and founder accounts",
+   "posts_with_trait": 1559,
+   "strict_subset": {
+    "win_rate": 0.559,
+    "interval": [
+     0.465,
+     0.6521
+    ],
+    "pairs": 721,
+    "accounts": 73,
+    "likes_ratio": [
+     1.309,
+     1.054,
+     1.64
+    ],
+    "posts_with": 369,
+    "posts_without": 185
+   },
+   "all_accounts": {
+    "win_rate": 0.5881,
+    "interval": [
+     0.5382,
+     0.6371
+    ],
+    "pairs": 1710,
+    "accounts": 215,
+    "likes_ratio": [
+     1.449,
+     1.246,
+     1.683
+    ],
+    "posts_with": 1007,
+    "posts_without": 559
+   },
+   "verdict": "confirmed",
+   "evidence_key": "quiet_prev24h"
+  },
+  {
+   "id": "H42",
+   "claim": "Launch repeatedly / run a launch week: several launch posts within days of each other each do well.",
+   "sources": [
+    "PB019",
+    "PB021",
+    "PB048",
+    "PB023"
+   ],
+   "source_grade": "anecdote",
+   "ai_startup_specific": false,
+   "trait": "launch_in_prev_week",
+   "direction": 1,
+   "from": "marketing",
+   "note": "The playbook claim is about total reach over the week; what we can test is each post against the account's other launch posts.",
+   "result": {
+    "win_rate": 0.4428,
+    "interval": [
+     0.3811,
+     0.4996
+    ],
+    "pairs": 1403,
+    "accounts": 95,
+    "likes_ratio": [
+     0.785,
+     0.675,
+     0.896
+    ],
+    "posts_with": 243,
+    "posts_without": 815,
+    "adjusted_likes_ratio": [
+     0.8,
+     0.696,
+     0.91
+    ]
+   },
+   "status": "survives",
+   "grade_ours": "B",
+   "level": "company and founder accounts",
+   "posts_with_trait": 245,
+   "strict_subset": {
+    "win_rate": 0.4605,
+    "interval": [
+     0.3827,
+     0.5366
+    ],
+    "pairs": 794,
+    "accounts": 57,
+    "likes_ratio": [
+     0.799,
+     0.642,
+     0.968
+    ],
+    "posts_with": 143,
+    "posts_without": 393,
+    "adjusted_likes_ratio": [
+     0.842,
+     0.671,
+     1.027
+    ]
+   },
+   "all_accounts": {
+    "win_rate": 0.4357,
+    "interval": [
+     0.3778,
+     0.4921
+    ],
+    "pairs": 1592,
+    "accounts": 124,
+    "likes_ratio": [
+     0.784,
+     0.683,
+     0.876
+    ],
+    "posts_with": 292,
+    "posts_without": 983,
+    "adjusted_likes_ratio": [
+     0.786,
+     0.701,
+     0.88
+    ]
+   },
+   "verdict": "contradicted",
+   "evidence_key": "no_launch_in_previous_week"
+  },
+  {
+   "id": "H43",
+   "claim": "Follow up in the days after by quote-posting your own launch (a milestone, '24 hours later').",
+   "sources": [
+    "PB082",
+    "PB018",
+    "PB012",
+    "X:S12"
+   ],
+   "source_grade": "anecdote",
+   "ai_startup_specific": false,
+   "trait": "self_quote_day2_7",
+   "direction": 1,
+   "from": "marketing",
+   "note": "Circular: launches that did well get followed up. See _context_extra for how the follow-up posts themselves do.",
+   "result": {
+    "win_rate": 0.8039,
+    "interval": [
+     0.666,
+     0.901
+    ],
+    "pairs": 177,
+    "accounts": 20,
+    "likes_ratio": [
+     2.414,
+     1.393,
+     4.296
+    ],
+    "posts_with": 30,
+    "posts_without": 243
+   },
+   "status": "not_a_lever",
+   "grade_ours": null,
+   "level": "every account pooled (too thin among company and founder accounts)",
+   "posts_with_trait": 52,
+   "strict_subset": {
+    "win_rate": 0.7648,
+    "interval": [
+     0.4096,
+     0.9156
+    ],
+    "pairs": 54,
+    "accounts": 11,
+    "likes_ratio": [
+     2.135,
+     1.078,
+     4.019
+    ],
+    "posts_with": 11,
+    "posts_without": 77
+   },
+   "all_accounts": {
+    "win_rate": 0.8039,
+    "interval": [
+     0.666,
+     0.901
+    ],
+    "pairs": 177,
+    "accounts": 20,
+    "likes_ratio": [
+     2.414,
+     1.393,
+     4.296
+    ],
+    "posts_with": 30,
+    "posts_without": 243
+   },
+   "verdict": "untestable",
+   "evidence_key": "self_quote_day2_7"
+  },
+  {
+   "id": "H44",
+   "claim": "Follow-up announcements in the days after help the launch.",
+   "sources": [
+    "PB082",
+    "X:S12"
+   ],
+   "source_grade": "anecdote",
+   "ai_startup_specific": false,
+   "trait": "followup_announce_day2_4",
+   "direction": 1,
+   "from": "marketing",
+   "result": {
+    "win_rate": 0.4942,
+    "interval": [
+     0.4255,
+     0.5592
+    ],
+    "pairs": 1098,
+    "accounts": 68,
+    "likes_ratio": [
+     0.904,
+     0.708,
+     1.134
+    ],
+    "posts_with": 158,
+    "posts_without": 713
+   },
+   "status": "not_a_lever",
+   "grade_ours": null,
+   "level": "company and founder accounts",
+   "posts_with_trait": 163,
+   "strict_subset": {
+    "win_rate": 0.4593,
+    "interval": [
+     0.3687,
+     0.5538
+    ],
+    "pairs": 570,
+    "accounts": 40,
+    "likes_ratio": [
+     0.924,
+     0.682,
+     1.256
+    ],
+    "posts_with": 86,
+    "posts_without": 356
+   },
+   "all_accounts": {
+    "win_rate": 0.5008,
+    "interval": [
+     0.4342,
+     0.5613
+    ],
+    "pairs": 1260,
+    "accounts": 90,
+    "likes_ratio": [
+     0.981,
+     0.781,
+     1.208
+    ],
+    "posts_with": 195,
+    "posts_without": 862
+   },
+   "verdict": "untestable",
+   "evidence_key": "followup_announce_day2_4"
+  },
+  {
+   "id": "H45",
+   "claim": "Keep posting in the days after the launch.",
+   "sources": [
+    "PB082",
+    "X:P07"
+   ],
+   "source_grade": "anecdote",
+   "ai_startup_specific": false,
+   "trait": "active_day2_4",
+   "direction": 1,
+   "from": "marketing",
+   "result": {
+    "win_rate": 0.4521,
+    "interval": [
+     0.3634,
+     0.5291
+    ],
+    "pairs": 805,
+    "accounts": 55,
+    "likes_ratio": [
+     0.959,
+     0.742,
+     1.205
+    ],
+    "posts_with": 146,
+    "posts_without": 522
+   },
+   "status": "not_a_lever",
+   "grade_ours": null,
+   "level": "company and founder accounts",
+   "posts_with_trait": 163,
+   "strict_subset": {
+    "win_rate": 0.3858,
+    "interval": [
+     0.2626,
+     0.4839
+    ],
+    "pairs": 373,
+    "accounts": 30,
+    "likes_ratio": [
+     0.947,
+     0.663,
+     1.36
+    ],
+    "posts_with": 71,
+    "posts_without": 246
+   },
+   "all_accounts": {
+    "win_rate": 0.4525,
+    "interval": [
+     0.3857,
+     0.5182
+    ],
+    "pairs": 1001,
+    "accounts": 121,
+    "likes_ratio": [
+     0.963,
+     0.8,
+     1.157
+    ],
+    "posts_with": 328,
+    "posts_without": 659
+   },
+   "verdict": "untestable",
+   "evidence_key": "active_day2_4"
+  },
+  {
+   "id": "H46",
+   "claim": "Other accounts quote-posting within the first hour lifts the launch (early engagement compounds).",
+   "sources": [
+    "R:C07",
+    "R:C08",
+    "R:T01",
+    "PB020",
+    "PB028",
+    "PB073",
+    "R:B08"
+   ],
+   "source_grade": "controlled study",
+   "ai_startup_specific": true,
+   "trait": "quoted_1h",
+   "direction": 1,
+   "from": "marketing",
+   "note": "The controlled evidence (random early upvotes, donations) is from other platforms. In our corpus the comparison is circular: launches that are taking off get quoted sooner.",
+   "result": {
+    "win_rate": 0.6922,
+    "interval": [
+     0.6449,
+     0.7353
+    ],
+    "pairs": 1471,
+    "accounts": 113,
+    "likes_ratio": [
+     1.76,
+     1.541,
+     2.02
+    ],
+    "posts_with": 382,
+    "posts_without": 704
+   },
+   "status": "not_a_lever",
+   "grade_ours": null,
+   "level": "company and founder accounts",
+   "posts_with_trait": 411,
+   "strict_subset": {
+    "win_rate": 0.731,
+    "interval": [
+     0.6752,
+     0.7898
+    ],
+    "pairs": 780,
+    "accounts": 66,
+    "likes_ratio": [
+     1.791,
+     1.494,
+     2.142
+    ],
+    "posts_with": 224,
+    "posts_without": 339
+   },
+   "all_accounts": {
+    "win_rate": 0.6992,
+    "interval": [
+     0.655,
+     0.7445
+    ],
+    "pairs": 1575,
+    "accounts": 155,
+    "likes_ratio": [
+     1.863,
+     1.653,
+     2.106
+    ],
+    "posts_with": 444,
+    "posts_without": 832
+   },
+   "verdict": "untestable",
+   "evidence_key": "quoted_1h"
+  },
+  {
+   "id": "H47",
+   "claim": "Employees and founders quote-posting the company's launch within the first hour lifts the launch.",
+   "sources": [
+    "PB020",
+    "PB028",
+    "PB015",
+    "PB079"
+   ],
+   "source_grade": "anecdote",
+   "ai_startup_specific": true,
+   "trait": "team_quoted_1h",
+   "direction": 1,
+   "from": "marketing",
+   "result": {
+    "win_rate": 0.6379,
+    "interval": [
+     0.5592,
+     0.7194
+    ],
+    "pairs": 669,
+    "accounts": 44,
+    "likes_ratio": [
+     1.539,
+     1.167,
+     1.989
+    ],
+    "posts_with": 124,
+    "posts_without": 446
+   },
+   "status": "not_a_lever",
+   "grade_ours": null,
+   "level": "company and founder accounts",
+   "posts_with_trait": 131,
+   "strict_subset": {
+    "win_rate": 0.6589,
+    "interval": [
+     0.5876,
+     0.727
+    ],
+    "pairs": 423,
+    "accounts": 31,
+    "likes_ratio": [
+     1.587,
+     1.227,
+     2.036
+    ],
+    "posts_with": 76,
+    "posts_without": 248
+   },
+   "all_accounts": {
+    "win_rate": 0.6388,
+    "interval": [
+     0.5619,
+     0.7205
+    ],
+    "pairs": 689,
+    "accounts": 51,
+    "likes_ratio": [
+     1.608,
+     1.257,
+     2.068
+    ],
+    "posts_with": 134,
+    "posts_without": 497
+   },
+   "verdict": "untestable",
+   "evidence_key": "team_quoted_1h"
+  },
+  {
+   "id": "H48",
+   "claim": "When the team does quote-post, doing it within the first hour beats doing it later the same day.",
+   "sources": [
+    "PB020",
+    "R:T01"
+   ],
+   "source_grade": "anecdote",
+   "ai_startup_specific": true,
+   "trait": "team_quoted_1h_vs_later",
+   "direction": 1,
+   "from": "marketing",
+   "note": "The least circular version available: both sides were quoted by the team. Still partly circular and thin.",
+   "result": {
+    "win_rate": 0.4545,
+    "interval": [
+     0.3197,
+     0.6433
+    ],
+    "pairs": 169,
+    "accounts": 17,
+    "likes_ratio": [
+     1.041,
+     0.728,
+     1.574
+    ],
+    "posts_with": 80,
+    "posts_without": 50
+   },
+   "status": "not_a_lever",
+   "grade_ours": null,
+   "level": "every account pooled (too thin among company and founder accounts)",
+   "posts_with_trait": 155,
+   "strict_subset": {
+    "win_rate": 0.512,
+    "interval": [
+     0.4182,
+     0.6905
+    ],
+    "pairs": 62,
+    "accounts": 13,
+    "likes_ratio": [
+     1.375,
+     1.0,
+     2.032
+    ],
+    "posts_with": 47,
+    "posts_without": 28
+   },
+   "all_accounts": {
+    "win_rate": 0.4545,
+    "interval": [
+     0.3197,
+     0.6433
+    ],
+    "pairs": 169,
+    "accounts": 17,
+    "likes_ratio": [
+     1.041,
+     0.728,
+     1.574
+    ],
+    "posts_with": 80,
+    "posts_without": 50
+   },
+   "verdict": "untestable",
+   "evidence_key": "team_quoted_1h_vs_later"
+  },
+  {
+   "id": "H49",
+   "claim": "A quote by another account within the first hour beats a first quote that comes later.",
+   "sources": [
+    "R:T01",
+    "R:C05"
+   ],
+   "source_grade": "large observational",
+   "ai_startup_specific": false,
+   "trait": "quoted_1h_vs_later",
+   "direction": 1,
+   "from": "marketing",
+   "result": {
+    "win_rate": 0.6356,
+    "interval": [
+     0.5622,
+     0.7152
+    ],
+    "pairs": 727,
+    "accounts": 70,
+    "likes_ratio": [
+     1.445,
+     1.247,
+     1.687
+    ],
+    "posts_with": 331,
+    "posts_without": 242
+   },
+   "status": "not_a_lever",
+   "grade_ours": null,
+   "level": "company and founder accounts",
+   "posts_with_trait": 411,
+   "strict_subset": {
+    "win_rate": 0.6873,
+    "interval": [
+     0.6039,
+     0.7897
+    ],
+    "pairs": 422,
+    "accounts": 43,
+    "likes_ratio": [
+     1.609,
+     1.348,
+     1.943
+    ],
+    "posts_with": 194,
+    "posts_without": 138
+   },
+   "all_accounts": {
+    "win_rate": 0.6449,
+    "interval": [
+     0.5747,
+     0.7165
+    ],
+    "pairs": 743,
+    "accounts": 85,
+    "likes_ratio": [
+     1.464,
+     1.254,
+     1.679
+    ],
+    "posts_with": 357,
+    "posts_without": 264
+   },
+   "verdict": "untestable",
+   "evidence_key": "quoted_1h_vs_later"
+  },
+  {
+   "id": "H50",
+   "claim": "A link in the post body costs reach.",
+   "sources": [
+    "R:K01",
+    "R:K03",
+    "X:P04",
+    "X:P17",
+    "X:S01",
+    "X:S02"
+   ],
+   "source_grade": "large observational",
+   "ai_startup_specific": false,
+   "trait": "no_link_in_post",
+   "direction": 1,
+   "from": "launch",
+   "verdict_override": "confirmed",
+   "note": "Launch posts without an external link won 58.2%. The size (1.29x likes) is far below the 4 to 8x views gap of R:K01, and X's product head denies any penalty (X:S03, X:S04); the code has none (X:C15).",
+   "result": {
+    "win_rate": 0.5821,
+    "interval": [
+     0.5036,
+     0.6574
+    ],
+    "pairs": 927,
+    "accounts": 95,
+    "likes_ratio": [
+     1.29,
+     1.048,
+     1.645
+    ],
+    "posts_with": 600,
+    "posts_without": 241,
+    "adjusted_likes_ratio": [
+     1.214,
+     0.988,
+     1.527
+    ]
+   },
+   "status": "survives",
+   "grade_ours": "B",
+   "level": "company and founder accounts (launch track)",
+   "evidence_key": "launch_evidence.json:no_link_in_post",
+   "verdict": "confirmed"
+  },
+  {
+   "id": "H51",
+   "claim": "Put the link in a reply instead.",
+   "sources": [
+    "X:S02",
+    "X:P23"
+   ],
+   "source_grade": "platform statement",
+   "ai_startup_specific": false,
+   "trait": "points_to_reply_vs_link_in_post",
+   "direction": 1,
+   "from": "launch",
+   "verdict_override": "untestable",
+   "note": "17 pairs; replies are not in the corpus.",
+   "result": {
+    "win_rate": 0.7424,
+    "interval": [
+     0.3333,
+     1.0
+    ],
+    "pairs": 17,
+    "accounts": 9,
+    "likes_ratio": [
+     1.199,
+     0.262,
+     5.06
+    ],
+    "posts_with": 12,
+    "posts_without": 26
+   },
+   "status": "too_thin",
+   "grade_ours": null,
+   "level": "company and founder accounts (launch track)",
+   "evidence_key": "launch_evidence.json:points_to_reply_vs_link_in_post",
+   "verdict": "untestable"
+  },
+  {
+   "id": "H52",
+   "claim": "A launch needs a video.",
+   "sources": [
+    "PB072",
+    "PB027",
+    "PB050",
+    "X:S13",
+    "X:S14"
+   ],
+   "source_grade": "anecdote",
+   "ai_startup_specific": true,
+   "trait": "video_vs_none",
+   "direction": 1,
+   "from": "launch",
+   "verdict_override": "confirmed",
+   "note": "Video against no media 65.4%, against an image 62.8% (grade B; weaker after April 2026).",
+   "result": {
+    "win_rate": 0.6539,
+    "interval": [
+     0.6024,
+     0.7044
+    ],
+    "pairs": 991,
+    "accounts": 133,
+    "likes_ratio": [
+     1.64,
+     1.334,
+     2.025
+    ],
+    "posts_with": 449,
+    "posts_without": 401,
+    "adjusted_likes_ratio": [
+     1.581,
+     1.348,
+     1.897
+    ]
+   },
+   "status": "survives",
+   "grade_ours": "B",
+   "level": "company and founder accounts (launch track)",
+   "evidence_key": "launch_evidence.json:video_vs_none",
+   "verdict": "confirmed"
+  },
+  {
+   "id": "H53",
+   "claim": "Text posts beat video posts on X (2025).",
+   "sources": [
+    "X:P05",
+    "X:P03",
+    "PB071",
+    "PB060"
+   ],
+   "source_grade": "large observational",
+   "ai_startup_specific": false,
+   "trait": "video_vs_none",
+   "direction": -1,
+   "from": "launch",
+   "verdict_override": "contradicted",
+   "note": "For launch posts inside the same account, video wins 65.4% against no media. Buffer's result is engagement per impression pooled across accounts; ours is likes against the account's own usual.",
+   "result": {
+    "win_rate": 0.6539,
+    "interval": [
+     0.6024,
+     0.7044
+    ],
+    "pairs": 991,
+    "accounts": 133,
+    "likes_ratio": [
+     1.64,
+     1.334,
+     2.025
+    ],
+    "posts_with": 449,
+    "posts_without": 401,
+    "adjusted_likes_ratio": [
+     1.581,
+     1.348,
+     1.897
+    ]
+   },
+   "status": "survives",
+   "grade_ours": "B",
+   "level": "company and founder accounts (launch track)",
+   "evidence_key": "launch_evidence.json:video_vs_none",
+   "verdict": "contradicted"
+  },
+  {
+   "id": "H54",
+   "claim": "Adding an image raises engagement.",
+   "sources": [
+    "R:M01",
+    "X:P16",
+    "X:L01"
+   ],
+   "source_grade": "large observational",
+   "ai_startup_specific": false,
+   "trait": "image_vs_none",
+   "direction": 1,
+   "from": "launch",
+   "verdict_override": "not_confirmed",
+   "note": "59.5% in pairs but likes ratio 1.17x (0.95 to 1.45) and 48.0% among clear launch posts.",
+   "result": {
+    "win_rate": 0.5945,
+    "interval": [
+     0.5403,
+     0.6493
+    ],
+    "pairs": 990,
+    "accounts": 125,
+    "likes_ratio": [
+     1.171,
+     0.952,
+     1.449
+    ],
+    "posts_with": 434,
+    "posts_without": 432,
+    "adjusted_likes_ratio": [
+     1.094,
+     0.93,
+     1.294
+    ]
+   },
+   "status": "none",
+   "grade_ours": null,
+   "level": "company and founder accounts (launch track)",
+   "evidence_key": "launch_evidence.json:image_vs_none",
+   "verdict": "not_confirmed"
+  },
+  {
+   "id": "H55",
+   "claim": "Write the launch as a thread.",
+   "sources": [
+    "X:P21",
+    "X:P20",
+    "PB015"
+   ],
+   "source_grade": "small observational",
+   "ai_startup_specific": false,
+   "trait": "thread_marker",
+   "direction": 1,
+   "from": "launch",
+   "verdict_override": "not_confirmed",
+   "note": "Only the head post's thread marker is visible: 51.2% (45.5 to 56.9). The thread body is not in the corpus.",
+   "result": {
+    "win_rate": 0.5122,
+    "interval": [
+     0.4548,
+     0.5692
+    ],
+    "pairs": 1635,
+    "accounts": 146,
+    "likes_ratio": [
+     1.061,
+     0.883,
+     1.273
+    ],
+    "posts_with": 417,
+    "posts_without": 827,
+    "adjusted_likes_ratio": [
+     1.045,
+     0.88,
+     1.24
+    ]
+   },
+   "status": "none",
+   "grade_ours": null,
+   "level": "company and founder accounts (launch track)",
+   "evidence_key": "launch_evidence.json:thread_marker",
+   "verdict": "not_confirmed"
+  },
+  {
+   "id": "H56",
+   "claim": "Hashtags help (1 to 2 hashtags, +21%).",
+   "sources": [
+    "X:P22",
+    "R:K04"
+   ],
+   "source_grade": "anecdote",
+   "ai_startup_specific": false,
+   "trait": "no_hashtag",
+   "direction": -1,
+   "from": "launch",
+   "verdict_override": "untestable",
+   "note": "41 launch posts with a hashtag; the version without won 60.2% (43.4 to 76.6). X's code has no hashtag term and X's owner told users to stop (X:S10).",
+   "result": {
+    "win_rate": 0.6023,
+    "interval": [
+     0.4335,
+     0.7664
+    ],
+    "pairs": 240,
+    "accounts": 30,
+    "likes_ratio": [
+     1.259,
+     0.83,
+     1.835
+    ],
+    "posts_with": 276,
+    "posts_without": 41,
+    "adjusted_likes_ratio": [
+     1.143,
+     0.751,
+     1.724
+    ]
+   },
+   "status": "none",
+   "grade_ours": null,
+   "level": "company and founder accounts (launch track)",
+   "evidence_key": "launch_evidence.json:no_hashtag",
+   "verdict": "untestable"
+  },
+  {
+   "id": "H57",
+   "claim": "Tagging other accounts lowers sharing.",
+   "sources": [
+    "R:W04"
+   ],
+   "source_grade": "controlled study",
+   "ai_startup_specific": false,
+   "trait": "no_tags",
+   "direction": 1,
+   "from": "launch",
+   "verdict_override": "not_confirmed",
+   "note": "Same direction as Tan, Lee and Pang: no tags won 59.1% (52.9 to 64.4) but the likes ratio 1.18x (0.99 to 1.41) includes no effect.",
+   "result": {
+    "win_rate": 0.5912,
+    "interval": [
+     0.5287,
+     0.6444
+    ],
+    "pairs": 1130,
+    "accounts": 135,
+    "likes_ratio": [
+     1.182,
+     0.993,
+     1.41
+    ],
+    "posts_with": 789,
+    "posts_without": 284,
+    "adjusted_likes_ratio": [
+     1.23,
+     1.029,
+     1.445
+    ]
+   },
+   "status": "leaning",
+   "grade_ours": null,
+   "level": "company and founder accounts (launch track)",
+   "evidence_key": "launch_evidence.json:no_tags",
+   "verdict": "not_confirmed"
+  },
+  {
+   "id": "H58",
+   "claim": "Open the launch on the pain point, not on the product ('hook first, product second').",
+   "sources": [
+    "PB072",
+    "PB050",
+    "PB027"
+   ],
+   "source_grade": "anecdote",
+   "ai_startup_specific": false,
+   "trait": "announcement_not_problem_first",
+   "direction": -1,
+   "from": "launch",
+   "verdict_override": "contradicted",
+   "note": "The playbooks say this about the launch VIDEO. For the post TEXT the opposite holds: opening with the announcement won 72.5% (59.5 to 81.8) over opening with a problem or question, and naming the product in the first line won 64.0% (grade A).",
+   "result": {
+    "win_rate": 0.7249,
+    "interval": [
+     0.595,
+     0.8176
+    ],
+    "pairs": 379,
+    "accounts": 48,
+    "likes_ratio": [
+     1.912,
+     1.332,
+     2.653
+    ],
+    "posts_with": 419,
+    "posts_without": 69,
+    "adjusted_likes_ratio": [
+     1.733,
+     1.221,
+     2.375
+    ]
+   },
+   "status": "survives",
+   "grade_ours": "B",
+   "level": "company and founder accounts (launch track)",
+   "evidence_key": "launch_evidence.json:announcement_not_problem_first",
+   "verdict": "contradicted"
+  },
+  {
+   "id": "H59",
+   "claim": "Informative, specific first lines win (proper nouns, numbers).",
+   "sources": [
+    "R:W03"
+   ],
+   "source_grade": "controlled study",
+   "ai_startup_specific": false,
+   "trait": "names_product_first_line",
+   "direction": 1,
+   "from": "launch",
+   "verdict_override": "confirmed",
+   "note": "First line names the product: 64.0% (59.0 to 69.0), confirmed before and after April 2026.",
+   "result": {
+    "win_rate": 0.6399,
+    "interval": [
+     0.59,
+     0.6903
+    ],
+    "pairs": 1672,
+    "accounts": 180,
+    "likes_ratio": [
+     1.511,
+     1.266,
+     1.784
+    ],
+    "posts_with": 890,
+    "posts_without": 448,
+    "adjusted_likes_ratio": [
+     1.363,
+     1.16,
+     1.599
+    ]
+   },
+   "status": "survives",
+   "grade_ours": "A",
+   "level": "company and founder accounts (launch track)",
+   "evidence_key": "launch_evidence.json:names_product_first_line",
+   "verdict": "confirmed"
+  },
+  {
+   "id": "H60",
+   "claim": "Shorter is better (trim 10 to 20%).",
+   "sources": [
+    "R:W07"
+   ],
+   "source_grade": "controlled study",
+   "ai_startup_specific": false,
+   "trait": "long280",
+   "direction": -1,
+   "from": "launch",
+   "verdict_override": "not_confirmed",
+   "note": "Length shows no effect either way (280+ characters: adjusted 0.95x); layout on 3+ lines helps (59.2%).",
+   "result": {
+    "win_rate": 0.5713,
+    "interval": [
+     0.5122,
+     0.6338
+    ],
+    "pairs": 1462,
+    "accounts": 151,
+    "likes_ratio": [
+     1.102,
+     0.924,
+     1.301
+    ],
+    "posts_with": 453,
+    "posts_without": 722,
+    "adjusted_likes_ratio": [
+     0.952,
+     0.811,
+     1.107
+    ]
+   },
+   "status": "leaning",
+   "grade_ours": null,
+   "level": "company and founder accounts (launch track)",
+   "evidence_key": "launch_evidence.json:long280",
+   "verdict": "not_confirmed"
+  },
+  {
+   "id": "H61",
+   "claim": "Posts close together from one account suppress each other.",
+   "sources": [
+    "X:C04",
+    "X:L02"
+   ],
+   "source_grade": "platform code",
+   "ai_startup_specific": false,
+   "trait": "two_hours_after_previous",
+   "direction": 1,
+   "from": "launch",
+   "verdict_override": "confirmed",
+   "note": "Launch within 2 hours of the previous post: 0.71x (0.58 to 0.87) pooled over all accounts (grade C).",
+   "result": {
+    "win_rate": 0.5556,
+    "interval": [
+     0.4479,
+     0.6497
+    ],
+    "pairs": 786,
+    "accounts": 57,
+    "likes_ratio": [
+     1.397,
+     1.066,
+     1.835
+    ],
+    "posts_with": 607,
+    "posts_without": 120,
+    "adjusted_likes_ratio": [
+     1.361,
+     1.04,
+     1.727
+    ]
+   },
+   "status": "wider_only",
+   "grade_ours": "C",
+   "level": "company and founder accounts (launch track)",
+   "evidence_key": "launch_evidence.json:two_hours_after_previous",
+   "verdict": "confirmed"
+  },
+  {
+   "id": "H62",
+   "claim": "Quote-posting your own announcement instead of posting it as an original costs reach.",
+   "sources": [
+    "X:C05",
+    "X:C06"
+   ],
+   "source_grade": "platform code",
+   "ai_startup_specific": false,
+   "trait": "original_not_quote",
+   "direction": 1,
+   "from": "launch",
+   "verdict_override": "confirmed",
+   "note": "Original against quote: 72.1% (60.7 to 81.1), grade B.",
+   "result": {
+    "win_rate": 0.721,
+    "interval": [
+     0.6071,
+     0.8106
+    ],
+    "pairs": 363,
+    "accounts": 65,
+    "likes_ratio": [
+     1.901,
+     1.335,
+     2.618
+    ],
+    "posts_with": 357,
+    "posts_without": 86,
+    "adjusted_likes_ratio": [
+     1.597,
+     1.11,
+     2.232
+    ]
+   },
+   "status": "survives",
+   "grade_ours": "B",
+   "level": "company and founder accounts (launch track)",
+   "evidence_key": "launch_evidence.json:original_not_quote",
+   "verdict": "confirmed"
+  },
+  {
+   "id": "H63",
+   "claim": "Launch video length of 45 to 90 seconds is best; over 10 seconds is needed for the video-quality-view action.",
+   "sources": [
+    "PB072",
+    "PB050",
+    "X:C09"
+   ],
+   "source_grade": "anecdote",
+   "ai_startup_specific": true,
+   "trait": null,
+   "direction": 1,
+   "from": "marketing",
+   "verdict_override": "untestable",
+   "note": "duration_ms is empty for all 852 video launch posts in the corpus. The code's video weights are all zero in any case (X:C09).",
+   "result": null,
+   "verdict": "untestable"
+  },
+  {
+   "id": "H64",
+   "claim": "Replies from well-known accounts and replying to commenters lift the post.",
+   "sources": [
+    "PB016",
+    "X:P06",
+    "X:C03",
+    "X:C22"
+   ],
+   "source_grade": "large observational",
+   "ai_startup_specific": true,
+   "trait": null,
+   "direction": 1,
+   "from": "marketing",
+   "verdict_override": "untestable",
+   "note": "Replies are not in the corpus.",
+   "result": null,
+   "verdict": "untestable"
+  },
+  {
+   "id": "H65",
+   "claim": "Post the launch from the founder's account, not the company's.",
+   "sources": [
+    "PB078",
+    "PB017",
+    "PB032"
+   ],
+   "source_grade": "anecdote",
+   "ai_startup_specific": false,
+   "trait": null,
+   "direction": 1,
+   "from": "marketing",
+   "verdict_override": "untestable",
+   "note": "Team membership is not observable. What the launch track could measure points the other way: launch posts get 2.2x the usual on company accounts and 2.3x on founder accounts, and a team member's first-person quote got more likes than the company's own post in 10% of 152 cases.",
+   "result": null,
+   "verdict": "untestable"
+  },
+  {
+   "id": "H66",
+   "claim": "Paid amplification (clippers, creator blocks, ads) is what produces the large view counts.",
+   "sources": [
+    "PB034",
+    "PB035",
+    "PB073",
+    "PB074",
+    "PB075"
+   ],
+   "source_grade": "anecdote",
+   "ai_startup_specific": false,
+   "trait": null,
+   "direction": 1,
+   "from": "marketing",
+   "verdict_override": "untestable",
+   "note": "Paid and organic views are not separable in public counts, and views exist for only 205 launch posts here.",
+   "result": null,
+   "verdict": "untestable"
+  },
+  {
+   "id": "H67",
+   "claim": "Controversy / rage bait is distribution.",
+   "sources": [
+    "PB032",
+    "PB033",
+    "PB040",
+    "R:E04",
+    "R:C11"
+   ],
+   "source_grade": "large observational",
+   "ai_startup_specific": false,
+   "trait": null,
+   "direction": 1,
+   "from": "marketing",
+   "verdict_override": "untestable",
+   "note": "No reliable label for provocation; negative reactions are not observable (replies, mutes, blocks), and the code weights those at -31 to -234 (X:C02).",
+   "result": null,
+   "verdict": "untestable"
+  },
+  {
+   "id": "H68",
+   "claim": "Images with a human face lift engagement (38 to 291% on Twitter).",
+   "sources": [
+    "R:M01"
+   ],
+   "source_grade": "large observational",
+   "ai_startup_specific": false,
+   "trait": null,
+   "direction": 1,
+   "from": "marketing",
+   "verdict_override": "untestable",
+   "note": "Needs image content; left to the media track.",
+   "result": null,
+   "verdict": "untestable"
+  },
+  {
+   "id": "H69",
+   "claim": "Premium accounts get about 10x reach.",
+   "sources": [
+    "X:P01",
+    "R:C13",
+    "X:C10"
+   ],
+   "source_grade": "large observational",
+   "ai_startup_specific": false,
+   "trait": null,
+   "direction": 1,
+   "from": "marketing",
+   "verdict_override": "untestable",
+   "note": "Cannot be measured inside an account; outside sources conflict (Buffer 10x pooled; a 2023 feed audit found no boost; no multiplier in the 2026 code).",
+   "result": null,
+   "verdict": "untestable"
+  },
+  {
+   "id": "H70",
+   "claim": "A curator or well-known account sharing the work is the largest lever for AI work (2 to 3x citations).",
+   "sources": [
+    "R:B11",
+    "PB006",
+    "PB055"
+   ],
+   "source_grade": "small observational",
+   "ai_startup_specific": true,
+   "trait": null,
+   "direction": 1,
+   "from": "marketing",
+   "verdict_override": "untestable",
+   "note": "Reposts are not in the corpus; quote posts by large accounts are circular (see H46).",
+   "result": null,
+   "verdict": "untestable"
+  }
+ ]
+}

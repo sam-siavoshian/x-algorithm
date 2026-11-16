@@ -1,0 +1,8769 @@
+{
+ "cta_try": {
+  "description": "an imperative call to action to use the product (try it, get started, sign up, download, install, check it out, start building)",
+  "win_rate": 0.526,
+  "lo": 0.4564,
+  "hi": 0.5954,
+  "pairs": 1113,
+  "accounts": 114,
+  "supported": false,
+  "status": "none",
+  "grade": null,
+  "level": "company and founder accounts",
+  "outcome": "likes relative to the account's trailing median",
+  "design": "same account, launch-type posts, posting order balanced",
+  "likes_ratio": {
+   "ratio": 1.1,
+   "lo": 0.926,
+   "hi": 1.304,
+   "accounts_with_both": 118,
+   "posts_with": 223,
+   "posts_without": 801
+  },
+  "adjusted_likes_ratio": {
+   "ratio": 1.019,
+   "lo": 0.851,
+   "hi": 1.202
+  },
+  "tests_passed_main": {
+   "pairs": false,
+   "ratio": false,
+   "adjusted": false
+  },
+  "strict_subset": {
+   "win_rate": 0.4705,
+   "lo": 0.381,
+   "hi": 0.5675,
+   "pairs": 409,
+   "accounts": 57,
+   "likes_ratio": {
+    "ratio": 0.856,
+    "lo": 0.641,
+    "hi": 1.135,
+    "accounts_with_both": 61,
+    "posts_with": 103,
+    "posts_without": 346
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 0.814,
+    "lo": 0.629,
+    "hi": 1.079
+   },
+   "tests_passed": {
+    "pairs": false,
+    "ratio": false,
+    "adjusted": false
+   }
+  },
+  "all_accounts": {
+   "win_rate": 0.5169,
+   "lo": 0.4524,
+   "hi": 0.5806,
+   "pairs": 1256,
+   "accounts": 150,
+   "likes_ratio": {
+    "ratio": 1.052,
+    "lo": 0.905,
+    "hi": 1.222,
+    "accounts_with_both": 162,
+    "posts_with": 279,
+    "posts_without": 968
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 0.941,
+    "lo": 0.79,
+    "hi": 1.106
+   }
+  },
+  "reposts": {
+   "win_rate": 0.5136,
+   "lo": 0.4444,
+   "hi": 0.5886,
+   "pairs": 1119,
+   "accounts": 115,
+   "likes_ratio": {
+    "ratio": 1.088,
+    "lo": 0.843,
+    "hi": 1.391,
+    "accounts_with_both": 118,
+    "posts_with": 223,
+    "posts_without": 797
+   }
+  },
+  "periods": {
+   "before_2026_04_23": {
+    "win_rate": 0.4987,
+    "lo": 0.428,
+    "hi": 0.5707,
+    "pairs": 778,
+    "accounts": 122,
+    "likes_ratio": {
+     "ratio": 1.045,
+     "lo": 0.876,
+     "hi": 1.253,
+     "accounts_with_both": 132,
+     "posts_with": 215,
+     "posts_without": 631
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 0.933,
+     "lo": 0.788,
+     "hi": 1.103
+    }
+   },
+   "from_2026_04_23": {
+    "win_rate": 0.5139,
+    "lo": 0.3867,
+    "hi": 0.6367,
+    "pairs": 170,
+    "accounts": 35,
+    "likes_ratio": {
+     "ratio": 1.018,
+     "lo": 0.609,
+     "hi": 1.719,
+     "accounts_with_both": 35,
+     "posts_with": 44,
+     "posts_without": 134
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 1.006,
+     "lo": 0.567,
+     "hi": 1.657
+    }
+   }
+  },
+  "tiers": {
+   "under_100k": {
+    "win_rate": 0.6212,
+    "lo": 0.5253,
+    "hi": 0.7022,
+    "pairs": 268,
+    "accounts": 58,
+    "likes_ratio": {
+     "ratio": 1.171,
+     "lo": 0.934,
+     "hi": 1.454,
+     "accounts_with_both": 67,
+     "posts_with": 88,
+     "posts_without": 271
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 0.921,
+     "lo": 0.712,
+     "hi": 1.192
+    }
+   },
+   "100k_plus": {
+    "win_rate": 0.4823,
+    "lo": 0.3897,
+    "hi": 0.5777,
+    "pairs": 656,
+    "accounts": 37,
+    "likes_ratio": {
+     "ratio": 0.916,
+     "lo": 0.756,
+     "hi": 1.108,
+     "accounts_with_both": 37,
+     "posts_with": 99,
+     "posts_without": 461
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 0.829,
+     "lo": 0.673,
+     "hi": 1.018
+    }
+   }
+  },
+  "model_releases_only": {
+   "win_rate": 0.5106,
+   "lo": 0.42,
+   "hi": 0.59,
+   "pairs": 477,
+   "accounts": 58,
+   "likes_ratio": {
+    "ratio": 1.077,
+    "lo": 0.864,
+    "hi": 1.332,
+    "accounts_with_both": 66,
+    "posts_with": 131,
+    "posts_without": 315
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 1.041,
+    "lo": 0.809,
+    "hi": 1.321
+   }
+  },
+  "posts_with_trait_main": 263,
+  "measured_as": "cta_try",
+  "flipped": false
+ },
+ "cta_waitlist": {
+  "description": "the post points to a waitlist, early access, an invite or a request-access form",
+  "win_rate": 0.5129,
+  "lo": 0.3658,
+  "hi": 0.6818,
+  "pairs": 355,
+  "accounts": 35,
+  "supported": false,
+  "status": "none",
+  "grade": null,
+  "level": "company and founder accounts",
+  "outcome": "likes relative to the account's trailing median",
+  "design": "same account, launch-type posts, posting order balanced",
+  "likes_ratio": {
+   "ratio": 0.928,
+   "lo": 0.626,
+   "hi": 1.352,
+   "accounts_with_both": 35,
+   "posts_with": 51,
+   "posts_without": 391
+  },
+  "adjusted_likes_ratio": {
+   "ratio": 0.94,
+   "lo": 0.609,
+   "hi": 1.306
+  },
+  "tests_passed_main": {
+   "pairs": false,
+   "ratio": false,
+   "adjusted": false
+  },
+  "strict_subset": {
+   "win_rate": 0.5647,
+   "lo": 0.3826,
+   "hi": 0.7204,
+   "pairs": 155,
+   "accounts": 17,
+   "likes_ratio": {
+    "ratio": 0.766,
+    "lo": 0.467,
+    "hi": 1.15,
+    "accounts_with_both": 17,
+    "posts_with": 22,
+    "posts_without": 161
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 0.928,
+    "lo": 0.462,
+    "hi": 1.508
+   },
+   "tests_passed": {
+    "pairs": false,
+    "ratio": false,
+    "adjusted": false
+   }
+  },
+  "all_accounts": {
+   "win_rate": 0.5174,
+   "lo": 0.3863,
+   "hi": 0.662,
+   "pairs": 393,
+   "accounts": 48,
+   "likes_ratio": {
+    "ratio": 0.901,
+    "lo": 0.64,
+    "hi": 1.239,
+    "accounts_with_both": 49,
+    "posts_with": 65,
+    "posts_without": 462
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 0.916,
+    "lo": 0.602,
+    "hi": 1.248
+   }
+  },
+  "reposts": {
+   "win_rate": 0.5423,
+   "lo": 0.4105,
+   "hi": 0.6714,
+   "pairs": 365,
+   "accounts": 34,
+   "likes_ratio": {
+    "ratio": 1.284,
+    "lo": 0.87,
+    "hi": 1.868,
+    "accounts_with_both": 35,
+    "posts_with": 51,
+    "posts_without": 389
+   }
+  },
+  "periods": {
+   "before_2026_04_23": {
+    "win_rate": 0.4871,
+    "lo": 0.3549,
+    "hi": 0.6299,
+    "pairs": 306,
+    "accounts": 34,
+    "likes_ratio": {
+     "ratio": 0.859,
+     "lo": 0.607,
+     "hi": 1.159,
+     "accounts_with_both": 36,
+     "posts_with": 47,
+     "posts_without": 313
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 0.96,
+     "lo": 0.654,
+     "hi": 1.321
+    }
+   },
+   "from_2026_04_23": {
+    "win_rate": 0.6845,
+    "lo": 0.3629,
+    "hi": 0.9584,
+    "pairs": 54,
+    "accounts": 10,
+    "likes_ratio": {
+     "ratio": 0.884,
+     "lo": 0.355,
+     "hi": 2.228,
+     "accounts_with_both": 10,
+     "posts_with": 12,
+     "posts_without": 46
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 1.282,
+     "lo": 0.413,
+     "hi": 4.178
+    }
+   }
+  },
+  "tiers": {
+   "under_100k": {
+    "win_rate": 0.6567,
+    "lo": 0.3571,
+    "hi": 0.83,
+    "pairs": 46,
+    "accounts": 15,
+    "likes_ratio": {
+     "ratio": 1.135,
+     "lo": 0.467,
+     "hi": 2.456,
+     "accounts_with_both": 16,
+     "posts_with": 17,
+     "posts_without": 75
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 1.26,
+     "lo": 0.466,
+     "hi": 2.772
+    }
+   },
+   "100k_plus": {
+    "win_rate": 0.4898,
+    "lo": 0.3108,
+    "hi": 0.7041,
+    "pairs": 253,
+    "accounts": 15,
+    "likes_ratio": {
+     "ratio": 1.012,
+     "lo": 0.706,
+     "hi": 1.497,
+     "accounts_with_both": 15,
+     "posts_with": 25,
+     "posts_without": 302
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 1.126,
+     "lo": 0.833,
+     "hi": 1.757
+    }
+   }
+  },
+  "model_releases_only": {
+   "win_rate": 0.5494,
+   "lo": 0.3159,
+   "hi": 0.8138,
+   "pairs": 125,
+   "accounts": 20,
+   "likes_ratio": {
+    "ratio": 1.008,
+    "lo": 0.63,
+    "hi": 1.541,
+    "accounts_with_both": 21,
+    "posts_with": 25,
+    "posts_without": 158
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 1.124,
+    "lo": 0.633,
+    "hi": 1.887
+   }
+  },
+  "posts_with_trait_main": 53,
+  "measured_as": "cta_waitlist",
+  "flipped": false
+ },
+ "no_engagement_bait": {
+  "description": "the post does not trade a reply / repost for access",
+  "win_rate": 0.7321,
+  "lo": 0.1,
+  "hi": 0.95,
+  "pairs": 18,
+  "accounts": 5,
+  "supported": false,
+  "status": "too_thin",
+  "grade": null,
+  "level": "every account pooled (too thin among company and founder accounts)",
+  "outcome": "likes relative to the account's trailing median",
+  "design": "same account, launch-type posts, posting order balanced",
+  "likes_ratio": {
+   "ratio": 0.855,
+   "lo": 0.276,
+   "hi": 1.695,
+   "accounts_with_both": 7,
+   "posts_with": 50,
+   "posts_without": 10
+  },
+  "adjusted_likes_ratio": {
+   "ratio": 0.711,
+   "lo": 0.269,
+   "hi": 1.224
+  },
+  "tests_passed_main": {
+   "pairs": false,
+   "ratio": false,
+   "adjusted": false
+  },
+  "strict_subset": {
+   "adjusted_likes_ratio": {
+    "ratio": 1.0,
+    "lo": 1.0,
+    "hi": 1.0
+   },
+   "tests_passed": {
+    "adjusted": false
+   }
+  },
+  "all_accounts": {
+   "win_rate": 0.7321,
+   "lo": 0.1,
+   "hi": 0.95,
+   "pairs": 18,
+   "accounts": 5,
+   "likes_ratio": {
+    "ratio": 0.855,
+    "lo": 0.276,
+    "hi": 1.695,
+    "accounts_with_both": 7,
+    "posts_with": 50,
+    "posts_without": 10
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 0.711,
+    "lo": 0.269,
+    "hi": 1.224
+   }
+  },
+  "reposts": {
+   "win_rate": 0.575,
+   "lo": 0.125,
+   "hi": 0.7552,
+   "pairs": 24,
+   "accounts": 6,
+   "likes_ratio": {
+    "ratio": 0.755,
+    "lo": 0.164,
+    "hi": 2.193,
+    "accounts_with_both": 7,
+    "posts_with": 49,
+    "posts_without": 10
+   }
+  },
+  "periods": {
+   "before_2026_04_23": {
+    "win_rate": 0.7778,
+    "lo": 0.5,
+    "hi": 0.8571,
+    "pairs": 12,
+    "accounts": 3,
+    "likes_ratio": {
+     "ratio": 1.188,
+     "lo": 0.684,
+     "hi": 2.242,
+     "accounts_with_both": 5,
+     "posts_with": 32,
+     "posts_without": 7
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 0.765,
+     "lo": 0.519,
+     "hi": 1.214
+    }
+   },
+   "from_2026_04_23": {
+    "adjusted_likes_ratio": {
+     "ratio": 1.318,
+     "lo": 0.443,
+     "hi": 2.688
+    }
+   }
+  },
+  "tiers": {
+   "under_100k": {
+    "win_rate": 0.7321,
+    "lo": 0.0,
+    "hi": 1.0,
+    "pairs": 11,
+    "accounts": 4,
+    "likes_ratio": {
+     "ratio": 0.664,
+     "lo": 0.126,
+     "hi": 1.558,
+     "accounts_with_both": 5,
+     "posts_with": 36,
+     "posts_without": 8
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 0.619,
+     "lo": 0.117,
+     "hi": 1.555
+    }
+   },
+   "100k_plus": {
+    "adjusted_likes_ratio": {
+     "ratio": 1.0,
+     "lo": 1.0,
+     "hi": 1.0
+    }
+   }
+  },
+  "model_releases_only": {
+   "adjusted_likes_ratio": {
+    "ratio": 1.114,
+    "lo": 0.666,
+    "hi": 2.058
+   }
+  },
+  "posts_with_trait_main": 17,
+  "measured_as": "cta_engagement_bait",
+  "flipped": true
+ },
+ "cta_any_ask": {
+  "description": "the post asks the reader for support (repost, share, upvote, feedback, follow)",
+  "win_rate": 0.7507,
+  "lo": 0.4673,
+  "hi": 0.884,
+  "pairs": 64,
+  "accounts": 14,
+  "supported": false,
+  "status": "too_thin",
+  "grade": null,
+  "level": "every account pooled (too thin among company and founder accounts)",
+  "outcome": "likes relative to the account's trailing median",
+  "design": "same account, launch-type posts, posting order balanced",
+  "likes_ratio": {
+   "ratio": 1.466,
+   "lo": 0.901,
+   "hi": 2.464,
+   "accounts_with_both": 18,
+   "posts_with": 18,
+   "posts_without": 115
+  },
+  "adjusted_likes_ratio": {
+   "ratio": 1.62,
+   "lo": 0.995,
+   "hi": 2.725
+  },
+  "tests_passed_main": {
+   "pairs": false,
+   "ratio": false,
+   "adjusted": false
+  },
+  "strict_subset": {
+   "win_rate": 0.8438,
+   "lo": 0.4821,
+   "hi": 0.9474,
+   "pairs": 28,
+   "accounts": 5,
+   "likes_ratio": {
+    "ratio": 1.737,
+    "lo": 0.961,
+    "hi": 3.43,
+    "accounts_with_both": 5,
+    "posts_with": 5,
+    "posts_without": 38
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 1.656,
+    "lo": 0.626,
+    "hi": 4.729
+   },
+   "tests_passed": {
+    "pairs": false,
+    "ratio": false,
+    "adjusted": false
+   }
+  },
+  "all_accounts": {
+   "win_rate": 0.7507,
+   "lo": 0.4673,
+   "hi": 0.884,
+   "pairs": 64,
+   "accounts": 14,
+   "likes_ratio": {
+    "ratio": 1.466,
+    "lo": 0.901,
+    "hi": 2.464,
+    "accounts_with_both": 18,
+    "posts_with": 18,
+    "posts_without": 115
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 1.62,
+    "lo": 0.995,
+    "hi": 2.725
+   }
+  },
+  "reposts": {
+   "win_rate": 0.697,
+   "lo": 0.3173,
+   "hi": 0.8946,
+   "pairs": 66,
+   "accounts": 14,
+   "likes_ratio": {
+    "ratio": 1.453,
+    "lo": 0.754,
+    "hi": 3.011,
+    "accounts_with_both": 18,
+    "posts_with": 18,
+    "posts_without": 114
+   }
+  },
+  "periods": {
+   "before_2026_04_23": {
+    "win_rate": 0.8002,
+    "lo": 0.619,
+    "hi": 0.8926,
+    "pairs": 51,
+    "accounts": 12,
+    "likes_ratio": {
+     "ratio": 2.149,
+     "lo": 1.331,
+     "hi": 3.578,
+     "accounts_with_both": 13,
+     "posts_with": 13,
+     "posts_without": 77
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 2.078,
+     "lo": 1.121,
+     "hi": 4.162
+    }
+   },
+   "from_2026_04_23": {
+    "adjusted_likes_ratio": {
+     "ratio": 0.545,
+     "lo": 0.151,
+     "hi": 1.681
+    }
+   }
+  },
+  "tiers": {
+   "under_100k": {
+    "win_rate": 0.5256,
+    "lo": 0.2364,
+    "hi": 0.7304,
+    "pairs": 28,
+    "accounts": 8,
+    "likes_ratio": {
+     "ratio": 0.936,
+     "lo": 0.605,
+     "hi": 1.522,
+     "accounts_with_both": 10,
+     "posts_with": 10,
+     "posts_without": 67
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 0.93,
+     "lo": 0.61,
+     "hi": 1.632
+    }
+   },
+   "100k_plus": {
+    "win_rate": 0.9643,
+    "lo": 0.9375,
+    "hi": 0.9643,
+    "pairs": 28,
+    "accounts": 2,
+    "adjusted_likes_ratio": {
+     "ratio": 3.253,
+     "lo": 0.472,
+     "hi": 8.132
+    }
+   }
+  },
+  "model_releases_only": {
+   "win_rate": 0.7574,
+   "lo": 0.0,
+   "hi": 0.9286,
+   "pairs": 25,
+   "accounts": 2,
+   "adjusted_likes_ratio": {
+    "ratio": 2.308,
+    "lo": 0.456,
+    "hi": 10.157
+   }
+  },
+  "posts_with_trait_main": 28,
+  "measured_as": "cta_any_ask",
+  "flipped": false
+ },
+ "offer_free": {
+  "description": "the post says the product is free (free, for free, free tier, no credit card, $0)",
+  "win_rate": 0.501,
+  "lo": 0.3939,
+  "hi": 0.5976,
+  "pairs": 486,
+  "accounts": 47,
+  "supported": false,
+  "status": "none",
+  "grade": null,
+  "level": "company and founder accounts",
+  "outcome": "likes relative to the account's trailing median",
+  "design": "same account, launch-type posts, posting order balanced",
+  "likes_ratio": {
+   "ratio": 1.107,
+   "lo": 0.79,
+   "hi": 1.536,
+   "accounts_with_both": 50,
+   "posts_with": 74,
+   "posts_without": 441
+  },
+  "adjusted_likes_ratio": {
+   "ratio": 1.114,
+   "lo": 0.825,
+   "hi": 1.452
+  },
+  "tests_passed_main": {
+   "pairs": false,
+   "ratio": false,
+   "adjusted": false
+  },
+  "strict_subset": {
+   "win_rate": 0.4764,
+   "lo": 0.3175,
+   "hi": 0.6232,
+   "pairs": 222,
+   "accounts": 31,
+   "likes_ratio": {
+    "ratio": 1.124,
+    "lo": 0.666,
+    "hi": 1.982,
+    "accounts_with_both": 32,
+    "posts_with": 42,
+    "posts_without": 239
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 1.441,
+    "lo": 0.908,
+    "hi": 2.364
+   },
+   "tests_passed": {
+    "pairs": false,
+    "ratio": false,
+    "adjusted": false
+   }
+  },
+  "all_accounts": {
+   "win_rate": 0.5252,
+   "lo": 0.4315,
+   "hi": 0.6197,
+   "pairs": 529,
+   "accounts": 57,
+   "likes_ratio": {
+    "ratio": 1.305,
+    "lo": 0.944,
+    "hi": 1.797,
+    "accounts_with_both": 63,
+    "posts_with": 90,
+    "posts_without": 500
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 1.253,
+    "lo": 0.939,
+    "hi": 1.649
+   }
+  },
+  "reposts": {
+   "win_rate": 0.5631,
+   "lo": 0.4862,
+   "hi": 0.6358,
+   "pairs": 499,
+   "accounts": 46,
+   "likes_ratio": {
+    "ratio": 1.268,
+    "lo": 0.844,
+    "hi": 1.907,
+    "accounts_with_both": 50,
+    "posts_with": 74,
+    "posts_without": 440
+   }
+  },
+  "periods": {
+   "before_2026_04_23": {
+    "win_rate": 0.5164,
+    "lo": 0.3982,
+    "hi": 0.6174,
+    "pairs": 295,
+    "accounts": 42,
+    "likes_ratio": {
+     "ratio": 1.081,
+     "lo": 0.812,
+     "hi": 1.461,
+     "accounts_with_both": 46,
+     "posts_with": 63,
+     "posts_without": 300
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 1.156,
+     "lo": 0.887,
+     "hi": 1.464
+    }
+   },
+   "from_2026_04_23": {
+    "win_rate": 0.633,
+    "lo": 0.3797,
+    "hi": 0.8057,
+    "pairs": 75,
+    "accounts": 10,
+    "likes_ratio": {
+     "ratio": 2.1,
+     "lo": 0.835,
+     "hi": 4.455,
+     "accounts_with_both": 11,
+     "posts_with": 18,
+     "posts_without": 52
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 1.983,
+     "lo": 0.947,
+     "hi": 4.093
+    }
+   }
+  },
+  "tiers": {
+   "under_100k": {
+    "win_rate": 0.7398,
+    "lo": 0.5539,
+    "hi": 0.8571,
+    "pairs": 123,
+    "accounts": 21,
+    "likes_ratio": {
+     "ratio": 2.782,
+     "lo": 1.612,
+     "hi": 4.589,
+     "accounts_with_both": 25,
+     "posts_with": 35,
+     "posts_without": 105
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 2.055,
+     "lo": 1.001,
+     "hi": 3.188
+    }
+   },
+   "100k_plus": {
+    "win_rate": 0.5765,
+    "lo": 0.4722,
+    "hi": 0.6748,
+    "pairs": 229,
+    "accounts": 12,
+    "likes_ratio": {
+     "ratio": 1.231,
+     "lo": 0.868,
+     "hi": 1.792,
+     "accounts_with_both": 13,
+     "posts_with": 21,
+     "posts_without": 243
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 1.405,
+     "lo": 1.02,
+     "hi": 2.039
+    }
+   }
+  },
+  "model_releases_only": {
+   "win_rate": 0.5262,
+   "lo": 0.419,
+   "hi": 0.6503,
+   "pairs": 203,
+   "accounts": 21,
+   "likes_ratio": {
+    "ratio": 1.115,
+    "lo": 0.754,
+    "hi": 1.797,
+    "accounts_with_both": 23,
+    "posts_with": 34,
+    "posts_without": 188
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 1.1,
+    "lo": 0.777,
+    "hi": 1.754
+   }
+  },
+  "posts_with_trait_main": 82,
+  "measured_as": "offer_free",
+  "flipped": false
+ },
+ "offer_open_source": {
+  "description": "the post says the product is open source or open weights (open source, open weights, MIT / Apache licence, on GitHub / Hugging Face)",
+  "win_rate": 0.588,
+  "lo": 0.5118,
+  "hi": 0.6622,
+  "pairs": 1129,
+  "accounts": 102,
+  "supported": true,
+  "status": "survives",
+  "grade": "B",
+  "level": "company and founder accounts",
+  "outcome": "likes relative to the account's trailing median",
+  "design": "same account, launch-type posts, posting order balanced",
+  "likes_ratio": {
+   "ratio": 1.328,
+   "lo": 1.079,
+   "hi": 1.673,
+   "accounts_with_both": 107,
+   "posts_with": 228,
+   "posts_without": 786
+  },
+  "adjusted_likes_ratio": {
+   "ratio": 1.284,
+   "lo": 1.026,
+   "hi": 1.598
+  },
+  "tests_passed_main": {
+   "pairs": true,
+   "ratio": true,
+   "adjusted": true
+  },
+  "strict_subset": {
+   "win_rate": 0.5871,
+   "lo": 0.4984,
+   "hi": 0.6932,
+   "pairs": 557,
+   "accounts": 55,
+   "likes_ratio": {
+    "ratio": 1.435,
+    "lo": 1.093,
+    "hi": 1.899,
+    "accounts_with_both": 58,
+    "posts_with": 122,
+    "posts_without": 331
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 1.247,
+    "lo": 0.946,
+    "hi": 1.702
+   },
+   "tests_passed": {
+    "pairs": false,
+    "ratio": true,
+    "adjusted": false
+   }
+  },
+  "all_accounts": {
+   "win_rate": 0.5829,
+   "lo": 0.5166,
+   "hi": 0.6562,
+   "pairs": 1252,
+   "accounts": 135,
+   "likes_ratio": {
+    "ratio": 1.362,
+    "lo": 1.116,
+    "hi": 1.664,
+    "accounts_with_both": 154,
+    "posts_with": 290,
+    "posts_without": 925
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 1.36,
+    "lo": 1.101,
+    "hi": 1.645
+   }
+  },
+  "reposts": {
+   "win_rate": 0.5771,
+   "lo": 0.5092,
+   "hi": 0.6513,
+   "pairs": 1147,
+   "accounts": 102,
+   "likes_ratio": {
+    "ratio": 1.231,
+    "lo": 0.93,
+    "hi": 1.622,
+    "accounts_with_both": 107,
+    "posts_with": 228,
+    "posts_without": 783
+   }
+  },
+  "periods": {
+   "before_2026_04_23": {
+    "win_rate": 0.6169,
+    "lo": 0.5335,
+    "hi": 0.7016,
+    "pairs": 693,
+    "accounts": 94,
+    "likes_ratio": {
+     "ratio": 1.511,
+     "lo": 1.209,
+     "hi": 1.929,
+     "accounts_with_both": 112,
+     "posts_with": 192,
+     "posts_without": 544
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 1.539,
+     "lo": 1.196,
+     "hi": 1.879
+    }
+   },
+   "from_2026_04_23": {
+    "win_rate": 0.5337,
+    "lo": 0.4344,
+    "hi": 0.6387,
+    "pairs": 212,
+    "accounts": 46,
+    "likes_ratio": {
+     "ratio": 1.276,
+     "lo": 0.888,
+     "hi": 1.817,
+     "accounts_with_both": 49,
+     "posts_with": 74,
+     "posts_without": 152
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 1.284,
+     "lo": 0.838,
+     "hi": 1.929
+    }
+   }
+  },
+  "tiers": {
+   "under_100k": {
+    "win_rate": 0.6271,
+    "lo": 0.4995,
+    "hi": 0.7481,
+    "pairs": 379,
+    "accounts": 54,
+    "likes_ratio": {
+     "ratio": 1.53,
+     "lo": 1.024,
+     "hi": 2.275,
+     "accounts_with_both": 64,
+     "posts_with": 99,
+     "posts_without": 257
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 1.422,
+     "lo": 0.991,
+     "hi": 2.014
+    }
+   },
+   "100k_plus": {
+    "win_rate": 0.5565,
+    "lo": 0.4592,
+    "hi": 0.656,
+    "pairs": 671,
+    "accounts": 41,
+    "likes_ratio": {
+     "ratio": 1.305,
+     "lo": 1.015,
+     "hi": 1.672,
+     "accounts_with_both": 45,
+     "posts_with": 121,
+     "posts_without": 488
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 1.418,
+     "lo": 1.09,
+     "hi": 1.777
+    }
+   }
+  },
+  "model_releases_only": {
+   "win_rate": 0.5743,
+   "lo": 0.4813,
+   "hi": 0.6729,
+   "pairs": 548,
+   "accounts": 62,
+   "likes_ratio": {
+    "ratio": 1.446,
+    "lo": 1.103,
+    "hi": 1.897,
+    "accounts_with_both": 67,
+    "posts_with": 136,
+    "posts_without": 367
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 1.512,
+    "lo": 1.142,
+    "hi": 2.009
+   }
+  },
+  "posts_with_trait_main": 275,
+  "measured_as": "offer_open_source",
+  "flipped": false
+ },
+ "no_credits_or_discount_offer": {
+  "description": "the launch post carries no credits, discount, deal or prize offer",
+  "win_rate": 0.7252,
+  "lo": 0.5744,
+  "hi": 0.825,
+  "pairs": 211,
+  "accounts": 27,
+  "supported": true,
+  "status": "survives",
+  "grade": "C",
+  "level": "every account pooled (too thin among company and founder accounts)",
+  "outcome": "likes relative to the account's trailing median",
+  "design": "same account, launch-type posts, posting order balanced",
+  "likes_ratio": {
+   "ratio": 1.825,
+   "lo": 1.188,
+   "hi": 2.725,
+   "accounts_with_both": 29,
+   "posts_with": 241,
+   "posts_without": 33
+  },
+  "adjusted_likes_ratio": {
+   "ratio": 2.092,
+   "lo": 1.422,
+   "hi": 2.89
+  },
+  "tests_passed_main": {
+   "pairs": true,
+   "ratio": true,
+   "adjusted": true
+  },
+  "strict_subset": {
+   "win_rate": 0.7981,
+   "lo": 0.6666,
+   "hi": 0.8728,
+   "pairs": 95,
+   "accounts": 15,
+   "likes_ratio": {
+    "ratio": 2.304,
+    "lo": 1.139,
+    "hi": 4.065,
+    "accounts_with_both": 15,
+    "posts_with": 104,
+    "posts_without": 17
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 2.786,
+    "lo": 1.34,
+    "hi": 5.348
+   },
+   "tests_passed": {
+    "pairs": true,
+    "ratio": true,
+    "adjusted": true
+   }
+  },
+  "all_accounts": {
+   "win_rate": 0.7252,
+   "lo": 0.5744,
+   "hi": 0.825,
+   "pairs": 211,
+   "accounts": 27,
+   "likes_ratio": {
+    "ratio": 1.825,
+    "lo": 1.188,
+    "hi": 2.725,
+    "accounts_with_both": 29,
+    "posts_with": 241,
+    "posts_without": 33
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 2.092,
+    "lo": 1.422,
+    "hi": 2.89
+   }
+  },
+  "reposts": {
+   "win_rate": 0.7338,
+   "lo": 0.6186,
+   "hi": 0.8226,
+   "pairs": 214,
+   "accounts": 29,
+   "likes_ratio": {
+    "ratio": 2.268,
+    "lo": 1.295,
+    "hi": 3.759,
+    "accounts_with_both": 29,
+    "posts_with": 239,
+    "posts_without": 33
+   }
+  },
+  "periods": {
+   "before_2026_04_23": {
+    "win_rate": 0.7674,
+    "lo": 0.6467,
+    "hi": 0.8529,
+    "pairs": 149,
+    "accounts": 18,
+    "likes_ratio": {
+     "ratio": 2.049,
+     "lo": 1.253,
+     "hi": 3.226,
+     "accounts_with_both": 20,
+     "posts_with": 157,
+     "posts_without": 24
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 2.217,
+     "lo": 1.425,
+     "hi": 3.322
+    }
+   },
+   "from_2026_04_23": {
+    "win_rate": 0.5125,
+    "lo": 0.0,
+    "hi": 1.0,
+    "pairs": 18,
+    "accounts": 4,
+    "adjusted_likes_ratio": {
+     "ratio": 1.972,
+     "lo": 0.238,
+     "hi": 15.625
+    }
+   }
+  },
+  "tiers": {
+   "under_100k": {
+    "win_rate": 0.533,
+    "lo": 0.2379,
+    "hi": 0.8638,
+    "pairs": 41,
+    "accounts": 10,
+    "likes_ratio": {
+     "ratio": 1.359,
+     "lo": 0.796,
+     "hi": 2.421,
+     "accounts_with_both": 11,
+     "posts_with": 68,
+     "posts_without": 11
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 2.008,
+     "lo": 1.062,
+     "hi": 4.032
+    }
+   },
+   "100k_plus": {
+    "win_rate": 0.7889,
+    "lo": 0.6273,
+    "hi": 0.8973,
+    "pairs": 103,
+    "accounts": 7,
+    "likes_ratio": {
+     "ratio": 2.304,
+     "lo": 1.078,
+     "hi": 4.348,
+     "accounts_with_both": 8,
+     "posts_with": 121,
+     "posts_without": 9
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 2.551,
+     "lo": 1.12,
+     "hi": 5.102
+    }
+   }
+  },
+  "model_releases_only": {
+   "win_rate": 0.8175,
+   "lo": 0.4891,
+   "hi": 0.8571,
+   "pairs": 62,
+   "accounts": 9,
+   "likes_ratio": {
+    "ratio": 1.901,
+    "lo": 1.106,
+    "hi": 2.747,
+    "accounts_with_both": 10,
+    "posts_with": 72,
+    "posts_without": 11
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 2.212,
+    "lo": 1.074,
+    "hi": 3.906
+   }
+  },
+  "posts_with_trait_main": 47,
+  "measured_as": "offer_credits_discount",
+  "flipped": true
+ },
+ "no_price_stated": {
+  "description": "the post states no price",
+  "win_rate": 0.6496,
+  "lo": 0.4484,
+  "hi": 0.8246,
+  "pairs": 159,
+  "accounts": 18,
+  "supported": false,
+  "status": "too_thin",
+  "grade": null,
+  "level": "every account pooled (too thin among company and founder accounts)",
+  "outcome": "likes relative to the account's trailing median",
+  "design": "same account, launch-type posts, posting order balanced",
+  "likes_ratio": {
+   "ratio": 0.967,
+   "lo": 0.574,
+   "hi": 1.577,
+   "accounts_with_both": 21,
+   "posts_with": 195,
+   "posts_without": 22
+  },
+  "adjusted_likes_ratio": {
+   "ratio": 1.073,
+   "lo": 0.632,
+   "hi": 1.815
+  },
+  "tests_passed_main": {
+   "pairs": false,
+   "ratio": false,
+   "adjusted": false
+  },
+  "strict_subset": {
+   "win_rate": 0.742,
+   "lo": 0.5689,
+   "hi": 0.95,
+   "pairs": 76,
+   "accounts": 7,
+   "likes_ratio": {
+    "ratio": 2.475,
+    "lo": 1.377,
+    "hi": 4.464,
+    "accounts_with_both": 7,
+    "posts_with": 74,
+    "posts_without": 8
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 2.217,
+    "lo": 1.182,
+    "hi": 4.167
+   },
+   "tests_passed": {
+    "pairs": true,
+    "ratio": true,
+    "adjusted": true
+   }
+  },
+  "all_accounts": {
+   "win_rate": 0.6496,
+   "lo": 0.4484,
+   "hi": 0.8246,
+   "pairs": 159,
+   "accounts": 18,
+   "likes_ratio": {
+    "ratio": 0.967,
+    "lo": 0.574,
+    "hi": 1.577,
+    "accounts_with_both": 21,
+    "posts_with": 195,
+    "posts_without": 22
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 1.073,
+    "lo": 0.632,
+    "hi": 1.815
+   }
+  },
+  "reposts": {
+   "win_rate": 0.6117,
+   "lo": 0.4694,
+   "hi": 0.7424,
+   "pairs": 162,
+   "accounts": 18,
+   "likes_ratio": {
+    "ratio": 0.86,
+    "lo": 0.443,
+    "hi": 1.647,
+    "accounts_with_both": 21,
+    "posts_with": 194,
+    "posts_without": 22
+   }
+  },
+  "periods": {
+   "before_2026_04_23": {
+    "win_rate": 0.7095,
+    "lo": 0.361,
+    "hi": 0.898,
+    "pairs": 68,
+    "accounts": 11,
+    "likes_ratio": {
+     "ratio": 1.274,
+     "lo": 0.66,
+     "hi": 2.237,
+     "accounts_with_both": 14,
+     "posts_with": 85,
+     "posts_without": 14
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 1.377,
+     "lo": 0.712,
+     "hi": 2.481
+    }
+   },
+   "from_2026_04_23": {
+    "win_rate": 0.6378,
+    "lo": 0.3125,
+    "hi": 0.8611,
+    "pairs": 34,
+    "accounts": 4,
+    "adjusted_likes_ratio": {
+     "ratio": 2.273,
+     "lo": 0.441,
+     "hi": 16.393
+    }
+   }
+  },
+  "tiers": {
+   "under_100k": {
+    "win_rate": 0.4375,
+    "lo": 0.2,
+    "hi": 0.75,
+    "pairs": 20,
+    "accounts": 6,
+    "likes_ratio": {
+     "ratio": 0.553,
+     "lo": 0.177,
+     "hi": 1.585,
+     "accounts_with_both": 7,
+     "posts_with": 34,
+     "posts_without": 7
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 0.686,
+     "lo": 0.191,
+     "hi": 2.793
+    }
+   },
+   "100k_plus": {
+    "win_rate": 0.6756,
+    "lo": 0.43,
+    "hi": 0.8823,
+    "pairs": 131,
+    "accounts": 10,
+    "likes_ratio": {
+     "ratio": 1.229,
+     "lo": 0.716,
+     "hi": 2.092,
+     "accounts_with_both": 12,
+     "posts_with": 147,
+     "posts_without": 13
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 1.534,
+     "lo": 0.837,
+     "hi": 2.646
+    }
+   }
+  },
+  "model_releases_only": {
+   "win_rate": 0.581,
+   "lo": 0.2737,
+   "hi": 0.8758,
+   "pairs": 74,
+   "accounts": 11,
+   "likes_ratio": {
+    "ratio": 0.958,
+    "lo": 0.374,
+    "hi": 2.37,
+    "accounts_with_both": 11,
+    "posts_with": 75,
+    "posts_without": 12
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 0.885,
+    "lo": 0.323,
+    "hi": 1.815
+   }
+  },
+  "posts_with_trait_main": 27,
+  "measured_as": "price_stated",
+  "flipped": true
+ },
+ "names_customer": {
+  "description": "the post names users or customers as proof (used by, trusted by, customers like, teams at, in production at)",
+  "win_rate": 0.4434,
+  "lo": 0.3308,
+  "hi": 0.6019,
+  "pairs": 178,
+  "accounts": 25,
+  "supported": false,
+  "status": "too_thin",
+  "grade": null,
+  "level": "every account pooled (too thin among company and founder accounts)",
+  "outcome": "likes relative to the account's trailing median",
+  "design": "same account, launch-type posts, posting order balanced",
+  "likes_ratio": {
+   "ratio": 1.611,
+   "lo": 0.901,
+   "hi": 3.208,
+   "accounts_with_both": 30,
+   "posts_with": 32,
+   "posts_without": 293
+  },
+  "adjusted_likes_ratio": {
+   "ratio": 1.38,
+   "lo": 0.774,
+   "hi": 2.671
+  },
+  "tests_passed_main": {
+   "pairs": false,
+   "ratio": false,
+   "adjusted": false
+  },
+  "strict_subset": {
+   "win_rate": 0.4451,
+   "lo": 0.3143,
+   "hi": 0.8846,
+   "pairs": 54,
+   "accounts": 9,
+   "likes_ratio": {
+    "ratio": 2.351,
+    "lo": 0.814,
+    "hi": 9.139,
+    "accounts_with_both": 9,
+    "posts_with": 11,
+    "posts_without": 75
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 2.397,
+    "lo": 0.718,
+    "hi": 9.551
+   },
+   "tests_passed": {
+    "pairs": false,
+    "ratio": false,
+    "adjusted": false
+   }
+  },
+  "all_accounts": {
+   "win_rate": 0.4434,
+   "lo": 0.3308,
+   "hi": 0.6019,
+   "pairs": 178,
+   "accounts": 25,
+   "likes_ratio": {
+    "ratio": 1.611,
+    "lo": 0.901,
+    "hi": 3.208,
+    "accounts_with_both": 30,
+    "posts_with": 32,
+    "posts_without": 293
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 1.38,
+    "lo": 0.774,
+    "hi": 2.671
+   }
+  },
+  "reposts": {
+   "win_rate": 0.5253,
+   "lo": 0.3988,
+   "hi": 0.6931,
+   "pairs": 179,
+   "accounts": 25,
+   "likes_ratio": {
+    "ratio": 2.185,
+    "lo": 1.172,
+    "hi": 4.381,
+    "accounts_with_both": 30,
+    "posts_with": 32,
+    "posts_without": 291
+   }
+  },
+  "periods": {
+   "before_2026_04_23": {
+    "win_rate": 0.5181,
+    "lo": 0.3756,
+    "hi": 0.6692,
+    "pairs": 124,
+    "accounts": 20,
+    "likes_ratio": {
+     "ratio": 1.468,
+     "lo": 0.879,
+     "hi": 2.558,
+     "accounts_with_both": 24,
+     "posts_with": 25,
+     "posts_without": 202
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 1.195,
+     "lo": 0.692,
+     "hi": 2.146
+    }
+   },
+   "from_2026_04_23": {
+    "win_rate": 0.1,
+    "lo": 0.0,
+    "hi": 0.1,
+    "pairs": 7,
+    "accounts": 2,
+    "adjusted_likes_ratio": {
+     "ratio": 0.66,
+     "lo": 0.165,
+     "hi": 2.157
+    }
+   }
+  },
+  "tiers": {
+   "under_100k": {
+    "win_rate": 0.4652,
+    "lo": 0.2875,
+    "hi": 0.6791,
+    "pairs": 52,
+    "accounts": 11,
+    "likes_ratio": {
+     "ratio": 1.71,
+     "lo": 0.664,
+     "hi": 5.288,
+     "accounts_with_both": 15,
+     "posts_with": 17,
+     "posts_without": 76
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 1.088,
+     "lo": 0.409,
+     "hi": 3.859
+    }
+   },
+   "100k_plus": {
+    "win_rate": 0.3806,
+    "lo": 0.2185,
+    "hi": 0.6516,
+    "pairs": 100,
+    "accounts": 7,
+    "likes_ratio": {
+     "ratio": 1.335,
+     "lo": 0.639,
+     "hi": 3.493,
+     "accounts_with_both": 8,
+     "posts_with": 8,
+     "posts_without": 180
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 1.696,
+     "lo": 0.937,
+     "hi": 3.636
+    }
+   }
+  },
+  "model_releases_only": {
+   "win_rate": 0.4105,
+   "lo": 0.1667,
+   "hi": 0.5152,
+   "pairs": 39,
+   "accounts": 6,
+   "likes_ratio": {
+    "ratio": 0.687,
+    "lo": 0.423,
+    "hi": 1.077,
+    "accounts_with_both": 6,
+    "posts_with": 6,
+    "posts_without": 61
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 0.732,
+    "lo": 0.28,
+    "hi": 1.534
+   }
+  },
+  "posts_with_trait_main": 41,
+  "measured_as": "names_customer",
+  "flipped": false
+ },
+ "backed_by": {
+  "description": "the post names investors or an accelerator (backed by, led by, YC batch, a16z, Sequoia)",
+  "win_rate": 0.5125,
+  "lo": 0.395,
+  "hi": 0.6458,
+  "pairs": 178,
+  "accounts": 34,
+  "supported": false,
+  "status": "too_thin",
+  "grade": null,
+  "level": "every account pooled (too thin among company and founder accounts)",
+  "outcome": "likes relative to the account's trailing median",
+  "design": "same account, launch-type posts, posting order balanced",
+  "likes_ratio": {
+   "ratio": 1.278,
+   "lo": 0.879,
+   "hi": 1.961,
+   "accounts_with_both": 41,
+   "posts_with": 48,
+   "posts_without": 220
+  },
+  "adjusted_likes_ratio": {
+   "ratio": 1.245,
+   "lo": 0.917,
+   "hi": 1.803
+  },
+  "tests_passed_main": {
+   "pairs": false,
+   "ratio": false,
+   "adjusted": false
+  },
+  "strict_subset": {
+   "win_rate": 0.3656,
+   "lo": 0.2976,
+   "hi": 0.5152,
+   "pairs": 72,
+   "accounts": 12,
+   "likes_ratio": {
+    "ratio": 1.066,
+    "lo": 0.681,
+    "hi": 2.051,
+    "accounts_with_both": 15,
+    "posts_with": 18,
+    "posts_without": 74
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 1.043,
+    "lo": 0.646,
+    "hi": 2.064
+   },
+   "tests_passed": {
+    "pairs": false,
+    "ratio": false,
+    "adjusted": false
+   }
+  },
+  "all_accounts": {
+   "win_rate": 0.5125,
+   "lo": 0.395,
+   "hi": 0.6458,
+   "pairs": 178,
+   "accounts": 34,
+   "likes_ratio": {
+    "ratio": 1.278,
+    "lo": 0.879,
+    "hi": 1.961,
+    "accounts_with_both": 41,
+    "posts_with": 48,
+    "posts_without": 220
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 1.245,
+    "lo": 0.917,
+    "hi": 1.803
+   }
+  },
+  "reposts": {
+   "win_rate": 0.4558,
+   "lo": 0.2933,
+   "hi": 0.6128,
+   "pairs": 176,
+   "accounts": 34,
+   "likes_ratio": {
+    "ratio": 0.996,
+    "lo": 0.631,
+    "hi": 1.605,
+    "accounts_with_both": 41,
+    "posts_with": 48,
+    "posts_without": 220
+   }
+  },
+  "periods": {
+   "before_2026_04_23": {
+    "win_rate": 0.5235,
+    "lo": 0.3928,
+    "hi": 0.6654,
+    "pairs": 152,
+    "accounts": 29,
+    "likes_ratio": {
+     "ratio": 1.423,
+     "lo": 0.907,
+     "hi": 2.319,
+     "accounts_with_both": 32,
+     "posts_with": 37,
+     "posts_without": 159
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 1.324,
+     "lo": 0.878,
+     "hi": 1.932
+    }
+   },
+   "from_2026_04_23": {
+    "win_rate": 0.5227,
+    "lo": 0.2727,
+    "hi": 0.6299,
+    "pairs": 17,
+    "accounts": 4,
+    "adjusted_likes_ratio": {
+     "ratio": 1.148,
+     "lo": 0.285,
+     "hi": 19.583
+    }
+   }
+  },
+  "tiers": {
+   "under_100k": {
+    "win_rate": 0.756,
+    "lo": 0.5779,
+    "hi": 0.9097,
+    "pairs": 37,
+    "accounts": 16,
+    "likes_ratio": {
+     "ratio": 2.507,
+     "lo": 1.49,
+     "hi": 4.46,
+     "accounts_with_both": 22,
+     "posts_with": 23,
+     "posts_without": 51
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 2.07,
+     "lo": 1.351,
+     "hi": 3.524
+    }
+   },
+   "100k_plus": {
+    "win_rate": 0.4587,
+    "lo": 0.2321,
+    "hi": 0.5947,
+    "pairs": 87,
+    "accounts": 7,
+    "likes_ratio": {
+     "ratio": 0.693,
+     "lo": 0.414,
+     "hi": 1.223,
+     "accounts_with_both": 7,
+     "posts_with": 12,
+     "posts_without": 111
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 0.758,
+     "lo": 0.519,
+     "hi": 1.406
+    }
+   }
+  },
+  "model_releases_only": {
+   "win_rate": 0.3306,
+   "lo": 0.0938,
+   "hi": 0.477,
+   "pairs": 100,
+   "accounts": 9,
+   "likes_ratio": {
+    "ratio": 0.668,
+    "lo": 0.482,
+    "hi": 0.953,
+    "accounts_with_both": 12,
+    "posts_with": 17,
+    "posts_without": 95
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 0.779,
+    "lo": 0.527,
+    "hi": 1.132
+   }
+  },
+  "posts_with_trait_main": 86,
+  "measured_as": "backed_by",
+  "flipped": false
+ },
+ "number_anywhere": {
+  "description": "the post contains a quantified claim (a number with a unit, a percentage, a multiple or a money amount) anywhere in the text",
+  "win_rate": 0.5537,
+  "lo": 0.5026,
+  "hi": 0.6075,
+  "pairs": 1759,
+  "accounts": 165,
+  "supported": false,
+  "status": "leaning",
+  "grade": null,
+  "level": "company and founder accounts",
+  "outcome": "likes relative to the account's trailing median",
+  "design": "same account, launch-type posts, posting order balanced",
+  "likes_ratio": {
+   "ratio": 1.152,
+   "lo": 0.987,
+   "hi": 1.345,
+   "accounts_with_both": 171,
+   "posts_with": 438,
+   "posts_without": 875
+  },
+  "adjusted_likes_ratio": {
+   "ratio": 1.034,
+   "lo": 0.885,
+   "hi": 1.211
+  },
+  "tests_passed_main": {
+   "pairs": true,
+   "ratio": false,
+   "adjusted": false
+  },
+  "strict_subset": {
+   "win_rate": 0.5329,
+   "lo": 0.4578,
+   "hi": 0.6044,
+   "pairs": 904,
+   "accounts": 88,
+   "likes_ratio": {
+    "ratio": 1.156,
+    "lo": 0.937,
+    "hi": 1.432,
+    "accounts_with_both": 95,
+    "posts_with": 228,
+    "posts_without": 447
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 1.067,
+    "lo": 0.859,
+    "hi": 1.343
+   },
+   "tests_passed": {
+    "pairs": false,
+    "ratio": false,
+    "adjusted": false
+   }
+  },
+  "all_accounts": {
+   "win_rate": 0.5541,
+   "lo": 0.5065,
+   "hi": 0.6018,
+   "pairs": 2061,
+   "accounts": 247,
+   "likes_ratio": {
+    "ratio": 1.194,
+    "lo": 1.045,
+    "hi": 1.366,
+    "accounts_with_both": 277,
+    "posts_with": 591,
+    "posts_without": 1157
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 1.073,
+    "lo": 0.93,
+    "hi": 1.229
+   }
+  },
+  "reposts": {
+   "win_rate": 0.5422,
+   "lo": 0.4988,
+   "hi": 0.5922,
+   "pairs": 1771,
+   "accounts": 164,
+   "likes_ratio": {
+    "ratio": 1.156,
+    "lo": 0.954,
+    "hi": 1.375,
+    "accounts_with_both": 171,
+    "posts_with": 437,
+    "posts_without": 871
+   }
+  },
+  "periods": {
+   "before_2026_04_23": {
+    "win_rate": 0.5305,
+    "lo": 0.4728,
+    "hi": 0.5903,
+    "pairs": 1262,
+    "accounts": 172,
+    "likes_ratio": {
+     "ratio": 1.177,
+     "lo": 1.014,
+     "hi": 1.369,
+     "accounts_with_both": 190,
+     "posts_with": 379,
+     "posts_without": 732
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 1.046,
+     "lo": 0.863,
+     "hi": 1.232
+    }
+   },
+   "from_2026_04_23": {
+    "win_rate": 0.6026,
+    "lo": 0.5031,
+    "hi": 0.6992,
+    "pairs": 329,
+    "accounts": 66,
+    "likes_ratio": {
+     "ratio": 1.25,
+     "lo": 0.946,
+     "hi": 1.662,
+     "accounts_with_both": 71,
+     "posts_with": 127,
+     "posts_without": 191
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 1.302,
+     "lo": 0.987,
+     "hi": 1.764
+    }
+   }
+  },
+  "tiers": {
+   "under_100k": {
+    "win_rate": 0.5697,
+    "lo": 0.4915,
+    "hi": 0.6365,
+    "pairs": 654,
+    "accounts": 113,
+    "likes_ratio": {
+     "ratio": 1.404,
+     "lo": 1.11,
+     "hi": 1.794,
+     "accounts_with_both": 131,
+     "posts_with": 234,
+     "posts_without": 390
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 1.141,
+     "lo": 0.905,
+     "hi": 1.451
+    }
+   },
+   "100k_plus": {
+    "win_rate": 0.561,
+    "lo": 0.4856,
+    "hi": 0.6399,
+    "pairs": 1000,
+    "accounts": 61,
+    "likes_ratio": {
+     "ratio": 1.129,
+     "lo": 0.949,
+     "hi": 1.33,
+     "accounts_with_both": 67,
+     "posts_with": 219,
+     "posts_without": 500
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 1.088,
+     "lo": 0.905,
+     "hi": 1.321
+    }
+   }
+  },
+  "model_releases_only": {
+   "win_rate": 0.5285,
+   "lo": 0.4578,
+   "hi": 0.5962,
+   "pairs": 896,
+   "accounts": 86,
+   "likes_ratio": {
+    "ratio": 1.121,
+    "lo": 0.914,
+    "hi": 1.339,
+    "accounts_with_both": 101,
+    "posts_with": 271,
+    "posts_without": 409
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 1.009,
+    "lo": 0.791,
+    "hi": 1.253
+   }
+  },
+  "posts_with_trait_main": 568,
+  "measured_as": "number_anywhere",
+  "flipped": false
+ },
+ "benchmark_claim": {
+  "description": "the post cites a benchmark or a measured comparison anywhere (benchmark names, state of the art, x times faster, scores, leaderboard)",
+  "win_rate": 0.5452,
+  "lo": 0.4873,
+  "hi": 0.6045,
+  "pairs": 1359,
+  "accounts": 106,
+  "supported": false,
+  "status": "leaning",
+  "grade": null,
+  "level": "company and founder accounts",
+  "outcome": "likes relative to the account's trailing median",
+  "design": "same account, launch-type posts, posting order balanced",
+  "likes_ratio": {
+   "ratio": 1.258,
+   "lo": 1.029,
+   "hi": 1.551,
+   "accounts_with_both": 111,
+   "posts_with": 293,
+   "posts_without": 727
+  },
+  "adjusted_likes_ratio": {
+   "ratio": 1.097,
+   "lo": 0.934,
+   "hi": 1.298
+  },
+  "tests_passed_main": {
+   "pairs": false,
+   "ratio": true,
+   "adjusted": false
+  },
+  "strict_subset": {
+   "win_rate": 0.505,
+   "lo": 0.4302,
+   "hi": 0.5859,
+   "pairs": 770,
+   "accounts": 65,
+   "likes_ratio": {
+    "ratio": 1.167,
+    "lo": 0.904,
+    "hi": 1.526,
+    "accounts_with_both": 68,
+    "posts_with": 177,
+    "posts_without": 364
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 1.044,
+    "lo": 0.846,
+    "hi": 1.334
+   },
+   "tests_passed": {
+    "pairs": false,
+    "ratio": false,
+    "adjusted": false
+   }
+  },
+  "all_accounts": {
+   "win_rate": 0.5529,
+   "lo": 0.4989,
+   "hi": 0.6054,
+   "pairs": 1507,
+   "accounts": 151,
+   "likes_ratio": {
+    "ratio": 1.192,
+    "lo": 1.003,
+    "hi": 1.418,
+    "accounts_with_both": 170,
+    "posts_with": 374,
+    "posts_without": 895
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 1.074,
+    "lo": 0.911,
+    "hi": 1.257
+   }
+  },
+  "reposts": {
+   "win_rate": 0.5183,
+   "lo": 0.4631,
+   "hi": 0.5775,
+   "pairs": 1373,
+   "accounts": 105,
+   "likes_ratio": {
+    "ratio": 1.187,
+    "lo": 0.92,
+    "hi": 1.54,
+    "accounts_with_both": 111,
+    "posts_with": 291,
+    "posts_without": 726
+   }
+  },
+  "periods": {
+   "before_2026_04_23": {
+    "win_rate": 0.5481,
+    "lo": 0.4836,
+    "hi": 0.6122,
+    "pairs": 915,
+    "accounts": 112,
+    "likes_ratio": {
+     "ratio": 1.282,
+     "lo": 1.052,
+     "hi": 1.572,
+     "accounts_with_both": 127,
+     "posts_with": 254,
+     "posts_without": 545
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 1.126,
+     "lo": 0.942,
+     "hi": 1.352
+    }
+   },
+   "from_2026_04_23": {
+    "win_rate": 0.5093,
+    "lo": 0.3804,
+    "hi": 0.6337,
+    "pairs": 296,
+    "accounts": 50,
+    "likes_ratio": {
+     "ratio": 1.009,
+     "lo": 0.74,
+     "hi": 1.409,
+     "accounts_with_both": 53,
+     "posts_with": 85,
+     "posts_without": 178
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 0.892,
+     "lo": 0.607,
+     "hi": 1.204
+    }
+   }
+  },
+  "tiers": {
+   "under_100k": {
+    "win_rate": 0.6374,
+    "lo": 0.5516,
+    "hi": 0.7356,
+    "pairs": 449,
+    "accounts": 64,
+    "likes_ratio": {
+     "ratio": 1.702,
+     "lo": 1.293,
+     "hi": 2.265,
+     "accounts_with_both": 77,
+     "posts_with": 137,
+     "posts_without": 274
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 1.508,
+     "lo": 1.181,
+     "hi": 2.001
+    }
+   },
+   "100k_plus": {
+    "win_rate": 0.5201,
+    "lo": 0.4356,
+    "hi": 0.5993,
+    "pairs": 750,
+    "accounts": 37,
+    "likes_ratio": {
+     "ratio": 0.995,
+     "lo": 0.797,
+     "hi": 1.228,
+     "accounts_with_both": 41,
+     "posts_with": 153,
+     "posts_without": 403
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 0.881,
+     "lo": 0.747,
+     "hi": 1.031
+    }
+   }
+  },
+  "model_releases_only": {
+   "win_rate": 0.5213,
+   "lo": 0.4503,
+   "hi": 0.5911,
+   "pairs": 797,
+   "accounts": 82,
+   "likes_ratio": {
+    "ratio": 1.045,
+    "lo": 0.852,
+    "hi": 1.302,
+    "accounts_with_both": 92,
+    "posts_with": 223,
+    "posts_without": 398
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 0.994,
+    "lo": 0.802,
+    "hi": 1.24
+   }
+  },
+  "posts_with_trait_main": 362,
+  "measured_as": "benchmark_claim",
+  "flipped": false
+ },
+ "compares_named": {
+  "description": "the post compares the product with a named competitor or incumbent (vs, better than, alternative to, outperforms + a known product name; or 'the X for Y' / 'X killer')",
+  "win_rate": 0.5907,
+  "lo": 0.4263,
+  "hi": 0.7444,
+  "pairs": 301,
+  "accounts": 33,
+  "supported": false,
+  "status": "none",
+  "grade": null,
+  "level": "company and founder accounts",
+  "outcome": "likes relative to the account's trailing median",
+  "design": "same account, launch-type posts, posting order balanced",
+  "likes_ratio": {
+   "ratio": 1.442,
+   "lo": 0.828,
+   "hi": 2.688,
+   "accounts_with_both": 33,
+   "posts_with": 43,
+   "posts_without": 391
+  },
+  "adjusted_likes_ratio": {
+   "ratio": 1.313,
+   "lo": 0.831,
+   "hi": 2.168
+  },
+  "tests_passed_main": {
+   "pairs": false,
+   "ratio": false,
+   "adjusted": false
+  },
+  "strict_subset": {
+   "win_rate": 0.4971,
+   "lo": 0.3803,
+   "hi": 0.6686,
+   "pairs": 140,
+   "accounts": 19,
+   "likes_ratio": {
+    "ratio": 1.186,
+    "lo": 0.672,
+    "hi": 2.284,
+    "accounts_with_both": 19,
+    "posts_with": 24,
+    "posts_without": 130
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 1.198,
+    "lo": 0.774,
+    "hi": 2.289
+   },
+   "tests_passed": {
+    "pairs": false,
+    "ratio": false,
+    "adjusted": false
+   }
+  },
+  "all_accounts": {
+   "win_rate": 0.5817,
+   "lo": 0.4482,
+   "hi": 0.7241,
+   "pairs": 340,
+   "accounts": 42,
+   "likes_ratio": {
+    "ratio": 1.276,
+    "lo": 0.799,
+    "hi": 2.115,
+    "accounts_with_both": 42,
+    "posts_with": 54,
+    "posts_without": 434
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 1.13,
+    "lo": 0.743,
+    "hi": 1.719
+   }
+  },
+  "reposts": {
+   "win_rate": 0.5655,
+   "lo": 0.4256,
+   "hi": 0.7069,
+   "pairs": 305,
+   "accounts": 32,
+   "likes_ratio": {
+    "ratio": 1.504,
+    "lo": 0.848,
+    "hi": 2.813,
+    "accounts_with_both": 33,
+    "posts_with": 43,
+    "posts_without": 389
+   }
+  },
+  "periods": {
+   "before_2026_04_23": {
+    "win_rate": 0.5359,
+    "lo": 0.3749,
+    "hi": 0.707,
+    "pairs": 265,
+    "accounts": 32,
+    "likes_ratio": {
+     "ratio": 1.379,
+     "lo": 0.79,
+     "hi": 2.64,
+     "accounts_with_both": 33,
+     "posts_with": 44,
+     "posts_without": 266
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 1.2,
+     "lo": 0.746,
+     "hi": 1.975
+    }
+   },
+   "from_2026_04_23": {
+    "win_rate": 0.6077,
+    "lo": 0.3667,
+    "hi": 0.8125,
+    "pairs": 18,
+    "accounts": 7,
+    "likes_ratio": {
+     "ratio": 1.217,
+     "lo": 0.566,
+     "hi": 2.842,
+     "accounts_with_both": 7,
+     "posts_with": 7,
+     "posts_without": 23
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 1.173,
+     "lo": 0.366,
+     "hi": 3.267
+    }
+   }
+  },
+  "tiers": {
+   "under_100k": {
+    "win_rate": 0.6708,
+    "lo": 0.4524,
+    "hi": 0.8316,
+    "pairs": 109,
+    "accounts": 14,
+    "likes_ratio": {
+     "ratio": 2.261,
+     "lo": 0.963,
+     "hi": 5.197,
+     "accounts_with_both": 14,
+     "posts_with": 19,
+     "posts_without": 89
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 1.52,
+     "lo": 0.787,
+     "hi": 2.681
+    }
+   },
+   "100k_plus": {
+    "win_rate": 0.4926,
+    "lo": 0.3468,
+    "hi": 0.7064,
+    "pairs": 187,
+    "accounts": 16,
+    "likes_ratio": {
+     "ratio": 0.762,
+     "lo": 0.507,
+     "hi": 1.334,
+     "accounts_with_both": 16,
+     "posts_with": 23,
+     "posts_without": 277
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 0.706,
+     "lo": 0.488,
+     "hi": 1.278
+    }
+   }
+  },
+  "model_releases_only": {
+   "win_rate": 0.5685,
+   "lo": 0.3792,
+   "hi": 0.8221,
+   "pairs": 188,
+   "accounts": 24,
+   "likes_ratio": {
+    "ratio": 1.22,
+    "lo": 0.717,
+    "hi": 2.298,
+    "accounts_with_both": 24,
+    "posts_with": 33,
+    "posts_without": 209
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 1.232,
+    "lo": 0.747,
+    "hi": 2.369
+   }
+  },
+  "posts_with_trait_main": 47,
+  "measured_as": "compares_named",
+  "flipped": false
+ },
+ "analogy_pitch": {
+  "description": "the pitch is an analogy to a known product ('Cursor for X', 'the Stripe of Y', 'like ChatGPT but')",
+  "win_rate": 0.4586,
+  "lo": 0.3553,
+  "hi": 0.8,
+  "pairs": 92,
+  "accounts": 9,
+  "supported": false,
+  "status": "too_thin",
+  "grade": null,
+  "level": "every account pooled (too thin among company and founder accounts)",
+  "outcome": "likes relative to the account's trailing median",
+  "design": "same account, launch-type posts, posting order balanced",
+  "likes_ratio": {
+   "ratio": 1.252,
+   "lo": 0.682,
+   "hi": 2.56,
+   "accounts_with_both": 9,
+   "posts_with": 10,
+   "posts_without": 120
+  },
+  "adjusted_likes_ratio": {
+   "ratio": 0.867,
+   "lo": 0.422,
+   "hi": 2.025
+  },
+  "tests_passed_main": {
+   "pairs": false,
+   "ratio": false,
+   "adjusted": false
+  },
+  "strict_subset": {
+   "win_rate": 0.3852,
+   "lo": 0.1855,
+   "hi": 0.9,
+   "pairs": 75,
+   "accounts": 5,
+   "likes_ratio": {
+    "ratio": 1.154,
+    "lo": 0.49,
+    "hi": 4.119,
+    "accounts_with_both": 5,
+    "posts_with": 6,
+    "posts_without": 67
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 0.877,
+    "lo": 0.237,
+    "hi": 3.876
+   },
+   "tests_passed": {
+    "pairs": false,
+    "ratio": false,
+    "adjusted": false
+   }
+  },
+  "all_accounts": {
+   "win_rate": 0.4586,
+   "lo": 0.3553,
+   "hi": 0.8,
+   "pairs": 92,
+   "accounts": 9,
+   "likes_ratio": {
+    "ratio": 1.252,
+    "lo": 0.682,
+    "hi": 2.56,
+    "accounts_with_both": 9,
+    "posts_with": 10,
+    "posts_without": 120
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 0.867,
+    "lo": 0.422,
+    "hi": 2.025
+   }
+  },
+  "reposts": {
+   "win_rate": 0.5532,
+   "lo": 0.4785,
+   "hi": 0.8846,
+   "pairs": 92,
+   "accounts": 8,
+   "likes_ratio": {
+    "ratio": 1.422,
+    "lo": 0.716,
+    "hi": 3.003,
+    "accounts_with_both": 9,
+    "posts_with": 10,
+    "posts_without": 119
+   }
+  },
+  "periods": {
+   "before_2026_04_23": {
+    "win_rate": 0.4319,
+    "lo": 0.36,
+    "hi": 0.875,
+    "pairs": 63,
+    "accounts": 7,
+    "likes_ratio": {
+     "ratio": 1.495,
+     "lo": 0.717,
+     "hi": 4.679,
+     "accounts_with_both": 7,
+     "posts_with": 8,
+     "posts_without": 64
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 0.883,
+     "lo": 0.324,
+     "hi": 3.954
+    }
+   },
+   "from_2026_04_23": {
+    "win_rate": 0.3929,
+    "lo": 0.3929,
+    "hi": 0.3929,
+    "pairs": 13,
+    "accounts": 1,
+    "adjusted_likes_ratio": {
+     "ratio": 0.997,
+     "lo": 0.369,
+     "hi": 2.45
+    }
+   }
+  },
+  "tiers": {
+   "under_100k": {
+    "win_rate": 1.0,
+    "lo": 1.0,
+    "hi": 1.0,
+    "pairs": 5,
+    "accounts": 2,
+    "adjusted_likes_ratio": {
+     "ratio": 1.601,
+     "lo": 0.357,
+     "hi": 4.177
+    }
+   },
+   "100k_plus": {
+    "win_rate": 0.4241,
+    "lo": 0.3384,
+    "hi": 0.5,
+    "pairs": 79,
+    "accounts": 3,
+    "adjusted_likes_ratio": {
+     "ratio": 0.715,
+     "lo": 0.5,
+     "hi": 1.813
+    }
+   }
+  },
+  "model_releases_only": {
+   "win_rate": 0.7778,
+   "lo": 0.7626,
+   "hi": 0.7778,
+   "pairs": 21,
+   "accounts": 2,
+   "adjusted_likes_ratio": {
+    "ratio": 1.387,
+    "lo": 0.654,
+    "hi": 2.616
+   }
+  },
+  "posts_with_trait_main": 13,
+  "measured_as": "analogy_pitch",
+  "flipped": false
+ },
+ "superlative_first": {
+  "description": "the post claims to be the first, the best or the most of something (world's first, the first, the fastest, most powerful, best)",
+  "win_rate": 0.6144,
+  "lo": 0.5599,
+  "hi": 0.669,
+  "pairs": 1500,
+  "accounts": 137,
+  "supported": true,
+  "status": "survives",
+  "grade": "A",
+  "level": "company and founder accounts",
+  "outcome": "likes relative to the account's trailing median",
+  "design": "same account, launch-type posts, posting order balanced",
+  "likes_ratio": {
+   "ratio": 1.526,
+   "lo": 1.29,
+   "hi": 1.813,
+   "accounts_with_both": 143,
+   "posts_with": 291,
+   "posts_without": 947
+  },
+  "adjusted_likes_ratio": {
+   "ratio": 1.303,
+   "lo": 1.099,
+   "hi": 1.519
+  },
+  "tests_passed_main": {
+   "pairs": true,
+   "ratio": true,
+   "adjusted": true
+  },
+  "strict_subset": {
+   "win_rate": 0.5873,
+   "lo": 0.5174,
+   "hi": 0.654,
+   "pairs": 737,
+   "accounts": 73,
+   "likes_ratio": {
+    "ratio": 1.406,
+    "lo": 1.139,
+    "hi": 1.737,
+    "accounts_with_both": 76,
+    "posts_with": 148,
+    "posts_without": 469
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 1.212,
+    "lo": 1.008,
+    "hi": 1.484
+   },
+   "tests_passed": {
+    "pairs": true,
+    "ratio": true,
+    "adjusted": true
+   }
+  },
+  "all_accounts": {
+   "win_rate": 0.6105,
+   "lo": 0.5564,
+   "hi": 0.6596,
+   "pairs": 1721,
+   "accounts": 188,
+   "likes_ratio": {
+    "ratio": 1.416,
+    "lo": 1.229,
+    "hi": 1.634,
+    "accounts_with_both": 209,
+    "posts_with": 385,
+    "posts_without": 1139
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 1.239,
+    "lo": 1.069,
+    "hi": 1.409
+   }
+  },
+  "reposts": {
+   "win_rate": 0.5671,
+   "lo": 0.509,
+   "hi": 0.6251,
+   "pairs": 1495,
+   "accounts": 135,
+   "likes_ratio": {
+    "ratio": 1.487,
+    "lo": 1.15,
+    "hi": 1.901,
+    "accounts_with_both": 140,
+    "posts_with": 287,
+    "posts_without": 932
+   }
+  },
+  "periods": {
+   "before_2026_04_23": {
+    "win_rate": 0.6091,
+    "lo": 0.5432,
+    "hi": 0.6764,
+    "pairs": 1116,
+    "accounts": 131,
+    "likes_ratio": {
+     "ratio": 1.352,
+     "lo": 1.125,
+     "hi": 1.624,
+     "accounts_with_both": 147,
+     "posts_with": 259,
+     "posts_without": 700
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 1.173,
+     "lo": 1.004,
+     "hi": 1.397
+    }
+   },
+   "from_2026_04_23": {
+    "win_rate": 0.6309,
+    "lo": 0.525,
+    "hi": 0.7328,
+    "pairs": 312,
+    "accounts": 67,
+    "likes_ratio": {
+     "ratio": 1.682,
+     "lo": 1.298,
+     "hi": 2.25,
+     "accounts_with_both": 69,
+     "posts_with": 96,
+     "posts_without": 212
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 1.508,
+     "lo": 1.124,
+     "hi": 2.04
+    }
+   }
+  },
+  "tiers": {
+   "under_100k": {
+    "win_rate": 0.5975,
+    "lo": 0.5193,
+    "hi": 0.6892,
+    "pairs": 453,
+    "accounts": 75,
+    "likes_ratio": {
+     "ratio": 1.439,
+     "lo": 1.096,
+     "hi": 1.899,
+     "accounts_with_both": 89,
+     "posts_with": 136,
+     "posts_without": 325
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 1.215,
+     "lo": 0.933,
+     "hi": 1.54
+    }
+   },
+   "100k_plus": {
+    "win_rate": 0.6338,
+    "lo": 0.5569,
+    "hi": 0.7039,
+    "pairs": 873,
+    "accounts": 57,
+    "likes_ratio": {
+     "ratio": 1.419,
+     "lo": 1.186,
+     "hi": 1.714,
+     "accounts_with_both": 61,
+     "posts_with": 154,
+     "posts_without": 547
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 1.231,
+     "lo": 1.007,
+     "hi": 1.485
+    }
+   }
+  },
+  "model_releases_only": {
+   "win_rate": 0.6335,
+   "lo": 0.5729,
+   "hi": 0.6916,
+   "pairs": 849,
+   "accounts": 79,
+   "likes_ratio": {
+    "ratio": 1.431,
+    "lo": 1.172,
+    "hi": 1.744,
+    "accounts_with_both": 87,
+    "posts_with": 198,
+    "posts_without": 436
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 1.325,
+    "lo": 1.105,
+    "hi": 1.639
+   }
+  },
+  "posts_with_trait_main": 340,
+  "measured_as": "superlative_first",
+  "flipped": false
+ },
+ "no_stated_excitement_opener": {
+  "description": "the first line does not open with stated excitement (excited / thrilled / proud to announce)",
+  "win_rate": 0.5958,
+  "lo": 0.5001,
+  "hi": 0.6848,
+  "pairs": 599,
+  "accounts": 75,
+  "supported": false,
+  "status": "leaning",
+  "grade": null,
+  "level": "company and founder accounts",
+  "outcome": "likes relative to the account's trailing median",
+  "design": "same account, launch-type posts, posting order balanced",
+  "likes_ratio": {
+   "ratio": 1.208,
+   "lo": 0.939,
+   "hi": 1.567,
+   "accounts_with_both": 79,
+   "posts_with": 583,
+   "posts_without": 124
+  },
+  "adjusted_likes_ratio": {
+   "ratio": 1.11,
+   "lo": 0.862,
+   "hi": 1.458
+  },
+  "tests_passed_main": {
+   "pairs": true,
+   "ratio": false,
+   "adjusted": false
+  },
+  "strict_subset": {
+   "win_rate": 0.6282,
+   "lo": 0.3822,
+   "hi": 0.9167,
+   "pairs": 31,
+   "accounts": 9,
+   "likes_ratio": {
+    "ratio": 0.942,
+    "lo": 0.46,
+    "hi": 1.894,
+    "accounts_with_both": 10,
+    "posts_with": 60,
+    "posts_without": 10
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 0.961,
+    "lo": 0.428,
+    "hi": 2.088
+   },
+   "tests_passed": {
+    "pairs": false,
+    "ratio": false,
+    "adjusted": false
+   }
+  },
+  "all_accounts": {
+   "win_rate": 0.559,
+   "lo": 0.4656,
+   "hi": 0.6349,
+   "pairs": 733,
+   "accounts": 126,
+   "likes_ratio": {
+    "ratio": 0.984,
+    "lo": 0.782,
+    "hi": 1.235,
+    "accounts_with_both": 145,
+    "posts_with": 721,
+    "posts_without": 212
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 0.964,
+    "lo": 0.763,
+    "hi": 1.193
+   }
+  },
+  "reposts": {
+   "win_rate": 0.6125,
+   "lo": 0.5272,
+   "hi": 0.6891,
+   "pairs": 610,
+   "accounts": 75,
+   "likes_ratio": {
+    "ratio": 1.318,
+    "lo": 0.96,
+    "hi": 1.77,
+    "accounts_with_both": 79,
+    "posts_with": 581,
+    "posts_without": 124
+   }
+  },
+  "periods": {
+   "before_2026_04_23": {
+    "win_rate": 0.5375,
+    "lo": 0.4415,
+    "hi": 0.6209,
+    "pairs": 535,
+    "accounts": 97,
+    "likes_ratio": {
+     "ratio": 0.934,
+     "lo": 0.715,
+     "hi": 1.208,
+     "accounts_with_both": 112,
+     "posts_with": 508,
+     "posts_without": 160
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 0.86,
+     "lo": 0.665,
+     "hi": 1.099
+    }
+   },
+   "from_2026_04_23": {
+    "win_rate": 0.6909,
+    "lo": 0.4853,
+    "hi": 0.8259,
+    "pairs": 42,
+    "accounts": 16,
+    "likes_ratio": {
+     "ratio": 1.02,
+     "lo": 0.538,
+     "hi": 1.825,
+     "accounts_with_both": 17,
+     "posts_with": 43,
+     "posts_without": 19
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 1.071,
+     "lo": 0.652,
+     "hi": 1.972
+    }
+   }
+  },
+  "tiers": {
+   "under_100k": {
+    "win_rate": 0.5198,
+    "lo": 0.384,
+    "hi": 0.6238,
+    "pairs": 247,
+    "accounts": 69,
+    "likes_ratio": {
+     "ratio": 0.923,
+     "lo": 0.654,
+     "hi": 1.312,
+     "accounts_with_both": 81,
+     "posts_with": 250,
+     "posts_without": 111
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 0.891,
+     "lo": 0.621,
+     "hi": 1.244
+    }
+   },
+   "100k_plus": {
+    "win_rate": 0.5748,
+    "lo": 0.4128,
+    "hi": 0.7022,
+    "pairs": 350,
+    "accounts": 31,
+    "likes_ratio": {
+     "ratio": 0.904,
+     "lo": 0.625,
+     "hi": 1.232,
+     "accounts_with_both": 37,
+     "posts_with": 363,
+     "posts_without": 62
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 0.933,
+     "lo": 0.665,
+     "hi": 1.333
+    }
+   }
+  },
+  "model_releases_only": {
+   "win_rate": 0.6761,
+   "lo": 0.558,
+   "hi": 0.7553,
+   "pairs": 247,
+   "accounts": 31,
+   "likes_ratio": {
+    "ratio": 1.172,
+    "lo": 0.84,
+    "hi": 1.572,
+    "accounts_with_both": 39,
+    "posts_with": 214,
+    "posts_without": 57
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 1.289,
+    "lo": 0.896,
+    "hi": 1.852
+   }
+  },
+  "posts_with_trait_main": 165,
+  "measured_as": "open_excited",
+  "flipped": true
+ },
+ "backstory": {
+  "description": "the post tells how long or why it was built (after N months, we spent a year, I quit my job, I built this because)",
+  "win_rate": 0.4438,
+  "lo": 0.2137,
+  "hi": 0.7379,
+  "pairs": 111,
+  "accounts": 24,
+  "supported": false,
+  "status": "too_thin",
+  "grade": null,
+  "level": "every account pooled (too thin among company and founder accounts)",
+  "outcome": "likes relative to the account's trailing median",
+  "design": "same account, launch-type posts, posting order balanced",
+  "likes_ratio": {
+   "ratio": 1.499,
+   "lo": 0.762,
+   "hi": 3.222,
+   "accounts_with_both": 29,
+   "posts_with": 32,
+   "posts_without": 164
+  },
+  "adjusted_likes_ratio": {
+   "ratio": 1.338,
+   "lo": 0.622,
+   "hi": 2.872
+  },
+  "tests_passed_main": {
+   "pairs": false,
+   "ratio": false,
+   "adjusted": false
+  },
+  "strict_subset": {
+   "win_rate": 0.2333,
+   "lo": 0.0488,
+   "hi": 0.7088,
+   "pairs": 32,
+   "accounts": 7,
+   "likes_ratio": {
+    "ratio": 1.623,
+    "lo": 0.322,
+    "hi": 10.904,
+    "accounts_with_both": 8,
+    "posts_with": 9,
+    "posts_without": 50
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 1.267,
+    "lo": 0.226,
+    "hi": 11.147
+   },
+   "tests_passed": {
+    "pairs": false,
+    "ratio": false,
+    "adjusted": false
+   }
+  },
+  "all_accounts": {
+   "win_rate": 0.4438,
+   "lo": 0.2137,
+   "hi": 0.7379,
+   "pairs": 111,
+   "accounts": 24,
+   "likes_ratio": {
+    "ratio": 1.499,
+    "lo": 0.762,
+    "hi": 3.222,
+    "accounts_with_both": 29,
+    "posts_with": 32,
+    "posts_without": 164
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 1.338,
+    "lo": 0.622,
+    "hi": 2.872
+   }
+  },
+  "reposts": {
+   "win_rate": 0.293,
+   "lo": 0.1456,
+   "hi": 0.5152,
+   "pairs": 123,
+   "accounts": 25,
+   "likes_ratio": {
+    "ratio": 0.674,
+    "lo": 0.336,
+    "hi": 1.38,
+    "accounts_with_both": 29,
+    "posts_with": 32,
+    "posts_without": 164
+   }
+  },
+  "periods": {
+   "before_2026_04_23": {
+    "win_rate": 0.3137,
+    "lo": 0.1222,
+    "hi": 0.6828,
+    "pairs": 67,
+    "accounts": 16,
+    "likes_ratio": {
+     "ratio": 1.155,
+     "lo": 0.471,
+     "hi": 3.22,
+     "accounts_with_both": 18,
+     "posts_with": 20,
+     "posts_without": 95
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 1.014,
+     "lo": 0.391,
+     "hi": 2.608
+    }
+   },
+   "from_2026_04_23": {
+    "win_rate": 0.7411,
+    "lo": 0.25,
+    "hi": 1.0,
+    "pairs": 15,
+    "accounts": 4,
+    "adjusted_likes_ratio": {
+     "ratio": 2.245,
+     "lo": 0.356,
+     "hi": 9.849
+    }
+   }
+  },
+  "tiers": {
+   "under_100k": {
+    "win_rate": 0.6274,
+    "lo": 0.2975,
+    "hi": 0.8667,
+    "pairs": 29,
+    "accounts": 9,
+    "likes_ratio": {
+     "ratio": 1.98,
+     "lo": 0.787,
+     "hi": 6.091,
+     "accounts_with_both": 12,
+     "posts_with": 14,
+     "posts_without": 34
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 1.24,
+     "lo": 0.506,
+     "hi": 3.049
+    }
+   },
+   "100k_plus": {
+    "win_rate": 0.2208,
+    "lo": 0.0167,
+    "hi": 0.875,
+    "pairs": 54,
+    "accounts": 6,
+    "likes_ratio": {
+     "ratio": 0.871,
+     "lo": 0.165,
+     "hi": 6.356,
+     "accounts_with_both": 8,
+     "posts_with": 8,
+     "posts_without": 88
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 0.787,
+     "lo": 0.126,
+     "hi": 6.238
+    }
+   }
+  },
+  "model_releases_only": {
+   "win_rate": 0.3929,
+   "lo": 0.25,
+   "hi": 0.65,
+   "pairs": 9,
+   "accounts": 6,
+   "likes_ratio": {
+    "ratio": 1.168,
+    "lo": 0.622,
+    "hi": 2.197,
+    "accounts_with_both": 11,
+    "posts_with": 12,
+    "posts_without": 19
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 1.307,
+    "lo": 0.596,
+    "hi": 2.711
+   }
+  },
+  "posts_with_trait_main": 54,
+  "measured_as": "backstory",
+  "flipped": false
+ },
+ "addresses_you": {
+  "description": "the first line addresses the reader (you, your)",
+  "win_rate": 0.5048,
+  "lo": 0.4173,
+  "hi": 0.5849,
+  "pairs": 874,
+  "accounts": 94,
+  "supported": false,
+  "status": "none",
+  "grade": null,
+  "level": "company and founder accounts",
+  "outcome": "likes relative to the account's trailing median",
+  "design": "same account, launch-type posts, posting order balanced",
+  "likes_ratio": {
+   "ratio": 0.988,
+   "lo": 0.765,
+   "hi": 1.267,
+   "accounts_with_both": 99,
+   "posts_with": 157,
+   "posts_without": 753
+  },
+  "adjusted_likes_ratio": {
+   "ratio": 1.049,
+   "lo": 0.836,
+   "hi": 1.354
+  },
+  "tests_passed_main": {
+   "pairs": false,
+   "ratio": false,
+   "adjusted": false
+  },
+  "strict_subset": {
+   "win_rate": 0.5859,
+   "lo": 0.4731,
+   "hi": 0.6766,
+   "pairs": 373,
+   "accounts": 50,
+   "likes_ratio": {
+    "ratio": 1.135,
+    "lo": 0.843,
+    "hi": 1.524,
+    "accounts_with_both": 51,
+    "posts_with": 81,
+    "posts_without": 334
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 1.289,
+    "lo": 0.975,
+    "hi": 1.784
+   },
+   "tests_passed": {
+    "pairs": false,
+    "ratio": false,
+    "adjusted": false
+   }
+  },
+  "all_accounts": {
+   "win_rate": 0.5122,
+   "lo": 0.4405,
+   "hi": 0.5775,
+   "pairs": 1063,
+   "accounts": 151,
+   "likes_ratio": {
+    "ratio": 0.938,
+    "lo": 0.774,
+    "hi": 1.147,
+    "accounts_with_both": 168,
+    "posts_with": 250,
+    "posts_without": 978
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 1.014,
+    "lo": 0.85,
+    "hi": 1.257
+   }
+  },
+  "reposts": {
+   "win_rate": 0.5391,
+   "lo": 0.4628,
+   "hi": 0.6117,
+   "pairs": 895,
+   "accounts": 96,
+   "likes_ratio": {
+    "ratio": 1.102,
+    "lo": 0.836,
+    "hi": 1.477,
+    "accounts_with_both": 99,
+    "posts_with": 157,
+    "posts_without": 750
+   }
+  },
+  "periods": {
+   "before_2026_04_23": {
+    "win_rate": 0.5524,
+    "lo": 0.4618,
+    "hi": 0.6322,
+    "pairs": 692,
+    "accounts": 108,
+    "likes_ratio": {
+     "ratio": 0.891,
+     "lo": 0.699,
+     "hi": 1.126,
+     "accounts_with_both": 120,
+     "posts_with": 174,
+     "posts_without": 617
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 0.969,
+     "lo": 0.773,
+     "hi": 1.224
+    }
+   },
+   "from_2026_04_23": {
+    "win_rate": 0.3736,
+    "lo": 0.2536,
+    "hi": 0.5427,
+    "pairs": 106,
+    "accounts": 38,
+    "likes_ratio": {
+     "ratio": 0.704,
+     "lo": 0.486,
+     "hi": 1.031,
+     "accounts_with_both": 40,
+     "posts_with": 49,
+     "posts_without": 101
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 0.917,
+     "lo": 0.571,
+     "hi": 1.532
+    }
+   }
+  },
+  "tiers": {
+   "under_100k": {
+    "win_rate": 0.612,
+    "lo": 0.5012,
+    "hi": 0.7088,
+    "pairs": 284,
+    "accounts": 72,
+    "likes_ratio": {
+     "ratio": 1.133,
+     "lo": 0.802,
+     "hi": 1.592,
+     "accounts_with_both": 80,
+     "posts_with": 105,
+     "posts_without": 318
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 1.182,
+     "lo": 0.864,
+     "hi": 1.688
+    }
+   },
+   "100k_plus": {
+    "win_rate": 0.4979,
+    "lo": 0.3853,
+    "hi": 0.5895,
+    "pairs": 559,
+    "accounts": 39,
+    "likes_ratio": {
+     "ratio": 0.836,
+     "lo": 0.63,
+     "hi": 1.065,
+     "accounts_with_both": 44,
+     "posts_with": 81,
+     "posts_without": 483
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 0.826,
+     "lo": 0.612,
+     "hi": 1.083
+    }
+   }
+  },
+  "model_releases_only": {
+   "win_rate": 0.5161,
+   "lo": 0.3654,
+   "hi": 0.639,
+   "pairs": 237,
+   "accounts": 41,
+   "likes_ratio": {
+    "ratio": 1.037,
+    "lo": 0.767,
+    "hi": 1.383,
+    "accounts_with_both": 50,
+    "posts_with": 65,
+    "posts_without": 292
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 1.02,
+    "lo": 0.74,
+    "hi": 1.432
+   }
+  },
+  "posts_with_trait_main": 213,
+  "measured_as": "addresses_you",
+  "flipped": false
+ },
+ "demo_words": {
+  "description": "the post points at a demonstration (demo, watch, see it in action, here's how it works)",
+  "win_rate": 0.5212,
+  "lo": 0.436,
+  "hi": 0.6084,
+  "pairs": 982,
+  "accounts": 109,
+  "supported": false,
+  "status": "none",
+  "grade": null,
+  "level": "company and founder accounts",
+  "outcome": "likes relative to the account's trailing median",
+  "design": "same account, launch-type posts, posting order balanced",
+  "likes_ratio": {
+   "ratio": 1.229,
+   "lo": 0.994,
+   "hi": 1.556,
+   "accounts_with_both": 120,
+   "posts_with": 227,
+   "posts_without": 645
+  },
+  "adjusted_likes_ratio": {
+   "ratio": 1.076,
+   "lo": 0.89,
+   "hi": 1.342
+  },
+  "tests_passed_main": {
+   "pairs": false,
+   "ratio": false,
+   "adjusted": false
+  },
+  "strict_subset": {
+   "win_rate": 0.5194,
+   "lo": 0.39,
+   "hi": 0.6542,
+   "pairs": 412,
+   "accounts": 54,
+   "likes_ratio": {
+    "ratio": 1.163,
+    "lo": 0.89,
+    "hi": 1.573,
+    "accounts_with_both": 59,
+    "posts_with": 112,
+    "posts_without": 274
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 1.003,
+    "lo": 0.764,
+    "hi": 1.278
+   },
+   "tests_passed": {
+    "pairs": false,
+    "ratio": false,
+    "adjusted": false
+   }
+  },
+  "all_accounts": {
+   "win_rate": 0.5073,
+   "lo": 0.4354,
+   "hi": 0.582,
+   "pairs": 1147,
+   "accounts": 157,
+   "likes_ratio": {
+    "ratio": 1.182,
+    "lo": 0.977,
+    "hi": 1.425,
+    "accounts_with_both": 180,
+    "posts_with": 304,
+    "posts_without": 846
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 1.053,
+    "lo": 0.895,
+    "hi": 1.235
+   }
+  },
+  "reposts": {
+   "win_rate": 0.5502,
+   "lo": 0.4689,
+   "hi": 0.6351,
+   "pairs": 1004,
+   "accounts": 108,
+   "likes_ratio": {
+    "ratio": 1.433,
+    "lo": 1.087,
+    "hi": 1.887,
+    "accounts_with_both": 119,
+    "posts_with": 225,
+    "posts_without": 634
+   }
+  },
+  "periods": {
+   "before_2026_04_23": {
+    "win_rate": 0.5323,
+    "lo": 0.4467,
+    "hi": 0.6108,
+    "pairs": 756,
+    "accounts": 120,
+    "likes_ratio": {
+     "ratio": 1.158,
+     "lo": 0.947,
+     "hi": 1.435,
+     "accounts_with_both": 137,
+     "posts_with": 216,
+     "posts_without": 532
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 0.983,
+     "lo": 0.798,
+     "hi": 1.181
+    }
+   },
+   "from_2026_04_23": {
+    "win_rate": 0.611,
+    "lo": 0.455,
+    "hi": 0.7541,
+    "pairs": 139,
+    "accounts": 42,
+    "likes_ratio": {
+     "ratio": 1.421,
+     "lo": 0.992,
+     "hi": 2.036,
+     "accounts_with_both": 44,
+     "posts_with": 53,
+     "posts_without": 134
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 1.576,
+     "lo": 1.07,
+     "hi": 2.3
+    }
+   }
+  },
+  "tiers": {
+   "under_100k": {
+    "win_rate": 0.5123,
+    "lo": 0.4173,
+    "hi": 0.6048,
+    "pairs": 270,
+    "accounts": 65,
+    "likes_ratio": {
+     "ratio": 1.364,
+     "lo": 1.015,
+     "hi": 1.847,
+     "accounts_with_both": 74,
+     "posts_with": 106,
+     "posts_without": 246
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 1.31,
+     "lo": 0.975,
+     "hi": 1.753
+    }
+   },
+   "100k_plus": {
+    "win_rate": 0.5132,
+    "lo": 0.3673,
+    "hi": 0.6502,
+    "pairs": 505,
+    "accounts": 36,
+    "likes_ratio": {
+     "ratio": 1.225,
+     "lo": 0.891,
+     "hi": 1.729,
+     "accounts_with_both": 43,
+     "posts_with": 87,
+     "posts_without": 373
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 1.006,
+     "lo": 0.766,
+     "hi": 1.327
+    }
+   }
+  },
+  "model_releases_only": {
+   "win_rate": 0.5041,
+   "lo": 0.3847,
+   "hi": 0.6448,
+   "pairs": 468,
+   "accounts": 60,
+   "likes_ratio": {
+    "ratio": 1.128,
+    "lo": 0.874,
+    "hi": 1.509,
+    "accounts_with_both": 65,
+    "posts_with": 128,
+    "posts_without": 292
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 1.042,
+    "lo": 0.8,
+    "hi": 1.325
+   }
+  },
+  "posts_with_trait_main": 289,
+  "measured_as": "demo_words",
+  "flipped": false
+ },
+ "availability_now": {
+  "description": "the post says the product can be used now (available now / today, live now, out now, rolling out today, now in the API)",
+  "win_rate": 0.495,
+  "lo": 0.4458,
+  "hi": 0.5515,
+  "pairs": 1871,
+  "accounts": 185,
+  "supported": false,
+  "status": "none",
+  "grade": null,
+  "level": "company and founder accounts",
+  "outcome": "likes relative to the account's trailing median",
+  "design": "same account, launch-type posts, posting order balanced",
+  "likes_ratio": {
+   "ratio": 1.077,
+   "lo": 0.934,
+   "hi": 1.25,
+   "accounts_with_both": 195,
+   "posts_with": 577,
+   "posts_without": 828
+  },
+  "adjusted_likes_ratio": {
+   "ratio": 1.064,
+   "lo": 0.921,
+   "hi": 1.225
+  },
+  "tests_passed_main": {
+   "pairs": false,
+   "ratio": false,
+   "adjusted": false
+  },
+  "strict_subset": {
+   "win_rate": 0.5191,
+   "lo": 0.4317,
+   "hi": 0.6053,
+   "pairs": 891,
+   "accounts": 87,
+   "likes_ratio": {
+    "ratio": 1.238,
+    "lo": 0.995,
+    "hi": 1.53,
+    "accounts_with_both": 94,
+    "posts_with": 230,
+    "posts_without": 432
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 1.146,
+    "lo": 0.937,
+    "hi": 1.438
+   },
+   "tests_passed": {
+    "pairs": false,
+    "ratio": false,
+    "adjusted": false
+   }
+  },
+  "all_accounts": {
+   "win_rate": 0.5054,
+   "lo": 0.4584,
+   "hi": 0.5533,
+   "pairs": 2212,
+   "accounts": 270,
+   "likes_ratio": {
+    "ratio": 1.07,
+    "lo": 0.941,
+    "hi": 1.213,
+    "accounts_with_both": 305,
+    "posts_with": 750,
+    "posts_without": 1099
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 1.061,
+    "lo": 0.936,
+    "hi": 1.193
+   }
+  },
+  "reposts": {
+   "win_rate": 0.4901,
+   "lo": 0.4356,
+   "hi": 0.5462,
+   "pairs": 1887,
+   "accounts": 186,
+   "likes_ratio": {
+    "ratio": 0.999,
+    "lo": 0.793,
+    "hi": 1.261,
+    "accounts_with_both": 195,
+    "posts_with": 575,
+    "posts_without": 824
+   }
+  },
+  "periods": {
+   "before_2026_04_23": {
+    "win_rate": 0.5252,
+    "lo": 0.4581,
+    "hi": 0.5945,
+    "pairs": 1403,
+    "accounts": 190,
+    "likes_ratio": {
+     "ratio": 1.041,
+     "lo": 0.879,
+     "hi": 1.227,
+     "accounts_with_both": 212,
+     "posts_with": 502,
+     "posts_without": 682
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 1.017,
+     "lo": 0.884,
+     "hi": 1.178
+    }
+   },
+   "from_2026_04_23": {
+    "win_rate": 0.4883,
+    "lo": 0.405,
+    "hi": 0.5594,
+    "pairs": 404,
+    "accounts": 83,
+    "likes_ratio": {
+     "ratio": 0.999,
+     "lo": 0.797,
+     "hi": 1.253,
+     "accounts_with_both": 91,
+     "posts_with": 156,
+     "posts_without": 229
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 0.931,
+     "lo": 0.703,
+     "hi": 1.202
+    }
+   }
+  },
+  "tiers": {
+   "under_100k": {
+    "win_rate": 0.4767,
+    "lo": 0.3988,
+    "hi": 0.5722,
+    "pairs": 623,
+    "accounts": 117,
+    "likes_ratio": {
+     "ratio": 1.177,
+     "lo": 0.935,
+     "hi": 1.535,
+     "accounts_with_both": 136,
+     "posts_with": 257,
+     "posts_without": 376
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 1.069,
+     "lo": 0.852,
+     "hi": 1.351
+    }
+   },
+   "100k_plus": {
+    "win_rate": 0.5013,
+    "lo": 0.429,
+    "hi": 0.5781,
+    "pairs": 1061,
+    "accounts": 63,
+    "likes_ratio": {
+     "ratio": 1.05,
+     "lo": 0.86,
+     "hi": 1.259,
+     "accounts_with_both": 70,
+     "posts_with": 282,
+     "posts_without": 449
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 1.086,
+     "lo": 0.918,
+     "hi": 1.303
+    }
+   }
+  },
+  "model_releases_only": {
+   "win_rate": 0.4856,
+   "lo": 0.4174,
+   "hi": 0.5524,
+   "pairs": 900,
+   "accounts": 91,
+   "likes_ratio": {
+    "ratio": 0.939,
+    "lo": 0.792,
+    "hi": 1.12,
+    "accounts_with_both": 109,
+    "posts_with": 288,
+    "posts_without": 430
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 0.941,
+    "lo": 0.784,
+    "hi": 1.128
+   }
+  },
+  "posts_with_trait_main": 710,
+  "measured_as": "availability_now",
+  "flipped": false
+ },
+ "coming_soon": {
+  "description": "the post says the product is not yet available (coming soon, launching soon, next week, stay tuned)",
+  "win_rate": 0.5198,
+  "lo": 0.3973,
+  "hi": 0.6445,
+  "pairs": 280,
+  "accounts": 29,
+  "supported": false,
+  "status": "none",
+  "grade": null,
+  "level": "company and founder accounts",
+  "outcome": "likes relative to the account's trailing median",
+  "design": "same account, launch-type posts, posting order balanced",
+  "likes_ratio": {
+   "ratio": 1.045,
+   "lo": 0.69,
+   "hi": 1.575,
+   "accounts_with_both": 29,
+   "posts_with": 37,
+   "posts_without": 292
+  },
+  "adjusted_likes_ratio": {
+   "ratio": 0.985,
+   "lo": 0.619,
+   "hi": 1.452
+  },
+  "tests_passed_main": {
+   "pairs": false,
+   "ratio": false,
+   "adjusted": false
+  },
+  "strict_subset": {
+   "win_rate": 0.49,
+   "lo": 0.3499,
+   "hi": 0.6176,
+   "pairs": 115,
+   "accounts": 15,
+   "likes_ratio": {
+    "ratio": 0.867,
+    "lo": 0.584,
+    "hi": 1.351,
+    "accounts_with_both": 15,
+    "posts_with": 18,
+    "posts_without": 134
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 0.819,
+    "lo": 0.545,
+    "hi": 1.263
+   },
+   "tests_passed": {
+    "pairs": false,
+    "ratio": false,
+    "adjusted": false
+   }
+  },
+  "all_accounts": {
+   "win_rate": 0.5242,
+   "lo": 0.3982,
+   "hi": 0.648,
+   "pairs": 305,
+   "accounts": 38,
+   "likes_ratio": {
+    "ratio": 0.988,
+    "lo": 0.648,
+    "hi": 1.42,
+    "accounts_with_both": 40,
+    "posts_with": 48,
+    "posts_without": 324
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 0.947,
+    "lo": 0.668,
+    "hi": 1.437
+   }
+  },
+  "reposts": {
+   "win_rate": 0.528,
+   "lo": 0.4006,
+   "hi": 0.6415,
+   "pairs": 285,
+   "accounts": 29,
+   "likes_ratio": {
+    "ratio": 0.813,
+    "lo": 0.437,
+    "hi": 1.285,
+    "accounts_with_both": 29,
+    "posts_with": 37,
+    "posts_without": 290
+   }
+  },
+  "periods": {
+   "before_2026_04_23": {
+    "win_rate": 0.4995,
+    "lo": 0.3251,
+    "hi": 0.6451,
+    "pairs": 184,
+    "accounts": 23,
+    "likes_ratio": {
+     "ratio": 0.904,
+     "lo": 0.528,
+     "hi": 1.583,
+     "accounts_with_both": 25,
+     "posts_with": 31,
+     "posts_without": 162
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 0.883,
+     "lo": 0.549,
+     "hi": 1.397
+    }
+   },
+   "from_2026_04_23": {
+    "win_rate": 0.5019,
+    "lo": 0.2669,
+    "hi": 0.8305,
+    "pairs": 46,
+    "accounts": 10,
+    "likes_ratio": {
+     "ratio": 0.879,
+     "lo": 0.397,
+     "hi": 1.917,
+     "accounts_with_both": 10,
+     "posts_with": 11,
+     "posts_without": 42
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 0.855,
+     "lo": 0.408,
+     "hi": 1.723
+    }
+   }
+  },
+  "tiers": {
+   "under_100k": {
+    "win_rate": 0.6339,
+    "lo": 0.2856,
+    "hi": 0.8718,
+    "pairs": 30,
+    "accounts": 13,
+    "likes_ratio": {
+     "ratio": 0.931,
+     "lo": 0.39,
+     "hi": 2.421,
+     "accounts_with_both": 13,
+     "posts_with": 13,
+     "posts_without": 39
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 0.781,
+     "lo": 0.34,
+     "hi": 1.82
+    }
+   },
+   "100k_plus": {
+    "win_rate": 0.4905,
+    "lo": 0.3353,
+    "hi": 0.6261,
+    "pairs": 224,
+    "accounts": 12,
+    "likes_ratio": {
+     "ratio": 1.048,
+     "lo": 0.737,
+     "hi": 1.448,
+     "accounts_with_both": 13,
+     "posts_with": 20,
+     "posts_without": 228
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 1.001,
+     "lo": 0.624,
+     "hi": 1.34
+    }
+   }
+  },
+  "model_releases_only": {
+   "win_rate": 0.6077,
+   "lo": 0.4325,
+   "hi": 0.7003,
+   "pairs": 120,
+   "accounts": 14,
+   "likes_ratio": {
+    "ratio": 1.06,
+    "lo": 0.601,
+    "hi": 1.595,
+    "accounts_with_both": 16,
+    "posts_with": 20,
+    "posts_without": 112
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 0.916,
+    "lo": 0.413,
+    "hi": 1.466
+   }
+  },
+  "posts_with_trait_main": 43,
+  "measured_as": "coming_soon",
+  "flipped": false
+ },
+ "rocket_emoji": {
+  "description": "the post has a rocket or party emoji (\ud83d\ude80 \ud83c\udf89 \ud83d\udd25)",
+  "win_rate": 0.5085,
+  "lo": 0.3935,
+  "hi": 0.6115,
+  "pairs": 394,
+  "accounts": 46,
+  "supported": false,
+  "status": "none",
+  "grade": null,
+  "level": "company and founder accounts",
+  "outcome": "likes relative to the account's trailing median",
+  "design": "same account, launch-type posts, posting order balanced",
+  "likes_ratio": {
+   "ratio": 1.117,
+   "lo": 0.781,
+   "hi": 1.609,
+   "accounts_with_both": 47,
+   "posts_with": 111,
+   "posts_without": 253
+  },
+  "adjusted_likes_ratio": {
+   "ratio": 0.924,
+   "lo": 0.637,
+   "hi": 1.281
+  },
+  "tests_passed_main": {
+   "pairs": false,
+   "ratio": false,
+   "adjusted": false
+  },
+  "strict_subset": {
+   "win_rate": 0.5389,
+   "lo": 0.4462,
+   "hi": 0.6727,
+   "pairs": 147,
+   "accounts": 19,
+   "likes_ratio": {
+    "ratio": 1.356,
+    "lo": 0.781,
+    "hi": 2.526,
+    "accounts_with_both": 21,
+    "posts_with": 52,
+    "posts_without": 90
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 1.168,
+    "lo": 0.702,
+    "hi": 2.07
+   },
+   "tests_passed": {
+    "pairs": false,
+    "ratio": false,
+    "adjusted": false
+   }
+  },
+  "all_accounts": {
+   "win_rate": 0.5037,
+   "lo": 0.3922,
+   "hi": 0.5922,
+   "pairs": 435,
+   "accounts": 62,
+   "likes_ratio": {
+    "ratio": 1.162,
+    "lo": 0.857,
+    "hi": 1.625,
+    "accounts_with_both": 68,
+    "posts_with": 138,
+    "posts_without": 325
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 0.995,
+    "lo": 0.734,
+    "hi": 1.314
+   }
+  },
+  "reposts": {
+   "win_rate": 0.499,
+   "lo": 0.3845,
+   "hi": 0.6125,
+   "pairs": 380,
+   "accounts": 45,
+   "likes_ratio": {
+    "ratio": 1.108,
+    "lo": 0.737,
+    "hi": 1.571,
+    "accounts_with_both": 45,
+    "posts_with": 109,
+    "posts_without": 242
+   }
+  },
+  "periods": {
+   "before_2026_04_23": {
+    "win_rate": 0.5467,
+    "lo": 0.3925,
+    "hi": 0.6816,
+    "pairs": 263,
+    "accounts": 48,
+    "likes_ratio": {
+     "ratio": 1.158,
+     "lo": 0.798,
+     "hi": 1.641,
+     "accounts_with_both": 53,
+     "posts_with": 91,
+     "posts_without": 204
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 0.979,
+     "lo": 0.71,
+     "hi": 1.394
+    }
+   },
+   "from_2026_04_23": {
+    "win_rate": 0.5648,
+    "lo": 0.3367,
+    "hi": 0.7415,
+    "pairs": 63,
+    "accounts": 12,
+    "likes_ratio": {
+     "ratio": 1.192,
+     "lo": 0.554,
+     "hi": 2.195,
+     "accounts_with_both": 12,
+     "posts_with": 20,
+     "posts_without": 42
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 1.015,
+     "lo": 0.454,
+     "hi": 1.992
+    }
+   }
+  },
+  "tiers": {
+   "under_100k": {
+    "win_rate": 0.4424,
+    "lo": 0.2826,
+    "hi": 0.6061,
+    "pairs": 225,
+    "accounts": 30,
+    "likes_ratio": {
+     "ratio": 0.958,
+     "lo": 0.664,
+     "hi": 1.43,
+     "accounts_with_both": 33,
+     "posts_with": 60,
+     "posts_without": 163
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 0.752,
+     "lo": 0.542,
+     "hi": 1.109
+    }
+   },
+   "100k_plus": {
+    "win_rate": 0.6059,
+    "lo": 0.4305,
+    "hi": 0.747,
+    "pairs": 120,
+    "accounts": 14,
+    "likes_ratio": {
+     "ratio": 1.306,
+     "lo": 0.6,
+     "hi": 2.296,
+     "accounts_with_both": 15,
+     "posts_with": 45,
+     "posts_without": 86
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 1.069,
+     "lo": 0.477,
+     "hi": 1.808
+    }
+   }
+  },
+  "model_releases_only": {
+   "win_rate": 0.5437,
+   "lo": 0.3852,
+   "hi": 0.6582,
+   "pairs": 156,
+   "accounts": 19,
+   "likes_ratio": {
+    "ratio": 1.015,
+    "lo": 0.591,
+    "hi": 1.555,
+    "accounts_with_both": 21,
+    "posts_with": 47,
+    "posts_without": 100
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 0.924,
+    "lo": 0.497,
+    "hi": 1.463
+   }
+  },
+  "posts_with_trait_main": 131,
+  "measured_as": "rocket_emoji",
+  "flipped": false
+ },
+ "product_hunt": {
+  "description": "the post says the product is on Product Hunt, Hacker News or Show HN",
+  "win_rate": 0.5188,
+  "lo": 0.3186,
+  "hi": 0.7145,
+  "pairs": 67,
+  "accounts": 13,
+  "supported": false,
+  "status": "too_thin",
+  "grade": null,
+  "level": "every account pooled (too thin among company and founder accounts)",
+  "outcome": "likes relative to the account's trailing median",
+  "design": "same account, launch-type posts, posting order balanced",
+  "likes_ratio": {
+   "ratio": 0.888,
+   "lo": 0.525,
+   "hi": 1.411,
+   "accounts_with_both": 16,
+   "posts_with": 20,
+   "posts_without": 88
+  },
+  "adjusted_likes_ratio": {
+   "ratio": 0.998,
+   "lo": 0.565,
+   "hi": 1.626
+  },
+  "tests_passed_main": {
+   "pairs": false,
+   "ratio": false,
+   "adjusted": false
+  },
+  "strict_subset": {
+   "win_rate": 0.7619,
+   "lo": 0.45,
+   "hi": 0.95,
+   "pairs": 13,
+   "accounts": 6,
+   "likes_ratio": {
+    "ratio": 1.479,
+    "lo": 0.605,
+    "hi": 2.658,
+    "accounts_with_both": 6,
+    "posts_with": 9,
+    "posts_without": 19
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 1.37,
+    "lo": 0.186,
+    "hi": 3.976
+   },
+   "tests_passed": {
+    "pairs": false,
+    "ratio": false,
+    "adjusted": false
+   }
+  },
+  "all_accounts": {
+   "win_rate": 0.5188,
+   "lo": 0.3186,
+   "hi": 0.7145,
+   "pairs": 67,
+   "accounts": 13,
+   "likes_ratio": {
+    "ratio": 0.888,
+    "lo": 0.525,
+    "hi": 1.411,
+    "accounts_with_both": 16,
+    "posts_with": 20,
+    "posts_without": 88
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 0.998,
+    "lo": 0.565,
+    "hi": 1.626
+   }
+  },
+  "reposts": {
+   "win_rate": 0.3299,
+   "lo": 0.1208,
+   "hi": 0.7083,
+   "pairs": 53,
+   "accounts": 11,
+   "likes_ratio": {
+    "ratio": 0.577,
+    "lo": 0.349,
+    "hi": 0.868,
+    "accounts_with_both": 16,
+    "posts_with": 20,
+    "posts_without": 86
+   }
+  },
+  "periods": {
+   "before_2026_04_23": {
+    "win_rate": 0.6103,
+    "lo": 0.3355,
+    "hi": 0.7596,
+    "pairs": 49,
+    "accounts": 12,
+    "likes_ratio": {
+     "ratio": 1.065,
+     "lo": 0.6,
+     "hi": 1.693,
+     "accounts_with_both": 12,
+     "posts_with": 15,
+     "posts_without": 59
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 1.045,
+     "lo": 0.588,
+     "hi": 1.698
+    }
+   },
+   "from_2026_04_23": {
+    "win_rate": 0.2,
+    "lo": 0.2,
+    "hi": 0.25,
+    "pairs": 11,
+    "accounts": 2,
+    "adjusted_likes_ratio": {
+     "ratio": 0.688,
+     "lo": 0.243,
+     "hi": 1.698
+    }
+   }
+  },
+  "tiers": {
+   "under_100k": {
+    "win_rate": 0.5425,
+    "lo": 0.3333,
+    "hi": 0.753,
+    "pairs": 61,
+    "accounts": 10,
+    "likes_ratio": {
+     "ratio": 0.993,
+     "lo": 0.528,
+     "hi": 1.709,
+     "accounts_with_both": 12,
+     "posts_with": 16,
+     "posts_without": 79
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 1.906,
+     "lo": 1.0,
+     "hi": 3.109
+    }
+   },
+   "100k_plus": {
+    "win_rate": 0.5,
+    "lo": 0.5,
+    "hi": 0.5,
+    "pairs": 2,
+    "accounts": 1,
+    "adjusted_likes_ratio": {
+     "ratio": 0.172,
+     "lo": 0.028,
+     "hi": 1.0
+    }
+   }
+  },
+  "model_releases_only": {
+   "adjusted_likes_ratio": {
+    "ratio": 1.0,
+    "lo": 1.0,
+    "hi": 1.0
+   }
+  },
+  "posts_with_trait_main": 26,
+  "measured_as": "product_hunt",
+  "flipped": false
+ },
+ "ai_model_release": {
+  "description": "the post announces a model (model, weights, checkpoint, parameters, context window, fine-tune, LLM)",
+  "win_rate": 0.6118,
+  "lo": 0.5453,
+  "hi": 0.6747,
+  "pairs": 1768,
+  "accounts": 148,
+  "supported": true,
+  "status": "survives",
+  "grade": "A",
+  "level": "company and founder accounts",
+  "outcome": "likes relative to the account's trailing median",
+  "design": "same account, launch-type posts, posting order balanced",
+  "likes_ratio": {
+   "ratio": 1.456,
+   "lo": 1.238,
+   "hi": 1.708,
+   "accounts_with_both": 156,
+   "posts_with": 660,
+   "posts_without": 588
+  },
+  "adjusted_likes_ratio": {
+   "ratio": 1.24,
+   "lo": 1.055,
+   "hi": 1.435
+  },
+  "tests_passed_main": {
+   "pairs": true,
+   "ratio": true,
+   "adjusted": true
+  },
+  "strict_subset": {
+   "win_rate": 0.5906,
+   "lo": 0.5198,
+   "hi": 0.6596,
+   "pairs": 868,
+   "accounts": 86,
+   "likes_ratio": {
+    "ratio": 1.439,
+    "lo": 1.15,
+    "hi": 1.773,
+    "accounts_with_both": 90,
+    "posts_with": 365,
+    "posts_without": 284
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 1.351,
+    "lo": 1.068,
+    "hi": 1.667
+   },
+   "tests_passed": {
+    "pairs": true,
+    "ratio": true,
+    "adjusted": true
+   }
+  },
+  "all_accounts": {
+   "win_rate": 0.6023,
+   "lo": 0.5432,
+   "hi": 0.6605,
+   "pairs": 2071,
+   "accounts": 218,
+   "likes_ratio": {
+    "ratio": 1.339,
+    "lo": 1.156,
+    "hi": 1.548,
+    "accounts_with_both": 251,
+    "posts_with": 829,
+    "posts_without": 812
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 1.16,
+    "lo": 1.027,
+    "hi": 1.314
+   }
+  },
+  "reposts": {
+   "win_rate": 0.5996,
+   "lo": 0.5301,
+   "hi": 0.6665,
+   "pairs": 1801,
+   "accounts": 147,
+   "likes_ratio": {
+    "ratio": 1.518,
+    "lo": 1.213,
+    "hi": 1.888,
+    "accounts_with_both": 156,
+    "posts_with": 659,
+    "posts_without": 585
+   }
+  },
+  "periods": {
+   "before_2026_04_23": {
+    "win_rate": 0.6,
+    "lo": 0.5263,
+    "hi": 0.6651,
+    "pairs": 1272,
+    "accounts": 145,
+    "likes_ratio": {
+     "ratio": 1.264,
+     "lo": 1.052,
+     "hi": 1.521,
+     "accounts_with_both": 169,
+     "posts_with": 522,
+     "posts_without": 521
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 1.098,
+     "lo": 0.914,
+     "hi": 1.33
+    }
+   },
+   "from_2026_04_23": {
+    "win_rate": 0.6184,
+    "lo": 0.5086,
+    "hi": 0.7177,
+    "pairs": 405,
+    "accounts": 70,
+    "likes_ratio": {
+     "ratio": 1.417,
+     "lo": 1.073,
+     "hi": 1.842,
+     "accounts_with_both": 74,
+     "posts_with": 179,
+     "posts_without": 157
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 1.112,
+     "lo": 0.851,
+     "hi": 1.421
+    }
+   }
+  },
+  "tiers": {
+   "under_100k": {
+    "win_rate": 0.6361,
+    "lo": 0.5135,
+    "hi": 0.7304,
+    "pairs": 567,
+    "accounts": 102,
+    "likes_ratio": {
+     "ratio": 1.32,
+     "lo": 1.032,
+     "hi": 1.693,
+     "accounts_with_both": 123,
+     "posts_with": 251,
+     "posts_without": 324
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 1.154,
+     "lo": 0.899,
+     "hi": 1.47
+    }
+   },
+   "100k_plus": {
+    "win_rate": 0.5833,
+    "lo": 0.4941,
+    "hi": 0.6683,
+    "pairs": 1017,
+    "accounts": 49,
+    "likes_ratio": {
+     "ratio": 1.319,
+     "lo": 1.066,
+     "hi": 1.609,
+     "accounts_with_both": 54,
+     "posts_with": 394,
+     "posts_without": 284
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 1.101,
+     "lo": 0.921,
+     "hi": 1.33
+    }
+   }
+  },
+  "model_releases_only": {
+   "adjusted_likes_ratio": {
+    "ratio": 1.0,
+    "lo": 1.0,
+    "hi": 1.0
+   }
+  },
+  "posts_with_trait_main": 863,
+  "measured_as": "ai_model_release",
+  "flipped": false
+ },
+ "waitlist_vs_available_now": {
+  "description": "the post points to a waitlist / early access, against one that says the product is available now",
+  "win_rate": 0.5292,
+  "lo": 0.3631,
+  "hi": 0.6802,
+  "pairs": 219,
+  "accounts": 26,
+  "supported": false,
+  "status": "none",
+  "grade": null,
+  "level": "every account pooled (too thin among company and founder accounts)",
+  "outcome": "likes relative to the account's trailing median",
+  "design": "same account, launch-type posts, posting order balanced",
+  "likes_ratio": {
+   "ratio": 1.061,
+   "lo": 0.793,
+   "hi": 1.354,
+   "accounts_with_both": 31,
+   "posts_with": 46,
+   "posts_without": 177
+  },
+  "adjusted_likes_ratio": {
+   "ratio": 0.916,
+   "lo": 0.602,
+   "hi": 1.248
+  },
+  "tests_passed_main": {
+   "pairs": false,
+   "ratio": false,
+   "adjusted": false
+  },
+  "strict_subset": {
+   "win_rate": 0.5725,
+   "lo": 0.2613,
+   "hi": 0.7298,
+   "pairs": 49,
+   "accounts": 14,
+   "likes_ratio": {
+    "ratio": 1.011,
+    "lo": 0.613,
+    "hi": 1.442,
+    "accounts_with_both": 14,
+    "posts_with": 18,
+    "posts_without": 50
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 0.871,
+    "lo": 0.517,
+    "hi": 1.417
+   },
+   "tests_passed": {
+    "pairs": false,
+    "ratio": false,
+    "adjusted": false
+   }
+  },
+  "all_accounts": {
+   "win_rate": 0.5292,
+   "lo": 0.3631,
+   "hi": 0.6802,
+   "pairs": 219,
+   "accounts": 26,
+   "likes_ratio": {
+    "ratio": 1.061,
+    "lo": 0.793,
+    "hi": 1.354,
+    "accounts_with_both": 31,
+    "posts_with": 46,
+    "posts_without": 177
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 0.916,
+    "lo": 0.602,
+    "hi": 1.248
+   }
+  },
+  "reposts": {
+   "win_rate": 0.5577,
+   "lo": 0.3662,
+   "hi": 0.6861,
+   "pairs": 223,
+   "accounts": 27,
+   "likes_ratio": {
+    "ratio": 1.495,
+    "lo": 0.947,
+    "hi": 2.201,
+    "accounts_with_both": 31,
+    "posts_with": 46,
+    "posts_without": 177
+   }
+  },
+  "periods": {
+   "before_2026_04_23": {
+    "win_rate": 0.5016,
+    "lo": 0.3224,
+    "hi": 0.6738,
+    "pairs": 143,
+    "accounts": 20,
+    "likes_ratio": {
+     "ratio": 1.16,
+     "lo": 0.816,
+     "hi": 1.637,
+     "accounts_with_both": 23,
+     "posts_with": 34,
+     "posts_without": 126
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 0.96,
+     "lo": 0.654,
+     "hi": 1.321
+    }
+   },
+   "from_2026_04_23": {
+    "win_rate": 0.7,
+    "lo": 0.0,
+    "hi": 1.0,
+    "pairs": 10,
+    "accounts": 4,
+    "likes_ratio": {
+     "ratio": 1.252,
+     "lo": 0.453,
+     "hi": 2.882,
+     "accounts_with_both": 5,
+     "posts_with": 6,
+     "posts_without": 12
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 1.282,
+     "lo": 0.413,
+     "hi": 4.178
+    }
+   }
+  },
+  "tiers": {
+   "under_100k": {
+    "win_rate": 0.7639,
+    "lo": 0.25,
+    "hi": 0.9688,
+    "pairs": 13,
+    "accounts": 5,
+    "likes_ratio": {
+     "ratio": 0.899,
+     "lo": 0.355,
+     "hi": 1.853,
+     "accounts_with_both": 7,
+     "posts_with": 7,
+     "posts_without": 24
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 1.26,
+     "lo": 0.466,
+     "hi": 2.772
+    }
+   },
+   "100k_plus": {
+    "win_rate": 0.4869,
+    "lo": 0.264,
+    "hi": 0.6786,
+    "pairs": 163,
+    "accounts": 11,
+    "likes_ratio": {
+     "ratio": 1.079,
+     "lo": 0.733,
+     "hi": 1.443,
+     "accounts_with_both": 12,
+     "posts_with": 22,
+     "posts_without": 118
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 1.126,
+     "lo": 0.833,
+     "hi": 1.757
+    }
+   }
+  },
+  "model_releases_only": {
+   "win_rate": 0.44,
+   "lo": 0.2037,
+   "hi": 0.8273,
+   "pairs": 60,
+   "accounts": 11,
+   "likes_ratio": {
+    "ratio": 1.134,
+    "lo": 0.662,
+    "hi": 1.929,
+    "accounts_with_both": 12,
+    "posts_with": 15,
+    "posts_without": 66
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 1.124,
+    "lo": 0.633,
+    "hi": 1.887
+   }
+  },
+  "posts_with_trait_main": 85,
+  "measured_as": "waitlist_vs_available_now",
+  "flipped": false
+ },
+ "benchmark_with_image": {
+  "description": "a benchmark claim with an image attached (a chart), against an image without a benchmark claim",
+  "win_rate": 0.5268,
+  "lo": 0.401,
+  "hi": 0.6446,
+  "pairs": 298,
+  "accounts": 35,
+  "supported": false,
+  "status": "none",
+  "grade": null,
+  "level": "company and founder accounts",
+  "outcome": "likes relative to the account's trailing median",
+  "design": "same account, launch-type posts, posting order balanced",
+  "likes_ratio": {
+   "ratio": 1.063,
+   "lo": 0.725,
+   "hi": 1.509,
+   "accounts_with_both": 43,
+   "posts_with": 103,
+   "posts_without": 145
+  },
+  "adjusted_likes_ratio": null,
+  "tests_passed_main": {
+   "pairs": false,
+   "ratio": false
+  },
+  "strict_subset": {
+   "win_rate": 0.4175,
+   "lo": 0.2542,
+   "hi": 0.6572,
+   "pairs": 133,
+   "accounts": 18,
+   "likes_ratio": {
+    "ratio": 0.976,
+    "lo": 0.567,
+    "hi": 1.743,
+    "accounts_with_both": 22,
+    "posts_with": 56,
+    "posts_without": 65
+   },
+   "tests_passed": {
+    "pairs": false,
+    "ratio": false
+   }
+  },
+  "all_accounts": {
+   "win_rate": 0.5215,
+   "lo": 0.4005,
+   "hi": 0.6352,
+   "pairs": 321,
+   "accounts": 46,
+   "likes_ratio": {
+    "ratio": 0.97,
+    "lo": 0.693,
+    "hi": 1.312,
+    "accounts_with_both": 60,
+    "posts_with": 126,
+    "posts_without": 173
+   }
+  },
+  "reposts": {
+   "win_rate": 0.4551,
+   "lo": 0.35,
+   "hi": 0.5485,
+   "pairs": 310,
+   "accounts": 34,
+   "likes_ratio": {
+    "ratio": 0.911,
+    "lo": 0.552,
+    "hi": 1.533,
+    "accounts_with_both": 42,
+    "posts_with": 102,
+    "posts_without": 140
+   }
+  },
+  "periods": {
+   "before_2026_04_23": {
+    "win_rate": 0.5035,
+    "lo": 0.379,
+    "hi": 0.6525,
+    "pairs": 255,
+    "accounts": 39,
+    "likes_ratio": {
+     "ratio": 0.963,
+     "lo": 0.659,
+     "hi": 1.357,
+     "accounts_with_both": 50,
+     "posts_with": 101,
+     "posts_without": 131
+    }
+   },
+   "from_2026_04_23": {
+    "win_rate": 0.4318,
+    "lo": 0.0789,
+    "hi": 0.875,
+    "pairs": 17,
+    "accounts": 8,
+    "likes_ratio": {
+     "ratio": 0.885,
+     "lo": 0.434,
+     "hi": 1.93,
+     "accounts_with_both": 9,
+     "posts_with": 13,
+     "posts_without": 16
+    }
+   }
+  },
+  "tiers": {
+   "under_100k": {
+    "win_rate": 0.7161,
+    "lo": 0.6335,
+    "hi": 0.7947,
+    "pairs": 93,
+    "accounts": 18,
+    "likes_ratio": {
+     "ratio": 1.641,
+     "lo": 1.047,
+     "hi": 2.418,
+     "accounts_with_both": 23,
+     "posts_with": 41,
+     "posts_without": 52
+    }
+   },
+   "100k_plus": {
+    "win_rate": 0.4598,
+    "lo": 0.3107,
+    "hi": 0.6135,
+    "pairs": 207,
+    "accounts": 16,
+    "likes_ratio": {
+     "ratio": 0.881,
+     "lo": 0.567,
+     "hi": 1.411,
+     "accounts_with_both": 22,
+     "posts_with": 64,
+     "posts_without": 99
+    }
+   }
+  },
+  "model_releases_only": {
+   "win_rate": 0.4814,
+   "lo": 0.2779,
+   "hi": 0.6601,
+   "pairs": 207,
+   "accounts": 24,
+   "likes_ratio": {
+    "ratio": 0.82,
+    "lo": 0.518,
+    "hi": 1.28,
+    "accounts_with_both": 30,
+    "posts_with": 68,
+    "posts_without": 92
+   }
+  },
+  "posts_with_trait_main": 156,
+  "measured_as": "benchmark_with_image",
+  "flipped": false
+ },
+ "demo_video": {
+  "description": "a video with demonstration wording, against a video without it",
+  "win_rate": 0.4951,
+  "lo": 0.3406,
+  "hi": 0.6413,
+  "pairs": 220,
+  "accounts": 39,
+  "supported": false,
+  "status": "none",
+  "grade": null,
+  "level": "company and founder accounts",
+  "outcome": "likes relative to the account's trailing median",
+  "design": "same account, launch-type posts, posting order balanced",
+  "likes_ratio": {
+   "ratio": 0.964,
+   "lo": 0.645,
+   "hi": 1.362,
+   "accounts_with_both": 42,
+   "posts_with": 79,
+   "posts_without": 156
+  },
+  "adjusted_likes_ratio": null,
+  "tests_passed_main": {
+   "pairs": false,
+   "ratio": false
+  },
+  "strict_subset": {
+   "win_rate": 0.5052,
+   "lo": 0.3,
+   "hi": 0.6723,
+   "pairs": 88,
+   "accounts": 22,
+   "likes_ratio": {
+    "ratio": 1.101,
+    "lo": 0.702,
+    "hi": 1.698,
+    "accounts_with_both": 23,
+    "posts_with": 40,
+    "posts_without": 87
+   },
+   "tests_passed": {
+    "pairs": false,
+    "ratio": false
+   }
+  },
+  "all_accounts": {
+   "win_rate": 0.5023,
+   "lo": 0.3484,
+   "hi": 0.6469,
+   "pairs": 229,
+   "accounts": 47,
+   "likes_ratio": {
+    "ratio": 1.048,
+    "lo": 0.722,
+    "hi": 1.478,
+    "accounts_with_both": 51,
+    "posts_with": 89,
+    "posts_without": 166
+   }
+  },
+  "reposts": {
+   "win_rate": 0.5173,
+   "lo": 0.3851,
+   "hi": 0.6469,
+   "pairs": 211,
+   "accounts": 39,
+   "likes_ratio": {
+    "ratio": 1.197,
+    "lo": 0.738,
+    "hi": 1.807,
+    "accounts_with_both": 42,
+    "posts_with": 78,
+    "posts_without": 155
+   }
+  },
+  "periods": {
+   "before_2026_04_23": {
+    "win_rate": 0.4821,
+    "lo": 0.3316,
+    "hi": 0.6317,
+    "pairs": 166,
+    "accounts": 43,
+    "likes_ratio": {
+     "ratio": 1.012,
+     "lo": 0.703,
+     "hi": 1.46,
+     "accounts_with_both": 47,
+     "posts_with": 75,
+     "posts_without": 133
+    }
+   },
+   "from_2026_04_23": {
+    "win_rate": 0.7143,
+    "lo": 0.5833,
+    "hi": 0.8333,
+    "pairs": 9,
+    "accounts": 3
+   }
+  },
+  "tiers": {
+   "under_100k": {
+    "win_rate": 0.6026,
+    "lo": 0.3235,
+    "hi": 0.8438,
+    "pairs": 28,
+    "accounts": 12,
+    "likes_ratio": {
+     "ratio": 2.58,
+     "lo": 1.23,
+     "hi": 6.181,
+     "accounts_with_both": 14,
+     "posts_with": 20,
+     "posts_without": 30
+    }
+   },
+   "100k_plus": {
+    "win_rate": 0.5857,
+    "lo": 0.334,
+    "hi": 0.7749,
+    "pairs": 103,
+    "accounts": 13,
+    "likes_ratio": {
+     "ratio": 1.452,
+     "lo": 0.78,
+     "hi": 2.291,
+     "accounts_with_both": 13,
+     "posts_with": 26,
+     "posts_without": 68
+    }
+   }
+  },
+  "model_releases_only": {
+   "win_rate": 0.4826,
+   "lo": 0.264,
+   "hi": 0.7173,
+   "pairs": 89,
+   "accounts": 17,
+   "likes_ratio": {
+    "ratio": 1.071,
+    "lo": 0.626,
+    "hi": 1.783,
+    "accounts_with_both": 19,
+    "posts_with": 42,
+    "posts_without": 56
+   }
+  },
+  "posts_with_trait_main": 117,
+  "measured_as": "demo_video",
+  "flipped": false
+ },
+ "video_in_model_release": {
+  "description": "a video or GIF against no media, model releases only",
+  "win_rate": 0.6527,
+  "lo": 0.5536,
+  "hi": 0.7339,
+  "pairs": 352,
+  "accounts": 47,
+  "supported": false,
+  "status": "leaning",
+  "grade": null,
+  "level": "company and founder accounts",
+  "outcome": "likes relative to the account's trailing median",
+  "design": "same account, launch-type posts, posting order balanced",
+  "likes_ratio": {
+   "ratio": 1.343,
+   "lo": 0.952,
+   "hi": 1.822,
+   "accounts_with_both": 49,
+   "posts_with": 160,
+   "posts_without": 169
+  },
+  "adjusted_likes_ratio": null,
+  "tests_passed_main": {
+   "pairs": true,
+   "ratio": false
+  },
+  "strict_subset": {
+   "win_rate": 0.607,
+   "lo": 0.4902,
+   "hi": 0.7339,
+   "pairs": 206,
+   "accounts": 31,
+   "likes_ratio": {
+    "ratio": 1.255,
+    "lo": 0.862,
+    "hi": 1.845,
+    "accounts_with_both": 35,
+    "posts_with": 99,
+    "posts_without": 96
+   },
+   "tests_passed": {
+    "pairs": false,
+    "ratio": false
+   }
+  },
+  "all_accounts": {
+   "win_rate": 0.6502,
+   "lo": 0.5572,
+   "hi": 0.7317,
+   "pairs": 356,
+   "accounts": 51,
+   "likes_ratio": {
+    "ratio": 1.331,
+    "lo": 0.955,
+    "hi": 1.819,
+    "accounts_with_both": 57,
+    "posts_with": 168,
+    "posts_without": 181
+   }
+  },
+  "reposts": {
+   "win_rate": 0.6951,
+   "lo": 0.6159,
+   "hi": 0.759,
+   "pairs": 354,
+   "accounts": 46,
+   "likes_ratio": {
+    "ratio": 1.748,
+    "lo": 1.12,
+    "hi": 2.665,
+    "accounts_with_both": 49,
+    "posts_with": 158,
+    "posts_without": 169
+   }
+  },
+  "periods": {
+   "before_2026_04_23": {
+    "win_rate": 0.7446,
+    "lo": 0.5706,
+    "hi": 0.838,
+    "pairs": 138,
+    "accounts": 22,
+    "likes_ratio": {
+     "ratio": 2.034,
+     "lo": 1.312,
+     "hi": 3.148,
+     "accounts_with_both": 26,
+     "posts_with": 65,
+     "posts_without": 74
+    }
+   },
+   "from_2026_04_23": {
+    "win_rate": 0.5455,
+    "lo": 0.2608,
+    "hi": 0.8204,
+    "pairs": 68,
+    "accounts": 20,
+    "likes_ratio": {
+     "ratio": 1.459,
+     "lo": 0.919,
+     "hi": 2.259,
+     "accounts_with_both": 20,
+     "posts_with": 30,
+     "posts_without": 48
+    }
+   }
+  },
+  "tiers": {
+   "under_100k": {
+    "win_rate": 0.7936,
+    "lo": 0.7046,
+    "hi": 0.9079,
+    "pairs": 67,
+    "accounts": 13,
+    "likes_ratio": {
+     "ratio": 2.961,
+     "lo": 1.689,
+     "hi": 5.688,
+     "accounts_with_both": 15,
+     "posts_with": 42,
+     "posts_without": 26
+    }
+   },
+   "100k_plus": {
+    "win_rate": 0.6523,
+    "lo": 0.4801,
+    "hi": 0.7628,
+    "pairs": 215,
+    "accounts": 24,
+    "likes_ratio": {
+     "ratio": 1.276,
+     "lo": 0.811,
+     "hi": 1.95,
+     "accounts_with_both": 26,
+     "posts_with": 80,
+     "posts_without": 114
+    }
+   }
+  },
+  "model_releases_only": {
+   "win_rate": 0.6502,
+   "lo": 0.5458,
+   "hi": 0.733,
+   "pairs": 356,
+   "accounts": 51,
+   "likes_ratio": {
+    "ratio": 1.331,
+    "lo": 0.963,
+    "hi": 1.811,
+    "accounts_with_both": 57,
+    "posts_with": 168,
+    "posts_without": 181
+   }
+  },
+  "posts_with_trait_main": 242,
+  "measured_as": "video_in_model_release",
+  "flipped": false
+ },
+ "image_in_model_release": {
+  "description": "an image against no media, model releases only",
+  "win_rate": 0.6057,
+  "lo": 0.525,
+  "hi": 0.7024,
+  "pairs": 475,
+  "accounts": 57,
+  "supported": false,
+  "status": "leaning",
+  "grade": null,
+  "level": "company and founder accounts",
+  "outcome": "likes relative to the account's trailing median",
+  "design": "same account, launch-type posts, posting order balanced",
+  "likes_ratio": {
+   "ratio": 1.043,
+   "lo": 0.807,
+   "hi": 1.35,
+   "accounts_with_both": 62,
+   "posts_with": 215,
+   "posts_without": 197
+  },
+  "adjusted_likes_ratio": null,
+  "tests_passed_main": {
+   "pairs": true,
+   "ratio": false
+  },
+  "strict_subset": {
+   "win_rate": 0.5416,
+   "lo": 0.3785,
+   "hi": 0.6848,
+   "pairs": 210,
+   "accounts": 33,
+   "likes_ratio": {
+    "ratio": 0.904,
+    "lo": 0.62,
+    "hi": 1.305,
+    "accounts_with_both": 38,
+    "posts_with": 116,
+    "posts_without": 94
+   },
+   "tests_passed": {
+    "pairs": false,
+    "ratio": false
+   }
+  },
+  "all_accounts": {
+   "win_rate": 0.6205,
+   "lo": 0.534,
+   "hi": 0.7008,
+   "pairs": 533,
+   "accounts": 72,
+   "likes_ratio": {
+    "ratio": 1.192,
+    "lo": 0.936,
+    "hi": 1.5,
+    "accounts_with_both": 82,
+    "posts_with": 251,
+    "posts_without": 246
+   }
+  },
+  "reposts": {
+   "win_rate": 0.6202,
+   "lo": 0.4772,
+   "hi": 0.7256,
+   "pairs": 480,
+   "accounts": 59,
+   "likes_ratio": {
+    "ratio": 0.916,
+    "lo": 0.625,
+    "hi": 1.296,
+    "accounts_with_both": 62,
+    "posts_with": 215,
+    "posts_without": 197
+   }
+  },
+  "periods": {
+   "before_2026_04_23": {
+    "win_rate": 0.6481,
+    "lo": 0.5633,
+    "hi": 0.7365,
+    "pairs": 197,
+    "accounts": 36,
+    "likes_ratio": {
+     "ratio": 1.689,
+     "lo": 1.285,
+     "hi": 2.402,
+     "accounts_with_both": 47,
+     "posts_with": 107,
+     "posts_without": 111
+    }
+   },
+   "from_2026_04_23": {
+    "win_rate": 0.4517,
+    "lo": 0.2864,
+    "hi": 0.8689,
+    "pairs": 123,
+    "accounts": 25,
+    "likes_ratio": {
+     "ratio": 1.193,
+     "lo": 0.696,
+     "hi": 1.908,
+     "accounts_with_both": 27,
+     "posts_with": 49,
+     "posts_without": 65
+    }
+   }
+  },
+  "tiers": {
+   "under_100k": {
+    "win_rate": 0.5762,
+    "lo": 0.3824,
+    "hi": 0.7547,
+    "pairs": 136,
+    "accounts": 26,
+    "likes_ratio": {
+     "ratio": 1.475,
+     "lo": 0.869,
+     "hi": 2.454,
+     "accounts_with_both": 30,
+     "posts_with": 75,
+     "posts_without": 62
+    }
+   },
+   "100k_plus": {
+    "win_rate": 0.6413,
+    "lo": 0.55,
+    "hi": 0.766,
+    "pairs": 350,
+    "accounts": 31,
+    "likes_ratio": {
+     "ratio": 1.132,
+     "lo": 0.879,
+     "hi": 1.479,
+     "accounts_with_both": 33,
+     "posts_with": 143,
+     "posts_without": 138
+    }
+   }
+  },
+  "model_releases_only": {
+   "win_rate": 0.6205,
+   "lo": 0.5367,
+   "hi": 0.7033,
+   "pairs": 533,
+   "accounts": 72,
+   "likes_ratio": {
+    "ratio": 1.192,
+    "lo": 0.941,
+    "hi": 1.52,
+    "accounts_with_both": 82,
+    "posts_with": 251,
+    "posts_without": 246
+   }
+  },
+  "posts_with_trait_main": 320,
+  "measured_as": "image_in_model_release",
+  "flipped": false
+ },
+ "one_image_not_several": {
+  "description": "one image, against two or more",
+  "win_rate": 0.6315,
+  "lo": 0.4525,
+  "hi": 0.7894,
+  "pairs": 114,
+  "accounts": 24,
+  "supported": false,
+  "status": "too_thin",
+  "grade": null,
+  "level": "every account pooled (too thin among company and founder accounts)",
+  "outcome": "likes relative to the account's trailing median",
+  "design": "same account, launch-type posts, posting order balanced",
+  "likes_ratio": {
+   "ratio": 1.105,
+   "lo": 0.747,
+   "hi": 1.605,
+   "accounts_with_both": 29,
+   "posts_with": 105,
+   "posts_without": 37
+  },
+  "adjusted_likes_ratio": null,
+  "tests_passed_main": {
+   "pairs": false,
+   "ratio": false
+  },
+  "strict_subset": {
+   "win_rate": 0.457,
+   "lo": 0.24,
+   "hi": 0.6895,
+   "pairs": 43,
+   "accounts": 12,
+   "likes_ratio": {
+    "ratio": 0.569,
+    "lo": 0.321,
+    "hi": 0.916,
+    "accounts_with_both": 13,
+    "posts_with": 44,
+    "posts_without": 16
+   },
+   "tests_passed": {
+    "pairs": false,
+    "ratio": true
+   }
+  },
+  "all_accounts": {
+   "win_rate": 0.6315,
+   "lo": 0.4525,
+   "hi": 0.7894,
+   "pairs": 114,
+   "accounts": 24,
+   "likes_ratio": {
+    "ratio": 1.105,
+    "lo": 0.747,
+    "hi": 1.605,
+    "accounts_with_both": 29,
+    "posts_with": 105,
+    "posts_without": 37
+   }
+  },
+  "reposts": {
+   "win_rate": 0.6963,
+   "lo": 0.5138,
+   "hi": 0.8441,
+   "pairs": 116,
+   "accounts": 24,
+   "likes_ratio": {
+    "ratio": 1.504,
+    "lo": 0.799,
+    "hi": 3.175,
+    "accounts_with_both": 29,
+    "posts_with": 105,
+    "posts_without": 37
+   }
+  },
+  "periods": {
+   "before_2026_04_23": {
+    "win_rate": 0.6962,
+    "lo": 0.4961,
+    "hi": 0.8535,
+    "pairs": 91,
+    "accounts": 18,
+    "likes_ratio": {
+     "ratio": 1.422,
+     "lo": 0.938,
+     "hi": 2.041,
+     "accounts_with_both": 22,
+     "posts_with": 81,
+     "posts_without": 29
+    }
+   },
+   "from_2026_04_23": {
+    "win_rate": 0.1,
+    "lo": 0.0,
+    "hi": 0.3067,
+    "pairs": 7,
+    "accounts": 6,
+    "likes_ratio": {
+     "ratio": 0.268,
+     "lo": 0.069,
+     "hi": 0.868,
+     "accounts_with_both": 6,
+     "posts_with": 7,
+     "posts_without": 6
+    }
+   }
+  },
+  "tiers": {
+   "under_100k": {
+    "win_rate": 0.8333,
+    "lo": 0.5,
+    "hi": 1.0,
+    "pairs": 4,
+    "accounts": 4,
+    "likes_ratio": {
+     "ratio": 1.024,
+     "lo": 0.499,
+     "hi": 1.887,
+     "accounts_with_both": 7,
+     "posts_with": 11,
+     "posts_without": 8
+    }
+   },
+   "100k_plus": {
+    "win_rate": 0.6611,
+    "lo": 0.4646,
+    "hi": 0.8283,
+    "pairs": 97,
+    "accounts": 13,
+    "likes_ratio": {
+     "ratio": 1.277,
+     "lo": 0.731,
+     "hi": 2.0,
+     "accounts_with_both": 14,
+     "posts_with": 80,
+     "posts_without": 20
+    }
+   }
+  },
+  "model_releases_only": {
+   "win_rate": 0.6774,
+   "lo": 0.4838,
+   "hi": 0.8281,
+   "pairs": 62,
+   "accounts": 13,
+   "likes_ratio": {
+    "ratio": 1.217,
+    "lo": 0.68,
+    "hi": 1.965,
+    "accounts_with_both": 14,
+    "posts_with": 58,
+    "posts_without": 20
+   }
+  },
+  "posts_with_trait_main": 115,
+  "measured_as": "multi_image",
+  "flipped": true
+ },
+ "open_source_in_model_release": {
+  "description": "open source / open weights wording, model releases only",
+  "win_rate": 0.5713,
+  "lo": 0.485,
+  "hi": 0.6674,
+  "pairs": 531,
+  "accounts": 54,
+  "supported": false,
+  "status": "leaning",
+  "grade": null,
+  "level": "company and founder accounts",
+  "outcome": "likes relative to the account's trailing median",
+  "design": "same account, launch-type posts, posting order balanced",
+  "likes_ratio": {
+   "ratio": 1.413,
+   "lo": 1.052,
+   "hi": 1.879,
+   "accounts_with_both": 56,
+   "posts_with": 124,
+   "posts_without": 336
+  },
+  "adjusted_likes_ratio": null,
+  "tests_passed_main": {
+   "pairs": false,
+   "ratio": true
+  },
+  "strict_subset": {
+   "win_rate": 0.5865,
+   "lo": 0.4617,
+   "hi": 0.7375,
+   "pairs": 253,
+   "accounts": 30,
+   "likes_ratio": {
+    "ratio": 1.584,
+    "lo": 1.065,
+    "hi": 2.46,
+    "accounts_with_both": 33,
+    "posts_with": 71,
+    "posts_without": 158
+   },
+   "tests_passed": {
+    "pairs": false,
+    "ratio": true
+   }
+  },
+  "all_accounts": {
+   "win_rate": 0.5743,
+   "lo": 0.4851,
+   "hi": 0.6702,
+   "pairs": 548,
+   "accounts": 62,
+   "likes_ratio": {
+    "ratio": 1.446,
+    "lo": 1.101,
+    "hi": 1.933,
+    "accounts_with_both": 67,
+    "posts_with": 136,
+    "posts_without": 367
+   }
+  },
+  "reposts": {
+   "win_rate": 0.5855,
+   "lo": 0.4981,
+   "hi": 0.6736,
+   "pairs": 536,
+   "accounts": 54,
+   "likes_ratio": {
+    "ratio": 1.337,
+    "lo": 0.916,
+    "hi": 1.925,
+    "accounts_with_both": 56,
+    "posts_with": 124,
+    "posts_without": 334
+   }
+  },
+  "periods": {
+   "before_2026_04_23": {
+    "win_rate": 0.6464,
+    "lo": 0.5487,
+    "hi": 0.7344,
+    "pairs": 308,
+    "accounts": 47,
+    "likes_ratio": {
+     "ratio": 1.661,
+     "lo": 1.227,
+     "hi": 2.235,
+     "accounts_with_both": 52,
+     "posts_with": 92,
+     "posts_without": 227
+    }
+   },
+   "from_2026_04_23": {
+    "win_rate": 0.5239,
+    "lo": 0.419,
+    "hi": 0.6779,
+    "pairs": 87,
+    "accounts": 19,
+    "likes_ratio": {
+     "ratio": 1.142,
+     "lo": 0.654,
+     "hi": 1.868,
+     "accounts_with_both": 19,
+     "posts_with": 32,
+     "posts_without": 51
+    }
+   }
+  },
+  "tiers": {
+   "under_100k": {
+    "win_rate": 0.5418,
+    "lo": 0.3942,
+    "hi": 0.7572,
+    "pairs": 166,
+    "accounts": 23,
+    "likes_ratio": {
+     "ratio": 1.394,
+     "lo": 0.776,
+     "hi": 2.46,
+     "accounts_with_both": 25,
+     "posts_with": 46,
+     "posts_without": 88
+    }
+   },
+   "100k_plus": {
+    "win_rate": 0.6047,
+    "lo": 0.4881,
+    "hi": 0.7506,
+    "pairs": 324,
+    "accounts": 25,
+    "likes_ratio": {
+     "ratio": 1.545,
+     "lo": 1.07,
+     "hi": 2.288,
+     "accounts_with_both": 28,
+     "posts_with": 67,
+     "posts_without": 229
+    }
+   }
+  },
+  "model_releases_only": {
+   "win_rate": 0.5743,
+   "lo": 0.4817,
+   "hi": 0.6731,
+   "pairs": 548,
+   "accounts": 62,
+   "likes_ratio": {
+    "ratio": 1.446,
+    "lo": 1.086,
+    "hi": 1.937,
+    "accounts_with_both": 67,
+    "posts_with": 136,
+    "posts_without": 367
+   }
+  },
+  "posts_with_trait_main": 163,
+  "measured_as": "open_source_in_model_release",
+  "flipped": false
+ },
+ "pt_weekday_morning": {
+  "description": "posted Monday to Friday 06:00 to 11:59 Pacific time, against any other time",
+  "win_rate": 0.5288,
+  "lo": 0.476,
+  "hi": 0.5841,
+  "pairs": 1734,
+  "accounts": 174,
+  "supported": false,
+  "status": "none",
+  "grade": null,
+  "level": "company and founder accounts",
+  "outcome": "likes relative to the account's trailing median",
+  "design": "same account, launch-type posts, posting order balanced",
+  "likes_ratio": {
+   "ratio": 1.16,
+   "lo": 1.0,
+   "hi": 1.348,
+   "accounts_with_both": 185,
+   "posts_with": 843,
+   "posts_without": 548
+  },
+  "adjusted_likes_ratio": null,
+  "tests_passed_main": {
+   "pairs": false,
+   "ratio": false
+  },
+  "strict_subset": {
+   "win_rate": 0.4537,
+   "lo": 0.3907,
+   "hi": 0.512,
+   "pairs": 801,
+   "accounts": 83,
+   "likes_ratio": {
+    "ratio": 0.946,
+    "lo": 0.77,
+    "hi": 1.188,
+    "accounts_with_both": 89,
+    "posts_with": 423,
+    "posts_without": 227
+   },
+   "tests_passed": {
+    "pairs": false,
+    "ratio": false
+   }
+  },
+  "all_accounts": {
+   "win_rate": 0.5084,
+   "lo": 0.46,
+   "hi": 0.5586,
+   "pairs": 2052,
+   "accounts": 275,
+   "likes_ratio": {
+    "ratio": 1.06,
+    "lo": 0.936,
+    "hi": 1.214,
+    "accounts_with_both": 310,
+    "posts_with": 1052,
+    "posts_without": 829
+   }
+  },
+  "reposts": {
+   "win_rate": 0.5428,
+   "lo": 0.4967,
+   "hi": 0.5936,
+   "pairs": 1727,
+   "accounts": 170,
+   "likes_ratio": {
+    "ratio": 1.252,
+    "lo": 1.041,
+    "hi": 1.517,
+    "accounts_with_both": 183,
+    "posts_with": 836,
+    "posts_without": 544
+   }
+  },
+  "periods": {
+   "before_2026_04_23": {
+    "win_rate": 0.5471,
+    "lo": 0.4862,
+    "hi": 0.6019,
+    "pairs": 1210,
+    "accounts": 192,
+    "likes_ratio": {
+     "ratio": 1.054,
+     "lo": 0.902,
+     "hi": 1.218,
+     "accounts_with_both": 218,
+     "posts_with": 695,
+     "posts_without": 505
+    }
+   },
+   "from_2026_04_23": {
+    "win_rate": 0.5118,
+    "lo": 0.382,
+    "hi": 0.6243,
+    "pairs": 408,
+    "accounts": 78,
+    "likes_ratio": {
+     "ratio": 0.989,
+     "lo": 0.756,
+     "hi": 1.304,
+     "accounts_with_both": 82,
+     "posts_with": 200,
+     "posts_without": 168
+    }
+   }
+  },
+  "tiers": {
+   "under_100k": {
+    "win_rate": 0.5121,
+    "lo": 0.4282,
+    "hi": 0.6108,
+    "pairs": 684,
+    "accounts": 132,
+    "likes_ratio": {
+     "ratio": 1.056,
+     "lo": 0.868,
+     "hi": 1.313,
+     "accounts_with_both": 156,
+     "posts_with": 344,
+     "posts_without": 386
+    }
+   },
+   "100k_plus": {
+    "win_rate": 0.5051,
+    "lo": 0.4275,
+    "hi": 0.5735,
+    "pairs": 930,
+    "accounts": 68,
+    "likes_ratio": {
+     "ratio": 1.023,
+     "lo": 0.826,
+     "hi": 1.226,
+     "accounts_with_both": 73,
+     "posts_with": 441,
+     "posts_without": 295
+    }
+   }
+  },
+  "model_releases_only": {
+   "win_rate": 0.4844,
+   "lo": 0.4147,
+   "hi": 0.5526,
+   "pairs": 812,
+   "accounts": 81,
+   "likes_ratio": {
+    "ratio": 1.05,
+    "lo": 0.856,
+    "hi": 1.299,
+    "accounts_with_both": 94,
+    "posts_with": 369,
+    "posts_without": 297
+   }
+  },
+  "posts_with_trait_main": 1210,
+  "measured_as": "pt_weekday_morning",
+  "flipped": false
+ },
+ "pt_weekday_8_10": {
+  "description": "posted Monday to Friday 08:00 to 10:59 Pacific time, against any other time",
+  "win_rate": 0.5334,
+  "lo": 0.4892,
+  "hi": 0.576,
+  "pairs": 1892,
+  "accounts": 181,
+  "supported": false,
+  "status": "none",
+  "grade": null,
+  "level": "company and founder accounts",
+  "outcome": "likes relative to the account's trailing median",
+  "design": "same account, launch-type posts, posting order balanced",
+  "likes_ratio": {
+   "ratio": 1.126,
+   "lo": 0.975,
+   "hi": 1.283,
+   "accounts_with_both": 192,
+   "posts_with": 632,
+   "posts_without": 768
+  },
+  "adjusted_likes_ratio": null,
+  "tests_passed_main": {
+   "pairs": false,
+   "ratio": false
+  },
+  "strict_subset": {
+   "win_rate": 0.5019,
+   "lo": 0.4321,
+   "hi": 0.5675,
+   "pairs": 928,
+   "accounts": 96,
+   "likes_ratio": {
+    "ratio": 0.921,
+    "lo": 0.766,
+    "hi": 1.099,
+    "accounts_with_both": 101,
+    "posts_with": 323,
+    "posts_without": 378
+   },
+   "tests_passed": {
+    "pairs": false,
+    "ratio": false
+   }
+  },
+  "all_accounts": {
+   "win_rate": 0.5254,
+   "lo": 0.4842,
+   "hi": 0.5667,
+   "pairs": 2111,
+   "accounts": 258,
+   "likes_ratio": {
+    "ratio": 1.067,
+    "lo": 0.941,
+    "hi": 1.197,
+    "accounts_with_both": 286,
+    "posts_with": 767,
+    "posts_without": 1038
+   }
+  },
+  "reposts": {
+   "win_rate": 0.5514,
+   "lo": 0.5044,
+   "hi": 0.5983,
+   "pairs": 1898,
+   "accounts": 180,
+   "likes_ratio": {
+    "ratio": 1.219,
+    "lo": 1.04,
+    "hi": 1.432,
+    "accounts_with_both": 191,
+    "posts_with": 627,
+    "posts_without": 764
+   }
+  },
+  "periods": {
+   "before_2026_04_23": {
+    "win_rate": 0.5482,
+    "lo": 0.4993,
+    "hi": 0.5957,
+    "pairs": 1351,
+    "accounts": 191,
+    "likes_ratio": {
+     "ratio": 1.024,
+     "lo": 0.895,
+     "hi": 1.17,
+     "accounts_with_both": 212,
+     "posts_with": 528,
+     "posts_without": 664
+    }
+   },
+   "from_2026_04_23": {
+    "win_rate": 0.5731,
+    "lo": 0.4607,
+    "hi": 0.666,
+    "pairs": 389,
+    "accounts": 70,
+    "likes_ratio": {
+     "ratio": 1.161,
+     "lo": 0.887,
+     "hi": 1.512,
+     "accounts_with_both": 76,
+     "posts_with": 144,
+     "posts_without": 189
+    }
+   }
+  },
+  "tiers": {
+   "under_100k": {
+    "win_rate": 0.5553,
+    "lo": 0.4651,
+    "hi": 0.6297,
+    "pairs": 583,
+    "accounts": 113,
+    "likes_ratio": {
+     "ratio": 0.986,
+     "lo": 0.788,
+     "hi": 1.24,
+     "accounts_with_both": 133,
+     "posts_with": 229,
+     "posts_without": 410
+    }
+   },
+   "100k_plus": {
+    "win_rate": 0.5078,
+    "lo": 0.45,
+    "hi": 0.5641,
+    "pairs": 991,
+    "accounts": 59,
+    "likes_ratio": {
+     "ratio": 1.045,
+     "lo": 0.875,
+     "hi": 1.218,
+     "accounts_with_both": 64,
+     "posts_with": 323,
+     "posts_without": 377
+    }
+   }
+  },
+  "model_releases_only": {
+   "win_rate": 0.4885,
+   "lo": 0.4236,
+   "hi": 0.5476,
+   "pairs": 884,
+   "accounts": 97,
+   "likes_ratio": {
+    "ratio": 1.064,
+    "lo": 0.881,
+    "hi": 1.292,
+    "accounts_with_both": 108,
+    "posts_with": 315,
+    "posts_without": 386
+   }
+  },
+  "posts_with_trait_main": 782,
+  "measured_as": "pt_weekday_8_10",
+  "flipped": false
+ },
+ "pt_tue_thu_morning": {
+  "description": "posted Tuesday to Thursday 06:00 to 11:59 Pacific, against any other time",
+  "win_rate": 0.5222,
+  "lo": 0.4726,
+  "hi": 0.5732,
+  "pairs": 1953,
+  "accounts": 191,
+  "supported": false,
+  "status": "none",
+  "grade": null,
+  "level": "company and founder accounts",
+  "outcome": "likes relative to the account's trailing median",
+  "design": "same account, launch-type posts, posting order balanced",
+  "likes_ratio": {
+   "ratio": 1.091,
+   "lo": 0.959,
+   "hi": 1.232,
+   "accounts_with_both": 203,
+   "posts_with": 712,
+   "posts_without": 735
+  },
+  "adjusted_likes_ratio": null,
+  "tests_passed_main": {
+   "pairs": false,
+   "ratio": false
+  },
+  "strict_subset": {
+   "win_rate": 0.4652,
+   "lo": 0.4081,
+   "hi": 0.5207,
+   "pairs": 968,
+   "accounts": 96,
+   "likes_ratio": {
+    "ratio": 0.968,
+    "lo": 0.825,
+    "hi": 1.146,
+    "accounts_with_both": 102,
+    "posts_with": 375,
+    "posts_without": 343
+   },
+   "tests_passed": {
+    "pairs": false,
+    "ratio": false
+   }
+  },
+  "all_accounts": {
+   "win_rate": 0.5014,
+   "lo": 0.4557,
+   "hi": 0.5478,
+   "pairs": 2247,
+   "accounts": 281,
+   "likes_ratio": {
+    "ratio": 0.991,
+    "lo": 0.886,
+    "hi": 1.111,
+    "accounts_with_both": 318,
+    "posts_with": 883,
+    "posts_without": 1018
+   }
+  },
+  "reposts": {
+   "win_rate": 0.5204,
+   "lo": 0.4703,
+   "hi": 0.5686,
+   "pairs": 1962,
+   "accounts": 191,
+   "likes_ratio": {
+    "ratio": 1.13,
+    "lo": 0.951,
+    "hi": 1.335,
+    "accounts_with_both": 202,
+    "posts_with": 709,
+    "posts_without": 730
+   }
+  },
+  "periods": {
+   "before_2026_04_23": {
+    "win_rate": 0.5182,
+    "lo": 0.46,
+    "hi": 0.5806,
+    "pairs": 1407,
+    "accounts": 196,
+    "likes_ratio": {
+     "ratio": 1.01,
+     "lo": 0.883,
+     "hi": 1.157,
+     "accounts_with_both": 223,
+     "posts_with": 593,
+     "posts_without": 621
+    }
+   },
+   "from_2026_04_23": {
+    "win_rate": 0.4674,
+    "lo": 0.377,
+    "hi": 0.5393,
+    "pairs": 421,
+    "accounts": 83,
+    "likes_ratio": {
+     "ratio": 0.933,
+     "lo": 0.763,
+     "hi": 1.138,
+     "accounts_with_both": 88,
+     "posts_with": 173,
+     "posts_without": 214
+    }
+   }
+  },
+  "tiers": {
+   "under_100k": {
+    "win_rate": 0.4986,
+    "lo": 0.4121,
+    "hi": 0.5887,
+    "pairs": 646,
+    "accounts": 124,
+    "likes_ratio": {
+     "ratio": 1.005,
+     "lo": 0.829,
+     "hi": 1.236,
+     "accounts_with_both": 148,
+     "posts_with": 285,
+     "posts_without": 410
+    }
+   },
+   "100k_plus": {
+    "win_rate": 0.4867,
+    "lo": 0.4081,
+    "hi": 0.5614,
+    "pairs": 1005,
+    "accounts": 68,
+    "likes_ratio": {
+     "ratio": 0.941,
+     "lo": 0.792,
+     "hi": 1.093,
+     "accounts_with_both": 74,
+     "posts_with": 357,
+     "posts_without": 371
+    }
+   }
+  },
+  "model_releases_only": {
+   "win_rate": 0.5163,
+   "lo": 0.4552,
+   "hi": 0.5777,
+   "pairs": 887,
+   "accounts": 90,
+   "likes_ratio": {
+    "ratio": 1.035,
+    "lo": 0.876,
+    "hi": 1.217,
+    "accounts_with_both": 102,
+    "posts_with": 330,
+    "posts_without": 364
+   }
+  },
+  "posts_with_trait_main": 901,
+  "measured_as": "pt_tue_thu_morning",
+  "flipped": false
+ },
+ "pt_morning_vs_afternoon": {
+  "description": "weekday 06:00 to 11:59 Pacific, against weekday 12:00 to 17:59 Pacific",
+  "win_rate": 0.5526,
+  "lo": 0.4944,
+  "hi": 0.611,
+  "pairs": 1207,
+  "accounts": 129,
+  "supported": false,
+  "status": "none",
+  "grade": null,
+  "level": "company and founder accounts",
+  "outcome": "likes relative to the account's trailing median",
+  "design": "same account, launch-type posts, posting order balanced",
+  "likes_ratio": {
+   "ratio": 1.222,
+   "lo": 1.02,
+   "hi": 1.463,
+   "accounts_with_both": 138,
+   "posts_with": 720,
+   "posts_without": 324
+  },
+  "adjusted_likes_ratio": null,
+  "tests_passed_main": {
+   "pairs": false,
+   "ratio": true
+  },
+  "strict_subset": {
+   "win_rate": 0.4747,
+   "lo": 0.4068,
+   "hi": 0.5354,
+   "pairs": 592,
+   "accounts": 70,
+   "likes_ratio": {
+    "ratio": 0.959,
+    "lo": 0.747,
+    "hi": 1.217,
+    "accounts_with_both": 74,
+    "posts_with": 379,
+    "posts_without": 156
+   },
+   "tests_passed": {
+    "pairs": false,
+    "ratio": false
+   }
+  },
+  "all_accounts": {
+   "win_rate": 0.5323,
+   "lo": 0.4729,
+   "hi": 0.5874,
+   "pairs": 1375,
+   "accounts": 185,
+   "likes_ratio": {
+    "ratio": 1.135,
+    "lo": 0.967,
+    "hi": 1.333,
+    "accounts_with_both": 210,
+    "posts_with": 855,
+    "posts_without": 453
+   }
+  },
+  "reposts": {
+   "win_rate": 0.5721,
+   "lo": 0.52,
+   "hi": 0.6236,
+   "pairs": 1206,
+   "accounts": 127,
+   "likes_ratio": {
+    "ratio": 1.423,
+    "lo": 1.143,
+    "hi": 1.82,
+    "accounts_with_both": 136,
+    "posts_with": 713,
+    "posts_without": 320
+   }
+  },
+  "periods": {
+   "before_2026_04_23": {
+    "win_rate": 0.565,
+    "lo": 0.4897,
+    "hi": 0.6342,
+    "pairs": 846,
+    "accounts": 128,
+    "likes_ratio": {
+     "ratio": 1.104,
+     "lo": 0.909,
+     "hi": 1.353,
+     "accounts_with_both": 146,
+     "posts_with": 541,
+     "posts_without": 285
+    }
+   },
+   "from_2026_04_23": {
+    "win_rate": 0.5283,
+    "lo": 0.3736,
+    "hi": 0.661,
+    "pairs": 275,
+    "accounts": 50,
+    "likes_ratio": {
+     "ratio": 0.962,
+     "lo": 0.678,
+     "hi": 1.359,
+     "accounts_with_both": 52,
+     "posts_with": 154,
+     "posts_without": 94
+    }
+   }
+  },
+  "tiers": {
+   "under_100k": {
+    "win_rate": 0.5877,
+    "lo": 0.461,
+    "hi": 0.7152,
+    "pairs": 385,
+    "accounts": 81,
+    "likes_ratio": {
+     "ratio": 1.163,
+     "lo": 0.881,
+     "hi": 1.584,
+     "accounts_with_both": 99,
+     "posts_with": 248,
+     "posts_without": 182
+    }
+   },
+   "100k_plus": {
+    "win_rate": 0.499,
+    "lo": 0.4175,
+    "hi": 0.5723,
+    "pairs": 694,
+    "accounts": 50,
+    "likes_ratio": {
+     "ratio": 1.063,
+     "lo": 0.847,
+     "hi": 1.271,
+     "accounts_with_both": 53,
+     "posts_with": 409,
+     "posts_without": 182
+    }
+   }
+  },
+  "model_releases_only": {
+   "win_rate": 0.5268,
+   "lo": 0.4325,
+   "hi": 0.6172,
+   "pairs": 530,
+   "accounts": 62,
+   "likes_ratio": {
+    "ratio": 1.141,
+    "lo": 0.884,
+    "hi": 1.477,
+    "accounts_with_both": 74,
+    "posts_with": 328,
+    "posts_without": 169
+   }
+  },
+  "posts_with_trait_main": 1210,
+  "measured_as": "pt_morning_vs_afternoon",
+  "flipped": false
+ },
+ "pt_morning_vs_evening_night": {
+  "description": "weekday 06:00 to 11:59 Pacific, against 18:00 to 05:59 Pacific on any day",
+  "win_rate": 0.5195,
+  "lo": 0.4108,
+  "hi": 0.6366,
+  "pairs": 606,
+  "accounts": 66,
+  "supported": false,
+  "status": "none",
+  "grade": null,
+  "level": "company and founder accounts",
+  "outcome": "likes relative to the account's trailing median",
+  "design": "same account, launch-type posts, posting order balanced",
+  "likes_ratio": {
+   "ratio": 0.933,
+   "lo": 0.726,
+   "hi": 1.228,
+   "accounts_with_both": 71,
+   "posts_with": 415,
+   "posts_without": 171
+  },
+  "adjusted_likes_ratio": null,
+  "tests_passed_main": {
+   "pairs": false,
+   "ratio": false
+  },
+  "strict_subset": {
+   "win_rate": 0.411,
+   "lo": 0.3263,
+   "hi": 0.5392,
+   "pairs": 200,
+   "accounts": 26,
+   "likes_ratio": {
+    "ratio": 0.838,
+    "lo": 0.601,
+    "hi": 1.267,
+    "accounts_with_both": 28,
+    "posts_with": 173,
+    "posts_without": 52
+   },
+   "tests_passed": {
+    "pairs": false,
+    "ratio": false
+   }
+  },
+  "all_accounts": {
+   "win_rate": 0.5114,
+   "lo": 0.4179,
+   "hi": 0.6142,
+   "pairs": 693,
+   "accounts": 112,
+   "likes_ratio": {
+    "ratio": 0.898,
+    "lo": 0.724,
+    "hi": 1.126,
+    "accounts_with_both": 132,
+    "posts_with": 532,
+    "posts_without": 274
+   }
+  },
+  "reposts": {
+   "win_rate": 0.5191,
+   "lo": 0.422,
+   "hi": 0.617,
+   "pairs": 596,
+   "accounts": 65,
+   "likes_ratio": {
+    "ratio": 0.861,
+    "lo": 0.639,
+    "hi": 1.179,
+    "accounts_with_both": 71,
+    "posts_with": 415,
+    "posts_without": 171
+   }
+  },
+  "periods": {
+   "before_2026_04_23": {
+    "win_rate": 0.5718,
+    "lo": 0.444,
+    "hi": 0.6763,
+    "pairs": 349,
+    "accounts": 71,
+    "likes_ratio": {
+     "ratio": 0.929,
+     "lo": 0.707,
+     "hi": 1.204,
+     "accounts_with_both": 83,
+     "posts_with": 319,
+     "posts_without": 151
+    }
+   },
+   "from_2026_04_23": {
+    "win_rate": 0.4278,
+    "lo": 0.2861,
+    "hi": 0.5908,
+    "pairs": 101,
+    "accounts": 35,
+    "likes_ratio": {
+     "ratio": 0.787,
+     "lo": 0.48,
+     "hi": 1.29,
+     "accounts_with_both": 39,
+     "posts_with": 81,
+     "posts_without": 58
+    }
+   }
+  },
+  "tiers": {
+   "under_100k": {
+    "win_rate": 0.4048,
+    "lo": 0.2836,
+    "hi": 0.5359,
+    "pairs": 206,
+    "accounts": 54,
+    "likes_ratio": {
+     "ratio": 0.938,
+     "lo": 0.665,
+     "hi": 1.321,
+     "accounts_with_both": 70,
+     "posts_with": 181,
+     "posts_without": 149
+    }
+   },
+   "100k_plus": {
+    "win_rate": 0.5831,
+    "lo": 0.4506,
+    "hi": 0.7361,
+    "pairs": 375,
+    "accounts": 27,
+    "likes_ratio": {
+     "ratio": 0.945,
+     "lo": 0.662,
+     "hi": 1.38,
+     "accounts_with_both": 31,
+     "posts_with": 254,
+     "posts_without": 78
+    }
+   }
+  },
+  "model_releases_only": {
+   "win_rate": 0.4194,
+   "lo": 0.2969,
+   "hi": 0.572,
+   "pairs": 284,
+   "accounts": 33,
+   "likes_ratio": {
+    "ratio": 0.847,
+    "lo": 0.626,
+    "hi": 1.19,
+    "accounts_with_both": 41,
+    "posts_with": 186,
+    "posts_without": 105
+   }
+  },
+  "posts_with_trait_main": 1210,
+  "measured_as": "pt_morning_vs_evening_night",
+  "flipped": false
+ },
+ "pt_tuesday": {
+  "description": "posted on a Tuesday (Pacific), against Monday, Wednesday, Thursday or Friday",
+  "win_rate": 0.5459,
+  "lo": 0.5,
+  "hi": 0.5914,
+  "pairs": 1631,
+  "accounts": 151,
+  "supported": false,
+  "status": "none",
+  "grade": null,
+  "level": "company and founder accounts",
+  "outcome": "likes relative to the account's trailing median",
+  "design": "same account, launch-type posts, posting order balanced",
+  "likes_ratio": {
+   "ratio": 1.085,
+   "lo": 0.937,
+   "hi": 1.248,
+   "accounts_with_both": 161,
+   "posts_with": 349,
+   "posts_without": 893
+  },
+  "adjusted_likes_ratio": null,
+  "tests_passed_main": {
+   "pairs": false,
+   "ratio": false
+  },
+  "strict_subset": {
+   "win_rate": 0.5364,
+   "lo": 0.4654,
+   "hi": 0.6159,
+   "pairs": 880,
+   "accounts": 89,
+   "likes_ratio": {
+    "ratio": 1.153,
+    "lo": 0.917,
+    "hi": 1.44,
+    "accounts_with_both": 95,
+    "posts_with": 192,
+    "posts_without": 465
+   },
+   "tests_passed": {
+    "pairs": false,
+    "ratio": false
+   }
+  },
+  "all_accounts": {
+   "win_rate": 0.5336,
+   "lo": 0.4837,
+   "hi": 0.5809,
+   "pairs": 1804,
+   "accounts": 213,
+   "likes_ratio": {
+    "ratio": 1.028,
+    "lo": 0.898,
+    "hi": 1.174,
+    "accounts_with_both": 246,
+    "posts_with": 454,
+    "posts_without": 1109
+   }
+  },
+  "reposts": {
+   "win_rate": 0.5632,
+   "lo": 0.5175,
+   "hi": 0.6091,
+   "pairs": 1616,
+   "accounts": 151,
+   "likes_ratio": {
+    "ratio": 1.129,
+    "lo": 0.955,
+    "hi": 1.338,
+    "accounts_with_both": 160,
+    "posts_with": 346,
+    "posts_without": 888
+   }
+  },
+  "periods": {
+   "before_2026_04_23": {
+    "win_rate": 0.5511,
+    "lo": 0.4895,
+    "hi": 0.6176,
+    "pairs": 1179,
+    "accounts": 165,
+    "likes_ratio": {
+     "ratio": 1.116,
+     "lo": 0.933,
+     "hi": 1.303,
+     "accounts_with_both": 185,
+     "posts_with": 307,
+     "posts_without": 749
+    }
+   },
+   "from_2026_04_23": {
+    "win_rate": 0.4179,
+    "lo": 0.3197,
+    "hi": 0.5422,
+    "pairs": 324,
+    "accounts": 61,
+    "likes_ratio": {
+     "ratio": 0.772,
+     "lo": 0.61,
+     "hi": 0.998,
+     "accounts_with_both": 65,
+     "posts_with": 105,
+     "posts_without": 185
+    }
+   }
+  },
+  "tiers": {
+   "under_100k": {
+    "win_rate": 0.5139,
+    "lo": 0.4166,
+    "hi": 0.6075,
+    "pairs": 471,
+    "accounts": 85,
+    "likes_ratio": {
+     "ratio": 0.92,
+     "lo": 0.709,
+     "hi": 1.187,
+     "accounts_with_both": 109,
+     "posts_with": 161,
+     "posts_without": 354
+    }
+   },
+   "100k_plus": {
+    "win_rate": 0.5241,
+    "lo": 0.447,
+    "hi": 0.5996,
+    "pairs": 943,
+    "accounts": 54,
+    "likes_ratio": {
+     "ratio": 0.993,
+     "lo": 0.821,
+     "hi": 1.195,
+     "accounts_with_both": 57,
+     "posts_with": 176,
+     "posts_without": 472
+    }
+   }
+  },
+  "model_releases_only": {
+   "win_rate": 0.5731,
+   "lo": 0.5048,
+   "hi": 0.6385,
+   "pairs": 739,
+   "accounts": 78,
+   "likes_ratio": {
+    "ratio": 1.161,
+    "lo": 0.972,
+    "hi": 1.406,
+    "accounts_with_both": 85,
+    "posts_with": 175,
+    "posts_without": 429
+   }
+  },
+  "posts_with_trait_main": 415,
+  "measured_as": "pt_tuesday",
+  "flipped": false
+ },
+ "pt_weekend": {
+  "description": "posted on Saturday or Sunday (Pacific)",
+  "win_rate": 0.5622,
+  "lo": 0.4133,
+  "hi": 0.6862,
+  "pairs": 528,
+  "accounts": 61,
+  "supported": false,
+  "status": "none",
+  "grade": null,
+  "level": "company and founder accounts",
+  "outcome": "likes relative to the account's trailing median",
+  "design": "same account, launch-type posts, posting order balanced",
+  "likes_ratio": {
+   "ratio": 1.008,
+   "lo": 0.663,
+   "hi": 1.454,
+   "accounts_with_both": 65,
+   "posts_with": 92,
+   "posts_without": 489
+  },
+  "adjusted_likes_ratio": null,
+  "tests_passed_main": {
+   "pairs": false,
+   "ratio": false
+  },
+  "strict_subset": {
+   "win_rate": 0.5396,
+   "lo": 0.3489,
+   "hi": 0.7394,
+   "pairs": 189,
+   "accounts": 18,
+   "likes_ratio": {
+    "ratio": 1.266,
+    "lo": 0.661,
+    "hi": 2.234,
+    "accounts_with_both": 20,
+    "posts_with": 29,
+    "posts_without": 177
+   },
+   "tests_passed": {
+    "pairs": false,
+    "ratio": false
+   }
+  },
+  "all_accounts": {
+   "win_rate": 0.5641,
+   "lo": 0.4573,
+   "hi": 0.6589,
+   "pairs": 761,
+   "accounts": 122,
+   "likes_ratio": {
+    "ratio": 1.032,
+    "lo": 0.812,
+    "hi": 1.294,
+    "accounts_with_both": 149,
+    "posts_with": 210,
+    "posts_without": 718
+   }
+  },
+  "reposts": {
+   "win_rate": 0.5285,
+   "lo": 0.3837,
+   "hi": 0.6564,
+   "pairs": 534,
+   "accounts": 60,
+   "likes_ratio": {
+    "ratio": 0.943,
+    "lo": 0.579,
+    "hi": 1.469,
+    "accounts_with_both": 65,
+    "posts_with": 92,
+    "posts_without": 488
+   }
+  },
+  "periods": {
+   "before_2026_04_23": {
+    "win_rate": 0.5398,
+    "lo": 0.401,
+    "hi": 0.6649,
+    "pairs": 404,
+    "accounts": 91,
+    "likes_ratio": {
+     "ratio": 0.951,
+     "lo": 0.719,
+     "hi": 1.237,
+     "accounts_with_both": 110,
+     "posts_with": 139,
+     "posts_without": 466
+    }
+   },
+   "from_2026_04_23": {
+    "win_rate": 0.5879,
+    "lo": 0.4383,
+    "hi": 0.6996,
+    "pairs": 137,
+    "accounts": 34,
+    "likes_ratio": {
+     "ratio": 1.335,
+     "lo": 0.908,
+     "hi": 1.933,
+     "accounts_with_both": 35,
+     "posts_with": 48,
+     "posts_without": 101
+    }
+   }
+  },
+  "tiers": {
+   "under_100k": {
+    "win_rate": 0.5579,
+    "lo": 0.4332,
+    "hi": 0.6754,
+    "pairs": 319,
+    "accounts": 69,
+    "likes_ratio": {
+     "ratio": 0.965,
+     "lo": 0.72,
+     "hi": 1.273,
+     "accounts_with_both": 85,
+     "posts_with": 119,
+     "posts_without": 283
+    }
+   },
+   "100k_plus": {
+    "win_rate": 0.5607,
+    "lo": 0.3558,
+    "hi": 0.7283,
+    "pairs": 338,
+    "accounts": 34,
+    "likes_ratio": {
+     "ratio": 1.089,
+     "lo": 0.687,
+     "hi": 1.62,
+     "accounts_with_both": 40,
+     "posts_with": 58,
+     "posts_without": 357
+    }
+   }
+  },
+  "model_releases_only": {
+   "win_rate": 0.5992,
+   "lo": 0.3985,
+   "hi": 0.7306,
+   "pairs": 262,
+   "accounts": 27,
+   "likes_ratio": {
+    "ratio": 1.143,
+    "lo": 0.674,
+    "hi": 1.868,
+    "accounts_with_both": 33,
+    "posts_with": 46,
+    "posts_without": 263
+   }
+  },
+  "posts_with_trait_main": 112,
+  "measured_as": "pt_weekend",
+  "flipped": false
+ },
+ "teaser_72h": {
+  "description": "the account posted a teaser 1 to 72 hours before the launch post",
+  "win_rate": 0.5492,
+  "lo": 0.4113,
+  "hi": 0.6784,
+  "pairs": 262,
+  "accounts": 34,
+  "supported": false,
+  "status": "none",
+  "grade": null,
+  "level": "company and founder accounts",
+  "outcome": "likes relative to the account's trailing median",
+  "design": "same account, launch-type posts, posting order balanced",
+  "likes_ratio": {
+   "ratio": 1.074,
+   "lo": 0.701,
+   "hi": 1.669,
+   "accounts_with_both": 35,
+   "posts_with": 45,
+   "posts_without": 323
+  },
+  "adjusted_likes_ratio": {
+   "ratio": 1.017,
+   "lo": 0.634,
+   "hi": 1.712
+  },
+  "tests_passed_main": {
+   "pairs": false,
+   "ratio": false,
+   "adjusted": false
+  },
+  "strict_subset": {
+   "win_rate": 0.6148,
+   "lo": 0.3661,
+   "hi": 0.7821,
+   "pairs": 103,
+   "accounts": 17,
+   "likes_ratio": {
+    "ratio": 1.425,
+    "lo": 0.643,
+    "hi": 3.212,
+    "accounts_with_both": 17,
+    "posts_with": 17,
+    "posts_without": 142
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 1.144,
+    "lo": 0.452,
+    "hi": 2.847
+   },
+   "tests_passed": {
+    "pairs": false,
+    "ratio": false,
+    "adjusted": false
+   }
+  },
+  "all_accounts": {
+   "win_rate": 0.5509,
+   "lo": 0.4662,
+   "hi": 0.6371,
+   "pairs": 474,
+   "accounts": 72,
+   "likes_ratio": {
+    "ratio": 1.092,
+    "lo": 0.874,
+    "hi": 1.398,
+    "accounts_with_both": 83,
+    "posts_with": 127,
+    "posts_without": 487
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 1.094,
+    "lo": 0.863,
+    "hi": 1.39
+   }
+  },
+  "reposts": {
+   "win_rate": 0.5483,
+   "lo": 0.4285,
+   "hi": 0.6799,
+   "pairs": 270,
+   "accounts": 33,
+   "likes_ratio": {
+    "ratio": 1.195,
+    "lo": 0.778,
+    "hi": 1.873,
+    "accounts_with_both": 35,
+    "posts_with": 45,
+    "posts_without": 322
+   }
+  },
+  "periods": {
+   "before_2026_04_23": {
+    "win_rate": 0.5786,
+    "lo": 0.4941,
+    "hi": 0.677,
+    "pairs": 295,
+    "accounts": 53,
+    "likes_ratio": {
+     "ratio": 1.176,
+     "lo": 0.897,
+     "hi": 1.584,
+     "accounts_with_both": 65,
+     "posts_with": 91,
+     "posts_without": 311
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 1.116,
+     "lo": 0.858,
+     "hi": 1.552
+    }
+   },
+   "from_2026_04_23": {
+    "win_rate": 0.4809,
+    "lo": 0.2184,
+    "hi": 0.6655,
+    "pairs": 54,
+    "accounts": 15,
+    "likes_ratio": {
+     "ratio": 1.032,
+     "lo": 0.55,
+     "hi": 2.362,
+     "accounts_with_both": 15,
+     "posts_with": 22,
+     "posts_without": 55
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 1.328,
+     "lo": 0.64,
+     "hi": 3.405
+    }
+   }
+  },
+  "tiers": {
+   "under_100k": {
+    "win_rate": 0.6171,
+    "lo": 0.4809,
+    "hi": 0.7028,
+    "pairs": 209,
+    "accounts": 46,
+    "likes_ratio": {
+     "ratio": 1.191,
+     "lo": 0.894,
+     "hi": 1.623,
+     "accounts_with_both": 55,
+     "posts_with": 81,
+     "posts_without": 204
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 1.085,
+     "lo": 0.8,
+     "hi": 1.482
+    }
+   },
+   "100k_plus": {
+    "win_rate": 0.5233,
+    "lo": 0.3876,
+    "hi": 0.6663,
+    "pairs": 219,
+    "accounts": 14,
+    "likes_ratio": {
+     "ratio": 0.828,
+     "lo": 0.599,
+     "hi": 1.199,
+     "accounts_with_both": 16,
+     "posts_with": 32,
+     "posts_without": 226
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 0.872,
+     "lo": 0.594,
+     "hi": 1.358
+    }
+   }
+  },
+  "model_releases_only": {
+   "win_rate": 0.5389,
+   "lo": 0.3529,
+   "hi": 0.7477,
+   "pairs": 130,
+   "accounts": 19,
+   "likes_ratio": {
+    "ratio": 1.285,
+    "lo": 0.857,
+    "hi": 2.155,
+    "accounts_with_both": 21,
+    "posts_with": 29,
+    "posts_without": 149
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 1.406,
+    "lo": 0.897,
+    "hi": 2.248
+   }
+  },
+  "posts_with_trait_main": 53,
+  "measured_as": "teaser_72h",
+  "flipped": false
+ },
+ "teaser_36h": {
+  "description": "the account posted a teaser 1 to 36 hours before the launch post",
+  "win_rate": 0.5368,
+  "lo": 0.4383,
+  "hi": 0.6373,
+  "pairs": 352,
+  "accounts": 51,
+  "supported": false,
+  "status": "none",
+  "grade": null,
+  "level": "every account pooled (too thin among company and founder accounts)",
+  "outcome": "likes relative to the account's trailing median",
+  "design": "same account, launch-type posts, posting order balanced",
+  "likes_ratio": {
+   "ratio": 1.181,
+   "lo": 0.871,
+   "hi": 1.655,
+   "accounts_with_both": 56,
+   "posts_with": 76,
+   "posts_without": 400
+  },
+  "adjusted_likes_ratio": null,
+  "tests_passed_main": {
+   "pairs": false,
+   "ratio": false
+  },
+  "strict_subset": {
+   "win_rate": 0.5685,
+   "lo": 0.3571,
+   "hi": 0.7333,
+   "pairs": 95,
+   "accounts": 16,
+   "likes_ratio": {
+    "ratio": 1.326,
+    "lo": 0.706,
+    "hi": 2.742,
+    "accounts_with_both": 17,
+    "posts_with": 20,
+    "posts_without": 133
+   },
+   "tests_passed": {
+    "pairs": false,
+    "ratio": false
+   }
+  },
+  "all_accounts": {
+   "win_rate": 0.5368,
+   "lo": 0.4383,
+   "hi": 0.6373,
+   "pairs": 352,
+   "accounts": 51,
+   "likes_ratio": {
+    "ratio": 1.181,
+    "lo": 0.871,
+    "hi": 1.655,
+    "accounts_with_both": 56,
+    "posts_with": 76,
+    "posts_without": 400
+   }
+  },
+  "reposts": {
+   "win_rate": 0.5945,
+   "lo": 0.4961,
+   "hi": 0.7023,
+   "pairs": 339,
+   "accounts": 47,
+   "likes_ratio": {
+    "ratio": 1.552,
+    "lo": 1.141,
+    "hi": 2.123,
+    "accounts_with_both": 56,
+    "posts_with": 75,
+    "posts_without": 398
+   }
+  },
+  "periods": {
+   "before_2026_04_23": {
+    "win_rate": 0.53,
+    "lo": 0.4295,
+    "hi": 0.6456,
+    "pairs": 227,
+    "accounts": 37,
+    "likes_ratio": {
+     "ratio": 1.25,
+     "lo": 0.882,
+     "hi": 1.861,
+     "accounts_with_both": 42,
+     "posts_with": 54,
+     "posts_without": 247
+    }
+   },
+   "from_2026_04_23": {
+    "win_rate": 0.606,
+    "lo": 0.369,
+    "hi": 0.7602,
+    "pairs": 61,
+    "accounts": 14,
+    "likes_ratio": {
+     "ratio": 1.217,
+     "lo": 0.617,
+     "hi": 2.706,
+     "accounts_with_both": 14,
+     "posts_with": 18,
+     "posts_without": 61
+    }
+   }
+  },
+  "tiers": {
+   "under_100k": {
+    "win_rate": 0.6196,
+    "lo": 0.4814,
+    "hi": 0.7193,
+    "pairs": 151,
+    "accounts": 28,
+    "likes_ratio": {
+     "ratio": 1.295,
+     "lo": 0.872,
+     "hi": 2.019,
+     "accounts_with_both": 32,
+     "posts_with": 46,
+     "posts_without": 151
+    }
+   },
+   "100k_plus": {
+    "win_rate": 0.4412,
+    "lo": 0.3024,
+    "hi": 0.5821,
+    "pairs": 170,
+    "accounts": 13,
+    "likes_ratio": {
+     "ratio": 0.81,
+     "lo": 0.538,
+     "hi": 1.23,
+     "accounts_with_both": 14,
+     "posts_with": 20,
+     "posts_without": 199
+    }
+   }
+  },
+  "model_releases_only": {
+   "win_rate": 0.4858,
+   "lo": 0.2515,
+   "hi": 0.7531,
+   "pairs": 103,
+   "accounts": 15,
+   "likes_ratio": {
+    "ratio": 1.232,
+    "lo": 0.661,
+    "hi": 2.6,
+    "accounts_with_both": 16,
+    "posts_with": 17,
+    "posts_without": 131
+   }
+  },
+  "posts_with_trait_main": 107,
+  "measured_as": "teaser_36h",
+  "flipped": false
+ },
+ "quiet_prev24h": {
+  "description": "the account posted nothing in the 24 hours before the launch post",
+  "win_rate": 0.5745,
+  "lo": 0.5186,
+  "hi": 0.6241,
+  "pairs": 1510,
+  "accounts": 140,
+  "supported": true,
+  "status": "survives",
+  "grade": "B",
+  "level": "company and founder accounts",
+  "outcome": "likes relative to the account's trailing median",
+  "design": "same account, launch-type posts, posting order balanced",
+  "likes_ratio": {
+   "ratio": 1.428,
+   "lo": 1.181,
+   "hi": 1.714,
+   "accounts_with_both": 144,
+   "posts_with": 854,
+   "posts_without": 369
+  },
+  "adjusted_likes_ratio": null,
+  "tests_passed_main": {
+   "pairs": true,
+   "ratio": true
+  },
+  "strict_subset": {
+   "win_rate": 0.559,
+   "lo": 0.465,
+   "hi": 0.6521,
+   "pairs": 721,
+   "accounts": 73,
+   "likes_ratio": {
+    "ratio": 1.309,
+    "lo": 1.054,
+    "hi": 1.64,
+    "accounts_with_both": 76,
+    "posts_with": 369,
+    "posts_without": 185
+   },
+   "tests_passed": {
+    "pairs": false,
+    "ratio": true
+   }
+  },
+  "all_accounts": {
+   "win_rate": 0.5881,
+   "lo": 0.5382,
+   "hi": 0.6371,
+   "pairs": 1710,
+   "accounts": 215,
+   "likes_ratio": {
+    "ratio": 1.449,
+    "lo": 1.246,
+    "hi": 1.683,
+    "accounts_with_both": 241,
+    "posts_with": 1007,
+    "posts_without": 559
+   }
+  },
+  "reposts": {
+   "win_rate": 0.568,
+   "lo": 0.5232,
+   "hi": 0.6143,
+   "pairs": 1513,
+   "accounts": 136,
+   "likes_ratio": {
+    "ratio": 1.46,
+    "lo": 1.18,
+    "hi": 1.796,
+    "accounts_with_both": 144,
+    "posts_with": 854,
+    "posts_without": 366
+   }
+  },
+  "periods": {
+   "before_2026_04_23": {
+    "win_rate": 0.5882,
+    "lo": 0.5302,
+    "hi": 0.6425,
+    "pairs": 1174,
+    "accounts": 167,
+    "likes_ratio": {
+     "ratio": 1.411,
+     "lo": 1.177,
+     "hi": 1.699,
+     "accounts_with_both": 182,
+     "posts_with": 668,
+     "posts_without": 376
+    }
+   },
+   "from_2026_04_23": {
+    "win_rate": 0.5742,
+    "lo": 0.4741,
+    "hi": 0.6797,
+    "pairs": 285,
+    "accounts": 50,
+    "likes_ratio": {
+     "ratio": 1.308,
+     "lo": 0.935,
+     "hi": 1.807,
+     "accounts_with_both": 54,
+     "posts_with": 144,
+     "posts_without": 107
+    }
+   }
+  },
+  "tiers": {
+   "under_100k": {
+    "win_rate": 0.6159,
+    "lo": 0.5486,
+    "hi": 0.6979,
+    "pairs": 511,
+    "accounts": 98,
+    "likes_ratio": {
+     "ratio": 1.565,
+     "lo": 1.23,
+     "hi": 2.054,
+     "accounts_with_both": 117,
+     "posts_with": 308,
+     "posts_without": 224
+    }
+   },
+   "100k_plus": {
+    "win_rate": 0.5885,
+    "lo": 0.5097,
+    "hi": 0.6649,
+    "pairs": 870,
+    "accounts": 56,
+    "likes_ratio": {
+     "ratio": 1.319,
+     "lo": 1.041,
+     "hi": 1.655,
+     "accounts_with_both": 60,
+     "posts_with": 442,
+     "posts_without": 243
+    }
+   }
+  },
+  "model_releases_only": {
+   "win_rate": 0.6144,
+   "lo": 0.5366,
+   "hi": 0.6889,
+   "pairs": 600,
+   "accounts": 68,
+   "likes_ratio": {
+    "ratio": 1.49,
+    "lo": 1.185,
+    "hi": 1.859,
+    "accounts_with_both": 75,
+    "posts_with": 360,
+    "posts_without": 187
+   }
+  },
+  "posts_with_trait_main": 1559,
+  "measured_as": "quiet_prev24h",
+  "flipped": false
+ },
+ "no_launch_in_previous_week": {
+  "description": "the account made no other launch-type post in the 7 days before",
+  "win_rate": 0.5572,
+  "lo": 0.5004,
+  "hi": 0.6189,
+  "pairs": 1403,
+  "accounts": 95,
+  "supported": true,
+  "status": "survives",
+  "grade": "B",
+  "level": "company and founder accounts",
+  "outcome": "likes relative to the account's trailing median",
+  "design": "same account, launch-type posts, posting order balanced",
+  "likes_ratio": {
+   "ratio": 1.274,
+   "lo": 1.116,
+   "hi": 1.481,
+   "accounts_with_both": 95,
+   "posts_with": 815,
+   "posts_without": 243
+  },
+  "adjusted_likes_ratio": {
+   "ratio": 1.25,
+   "lo": 1.099,
+   "hi": 1.437
+  },
+  "tests_passed_main": {
+   "pairs": true,
+   "ratio": true,
+   "adjusted": true
+  },
+  "strict_subset": {
+   "win_rate": 0.5395,
+   "lo": 0.4634,
+   "hi": 0.6173,
+   "pairs": 794,
+   "accounts": 57,
+   "likes_ratio": {
+    "ratio": 1.252,
+    "lo": 1.033,
+    "hi": 1.558,
+    "accounts_with_both": 59,
+    "posts_with": 393,
+    "posts_without": 143
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 1.188,
+    "lo": 0.974,
+    "hi": 1.49
+   },
+   "tests_passed": {
+    "pairs": false,
+    "ratio": true,
+    "adjusted": false
+   }
+  },
+  "all_accounts": {
+   "win_rate": 0.5643,
+   "lo": 0.5079,
+   "hi": 0.6222,
+   "pairs": 1592,
+   "accounts": 124,
+   "likes_ratio": {
+    "ratio": 1.276,
+    "lo": 1.142,
+    "hi": 1.464,
+    "accounts_with_both": 126,
+    "posts_with": 983,
+    "posts_without": 292
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 1.272,
+    "lo": 1.136,
+    "hi": 1.427
+   }
+  },
+  "reposts": {
+   "win_rate": 0.5683,
+   "lo": 0.5131,
+   "hi": 0.6256,
+   "pairs": 1405,
+   "accounts": 94,
+   "likes_ratio": {
+    "ratio": 1.429,
+    "lo": 1.183,
+    "hi": 1.727,
+    "accounts_with_both": 95,
+    "posts_with": 812,
+    "posts_without": 242
+   }
+  },
+  "periods": {
+   "before_2026_04_23": {
+    "win_rate": 0.5504,
+    "lo": 0.487,
+    "hi": 0.6157,
+    "pairs": 1057,
+    "accounts": 100,
+    "likes_ratio": {
+     "ratio": 1.252,
+     "lo": 1.074,
+     "hi": 1.495,
+     "accounts_with_both": 102,
+     "posts_with": 635,
+     "posts_without": 215
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 1.253,
+     "lo": 1.062,
+     "hi": 1.468
+    }
+   },
+   "from_2026_04_23": {
+    "win_rate": 0.4913,
+    "lo": 0.4106,
+    "hi": 0.5938,
+    "pairs": 312,
+    "accounts": 42,
+    "likes_ratio": {
+     "ratio": 1.157,
+     "lo": 0.898,
+     "hi": 1.511,
+     "accounts_with_both": 44,
+     "posts_with": 176,
+     "posts_without": 76
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 1.095,
+     "lo": 0.835,
+     "hi": 1.481
+    }
+   }
+  },
+  "tiers": {
+   "under_100k": {
+    "win_rate": 0.5465,
+    "lo": 0.4395,
+    "hi": 0.6489,
+    "pairs": 487,
+    "accounts": 49,
+    "likes_ratio": {
+     "ratio": 1.33,
+     "lo": 1.024,
+     "hi": 1.727,
+     "accounts_with_both": 51,
+     "posts_with": 302,
+     "posts_without": 98
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 1.325,
+     "lo": 1.041,
+     "hi": 1.639
+    }
+   },
+   "100k_plus": {
+    "win_rate": 0.5284,
+    "lo": 0.4529,
+    "hi": 0.5995,
+    "pairs": 773,
+    "accounts": 34,
+    "likes_ratio": {
+     "ratio": 1.071,
+     "lo": 0.937,
+     "hi": 1.236,
+     "accounts_with_both": 34,
+     "posts_with": 449,
+     "posts_without": 131
+    },
+    "adjusted_likes_ratio": {
+     "ratio": 1.076,
+     "lo": 0.927,
+     "hi": 1.212
+    }
+   }
+  },
+  "model_releases_only": {
+   "win_rate": 0.5148,
+   "lo": 0.4495,
+   "hi": 0.5785,
+   "pairs": 663,
+   "accounts": 55,
+   "likes_ratio": {
+    "ratio": 1.139,
+    "lo": 0.991,
+    "hi": 1.314,
+    "accounts_with_both": 59,
+    "posts_with": 391,
+    "posts_without": 136
+   },
+   "adjusted_likes_ratio": {
+    "ratio": 1.091,
+    "lo": 0.907,
+    "hi": 1.302
+   }
+  },
+  "posts_with_trait_main": 245,
+  "measured_as": "launch_in_prev_week",
+  "flipped": true
+ },
+ "self_quote_day2_7": {
+  "description": "the account quote-posts its own launch 1 to 7 days later (follow-up)",
+  "win_rate": 0.8039,
+  "lo": 0.666,
+  "hi": 0.901,
+  "pairs": 177,
+  "accounts": 20,
+  "supported": false,
+  "status": "not_a_lever",
+  "grade": null,
+  "level": "every account pooled (too thin among company and founder accounts)",
+  "outcome": "likes relative to the account's trailing median",
+  "design": "same account, launch-type posts, posting order balanced; NOT a lever: the trait is partly a consequence of the outcome",
+  "likes_ratio": {
+   "ratio": 2.414,
+   "lo": 1.393,
+   "hi": 4.296,
+   "accounts_with_both": 26,
+   "posts_with": 30,
+   "posts_without": 243
+  },
+  "adjusted_likes_ratio": null,
+  "tests_passed_main": {
+   "pairs": true,
+   "ratio": true
+  },
+  "strict_subset": {
+   "win_rate": 0.7648,
+   "lo": 0.4096,
+   "hi": 0.9156,
+   "pairs": 54,
+   "accounts": 11,
+   "likes_ratio": {
+    "ratio": 2.135,
+    "lo": 1.078,
+    "hi": 4.019,
+    "accounts_with_both": 11,
+    "posts_with": 11,
+    "posts_without": 77
+   },
+   "tests_passed": {
+    "pairs": false,
+    "ratio": true
+   }
+  },
+  "all_accounts": {
+   "win_rate": 0.8039,
+   "lo": 0.666,
+   "hi": 0.901,
+   "pairs": 177,
+   "accounts": 20,
+   "likes_ratio": {
+    "ratio": 2.414,
+    "lo": 1.393,
+    "hi": 4.296,
+    "accounts_with_both": 26,
+    "posts_with": 30,
+    "posts_without": 243
+   }
+  },
+  "reposts": {
+   "win_rate": 0.805,
+   "lo": 0.6084,
+   "hi": 0.9121,
+   "pairs": 173,
+   "accounts": 20,
+   "likes_ratio": {
+    "ratio": 3.291,
+    "lo": 1.853,
+    "hi": 5.66,
+    "accounts_with_both": 26,
+    "posts_with": 30,
+    "posts_without": 241
+   }
+  },
+  "periods": {
+   "before_2026_04_23": {
+    "win_rate": 0.8445,
+    "lo": 0.7101,
+    "hi": 0.9324,
+    "pairs": 107,
+    "accounts": 13,
+    "likes_ratio": {
+     "ratio": 3.772,
+     "lo": 2.15,
+     "hi": 7.055,
+     "accounts_with_both": 19,
+     "posts_with": 23,
+     "posts_without": 137
+    }
+   },
+   "from_2026_04_23": {
+    "win_rate": 0.875,
+    "lo": 0.5,
+    "hi": 1.0,
+    "pairs": 8,
+    "accounts": 4
+   }
+  },
+  "tiers": {
+   "under_100k": {
+    "win_rate": 0.7225,
+    "lo": 0.4816,
+    "hi": 0.908,
+    "pairs": 54,
+    "accounts": 10,
+    "likes_ratio": {
+     "ratio": 2.663,
+     "lo": 1.18,
+     "hi": 6.125,
+     "accounts_with_both": 16,
+     "posts_with": 18,
+     "posts_without": 85
+    }
+   },
+   "100k_plus": {
+    "win_rate": 0.8646,
+    "lo": 0.6458,
+    "hi": 0.9713,
+    "pairs": 103,
+    "accounts": 5,
+    "likes_ratio": {
+     "ratio": 2.291,
+     "lo": 1.234,
+     "hi": 6.108,
+     "accounts_with_both": 5,
+     "posts_with": 7,
+     "posts_without": 133
+    }
+   }
+  },
+  "model_releases_only": {
+   "win_rate": 0.7083,
+   "lo": 0.3718,
+   "hi": 0.8995,
+   "pairs": 36,
+   "accounts": 7,
+   "likes_ratio": {
+    "ratio": 1.285,
+    "lo": 0.443,
+    "hi": 3.084,
+    "accounts_with_both": 10,
+    "posts_with": 11,
+    "posts_without": 56
+   }
+  },
+  "posts_with_trait_main": 52,
+  "measured_as": "self_quote_day2_7",
+  "flipped": false
+ },
+ "followup_announce_day2_4": {
+  "description": "the account posts another announcement (launch, feature, milestone, demo) 1 to 4 days after",
+  "win_rate": 0.4942,
+  "lo": 0.4255,
+  "hi": 0.5592,
+  "pairs": 1098,
+  "accounts": 68,
+  "supported": false,
+  "status": "not_a_lever",
+  "grade": null,
+  "level": "company and founder accounts",
+  "outcome": "likes relative to the account's trailing median",
+  "design": "same account, launch-type posts, posting order balanced; NOT a lever: the trait is partly a consequence of the outcome",
+  "likes_ratio": {
+   "ratio": 0.904,
+   "lo": 0.708,
+   "hi": 1.134,
+   "accounts_with_both": 69,
+   "posts_with": 158,
+   "posts_without": 713
+  },
+  "adjusted_likes_ratio": null,
+  "tests_passed_main": {
+   "pairs": false,
+   "ratio": false
+  },
+  "strict_subset": {
+   "win_rate": 0.4593,
+   "lo": 0.3687,
+   "hi": 0.5538,
+   "pairs": 570,
+   "accounts": 40,
+   "likes_ratio": {
+    "ratio": 0.924,
+    "lo": 0.682,
+    "hi": 1.256,
+    "accounts_with_both": 42,
+    "posts_with": 86,
+    "posts_without": 356
+   },
+   "tests_passed": {
+    "pairs": false,
+    "ratio": false
+   }
+  },
+  "all_accounts": {
+   "win_rate": 0.5008,
+   "lo": 0.4342,
+   "hi": 0.5613,
+   "pairs": 1260,
+   "accounts": 90,
+   "likes_ratio": {
+    "ratio": 0.981,
+    "lo": 0.781,
+    "hi": 1.208,
+    "accounts_with_both": 93,
+    "posts_with": 195,
+    "posts_without": 862
+   }
+  },
+  "reposts": {
+   "win_rate": 0.5029,
+   "lo": 0.4515,
+   "hi": 0.5555,
+   "pairs": 1126,
+   "accounts": 67,
+   "likes_ratio": {
+    "ratio": 1.003,
+    "lo": 0.765,
+    "hi": 1.275,
+    "accounts_with_both": 69,
+    "posts_with": 157,
+    "posts_without": 712
+   }
+  },
+  "periods": {
+   "before_2026_04_23": {
+    "win_rate": 0.4516,
+    "lo": 0.3716,
+    "hi": 0.5229,
+    "pairs": 825,
+    "accounts": 65,
+    "likes_ratio": {
+     "ratio": 0.826,
+     "lo": 0.64,
+     "hi": 1.037,
+     "accounts_with_both": 68,
+     "posts_with": 143,
+     "posts_without": 524
+    }
+   },
+   "from_2026_04_23": {
+    "win_rate": 0.6753,
+    "lo": 0.5781,
+    "hi": 0.7529,
+    "pairs": 231,
+    "accounts": 34,
+    "likes_ratio": {
+     "ratio": 1.736,
+     "lo": 1.176,
+     "hi": 2.677,
+     "accounts_with_both": 35,
+     "posts_with": 49,
+     "posts_without": 155
+    }
+   }
+  },
+  "tiers": {
+   "under_100k": {
+    "win_rate": 0.4161,
+    "lo": 0.3164,
+    "hi": 0.5278,
+    "pairs": 408,
+    "accounts": 33,
+    "likes_ratio": {
+     "ratio": 0.983,
+     "lo": 0.713,
+     "hi": 1.396,
+     "accounts_with_both": 35,
+     "posts_with": 74,
+     "posts_without": 237
+    }
+   },
+   "100k_plus": {
+    "win_rate": 0.6154,
+    "lo": 0.5513,
+    "hi": 0.6875,
+    "pairs": 584,
+    "accounts": 26,
+    "likes_ratio": {
+     "ratio": 1.328,
+     "lo": 1.003,
+     "hi": 1.859,
+     "accounts_with_both": 26,
+     "posts_with": 71,
+     "posts_without": 428
+    }
+   }
+  },
+  "model_releases_only": {
+   "win_rate": 0.5242,
+   "lo": 0.4399,
+   "hi": 0.6124,
+   "pairs": 526,
+   "accounts": 40,
+   "likes_ratio": {
+    "ratio": 1.051,
+    "lo": 0.784,
+    "hi": 1.462,
+    "accounts_with_both": 42,
+    "posts_with": 86,
+    "posts_without": 356
+   }
+  },
+  "posts_with_trait_main": 163,
+  "measured_as": "followup_announce_day2_4",
+  "flipped": false
+ },
+ "active_day2_4": {
+  "description": "the account posts three or more times 1 to 4 days after",
+  "win_rate": 0.4521,
+  "lo": 0.3634,
+  "hi": 0.5291,
+  "pairs": 805,
+  "accounts": 55,
+  "supported": false,
+  "status": "not_a_lever",
+  "grade": null,
+  "level": "company and founder accounts",
+  "outcome": "likes relative to the account's trailing median",
+  "design": "same account, launch-type posts, posting order balanced; NOT a lever: the trait is partly a consequence of the outcome",
+  "likes_ratio": {
+   "ratio": 0.959,
+   "lo": 0.742,
+   "hi": 1.205,
+   "accounts_with_both": 58,
+   "posts_with": 146,
+   "posts_without": 522
+  },
+  "adjusted_likes_ratio": null,
+  "tests_passed_main": {
+   "pairs": false,
+   "ratio": false
+  },
+  "strict_subset": {
+   "win_rate": 0.3858,
+   "lo": 0.2626,
+   "hi": 0.4839,
+   "pairs": 373,
+   "accounts": 30,
+   "likes_ratio": {
+    "ratio": 0.947,
+    "lo": 0.663,
+    "hi": 1.36,
+    "accounts_with_both": 31,
+    "posts_with": 71,
+    "posts_without": 246
+   },
+   "tests_passed": {
+    "pairs": true,
+    "ratio": false
+   }
+  },
+  "all_accounts": {
+   "win_rate": 0.4525,
+   "lo": 0.3857,
+   "hi": 0.5182,
+   "pairs": 1001,
+   "accounts": 121,
+   "likes_ratio": {
+    "ratio": 0.963,
+    "lo": 0.8,
+    "hi": 1.157,
+    "accounts_with_both": 141,
+    "posts_with": 328,
+    "posts_without": 659
+   }
+  },
+  "reposts": {
+   "win_rate": 0.4962,
+   "lo": 0.4239,
+   "hi": 0.5671,
+   "pairs": 819,
+   "accounts": 54,
+   "likes_ratio": {
+    "ratio": 1.006,
+    "lo": 0.748,
+    "hi": 1.348,
+    "accounts_with_both": 57,
+    "posts_with": 144,
+    "posts_without": 519
+   }
+  },
+  "periods": {
+   "before_2026_04_23": {
+    "win_rate": 0.4293,
+    "lo": 0.3596,
+    "hi": 0.5042,
+    "pairs": 699,
+    "accounts": 89,
+    "likes_ratio": {
+     "ratio": 0.846,
+     "lo": 0.666,
+     "hi": 1.068,
+     "accounts_with_both": 104,
+     "posts_with": 216,
+     "posts_without": 456
+    }
+   },
+   "from_2026_04_23": {
+    "win_rate": 0.5847,
+    "lo": 0.4523,
+    "hi": 0.6666,
+    "pairs": 170,
+    "accounts": 27,
+    "likes_ratio": {
+     "ratio": 1.385,
+     "lo": 0.982,
+     "hi": 1.846,
+     "accounts_with_both": 29,
+     "posts_with": 57,
+     "posts_without": 78
+    }
+   }
+  },
+  "tiers": {
+   "under_100k": {
+    "win_rate": 0.4768,
+    "lo": 0.362,
+    "hi": 0.5884,
+    "pairs": 365,
+    "accounts": 63,
+    "likes_ratio": {
+     "ratio": 1.119,
+     "lo": 0.827,
+     "hi": 1.472,
+     "accounts_with_both": 78,
+     "posts_with": 155,
+     "posts_without": 226
+    }
+   },
+   "100k_plus": {
+    "win_rate": 0.4727,
+    "lo": 0.3865,
+    "hi": 0.5489,
+    "pairs": 552,
+    "accounts": 41,
+    "likes_ratio": {
+     "ratio": 0.981,
+     "lo": 0.796,
+     "hi": 1.203,
+     "accounts_with_both": 45,
+     "posts_with": 148,
+     "posts_without": 369
+    }
+   }
+  },
+  "model_releases_only": {
+   "win_rate": 0.4333,
+   "lo": 0.3153,
+   "hi": 0.535,
+   "pairs": 335,
+   "accounts": 27,
+   "likes_ratio": {
+    "ratio": 0.847,
+    "lo": 0.597,
+    "hi": 1.215,
+    "accounts_with_both": 33,
+    "posts_with": 84,
+    "posts_without": 204
+   }
+  },
+  "posts_with_trait_main": 163,
+  "measured_as": "active_day2_4",
+  "flipped": false
+ },
+ "quoted_1h": {
+  "description": "another corpus account quote-posts the launch within 1 hour",
+  "win_rate": 0.6922,
+  "lo": 0.6449,
+  "hi": 0.7353,
+  "pairs": 1471,
+  "accounts": 113,
+  "supported": false,
+  "status": "not_a_lever",
+  "grade": null,
+  "level": "company and founder accounts",
+  "outcome": "likes relative to the account's trailing median",
+  "design": "same account, launch-type posts, posting order balanced; NOT a lever: the trait is partly a consequence of the outcome",
+  "likes_ratio": {
+   "ratio": 1.76,
+   "lo": 1.541,
+   "hi": 2.02,
+   "accounts_with_both": 118,
+   "posts_with": 382,
+   "posts_without": 704
+  },
+  "adjusted_likes_ratio": null,
+  "tests_passed_main": {
+   "pairs": true,
+   "ratio": true
+  },
+  "strict_subset": {
+   "win_rate": 0.731,
+   "lo": 0.6752,
+   "hi": 0.7898,
+   "pairs": 780,
+   "accounts": 66,
+   "likes_ratio": {
+    "ratio": 1.791,
+    "lo": 1.494,
+    "hi": 2.142,
+    "accounts_with_both": 70,
+    "posts_with": 224,
+    "posts_without": 339
+   },
+   "tests_passed": {
+    "pairs": true,
+    "ratio": true
+   }
+  },
+  "all_accounts": {
+   "win_rate": 0.6992,
+   "lo": 0.655,
+   "hi": 0.7445,
+   "pairs": 1575,
+   "accounts": 155,
+   "likes_ratio": {
+    "ratio": 1.863,
+    "lo": 1.653,
+    "hi": 2.106,
+    "accounts_with_both": 165,
+    "posts_with": 444,
+    "posts_without": 832
+   }
+  },
+  "reposts": {
+   "win_rate": 0.6836,
+   "lo": 0.648,
+   "hi": 0.7206,
+   "pairs": 1483,
+   "accounts": 111,
+   "likes_ratio": {
+    "ratio": 1.849,
+    "lo": 1.579,
+    "hi": 2.204,
+    "accounts_with_both": 117,
+    "posts_with": 379,
+    "posts_without": 700
+   }
+  },
+  "periods": {
+   "before_2026_04_23": {
+    "win_rate": 0.702,
+    "lo": 0.6438,
+    "hi": 0.7554,
+    "pairs": 997,
+    "accounts": 118,
+    "likes_ratio": {
+     "ratio": 1.835,
+     "lo": 1.575,
+     "hi": 2.137,
+     "accounts_with_both": 126,
+     "posts_with": 294,
+     "posts_without": 556
+    }
+   },
+   "from_2026_04_23": {
+    "win_rate": 0.7707,
+    "lo": 0.6884,
+    "hi": 0.8392,
+    "pairs": 365,
+    "accounts": 49,
+    "likes_ratio": {
+     "ratio": 2.303,
+     "lo": 1.798,
+     "hi": 2.958,
+     "accounts_with_both": 50,
+     "posts_with": 114,
+     "posts_without": 157
+    }
+   }
+  },
+  "tiers": {
+   "under_100k": {
+    "win_rate": 0.7596,
+    "lo": 0.6792,
+    "hi": 0.8289,
+    "pairs": 258,
+    "accounts": 51,
+    "likes_ratio": {
+     "ratio": 2.508,
+     "lo": 1.942,
+     "hi": 3.234,
+     "accounts_with_both": 57,
+     "posts_with": 92,
+     "posts_without": 209
+    }
+   },
+   "100k_plus": {
+    "win_rate": 0.7033,
+    "lo": 0.6409,
+    "hi": 0.7699,
+    "pairs": 983,
+    "accounts": 48,
+    "likes_ratio": {
+     "ratio": 1.805,
+     "lo": 1.553,
+     "hi": 2.124,
+     "accounts_with_both": 50,
+     "posts_with": 262,
+     "posts_without": 394
+    }
+   }
+  },
+  "model_releases_only": {
+   "win_rate": 0.7291,
+   "lo": 0.6857,
+   "hi": 0.7794,
+   "pairs": 756,
+   "accounts": 65,
+   "likes_ratio": {
+    "ratio": 1.876,
+    "lo": 1.588,
+    "hi": 2.247,
+    "accounts_with_both": 73,
+    "posts_with": 214,
+    "posts_without": 358
+   }
+  },
+  "posts_with_trait_main": 411,
+  "measured_as": "quoted_1h",
+  "flipped": false
+ },
+ "team_quoted_1h": {
+  "description": "a first-person (same team) quote post by another corpus account within 1 hour",
+  "win_rate": 0.6379,
+  "lo": 0.5592,
+  "hi": 0.7194,
+  "pairs": 669,
+  "accounts": 44,
+  "supported": false,
+  "status": "not_a_lever",
+  "grade": null,
+  "level": "company and founder accounts",
+  "outcome": "likes relative to the account's trailing median",
+  "design": "same account, launch-type posts, posting order balanced; NOT a lever: the trait is partly a consequence of the outcome",
+  "likes_ratio": {
+   "ratio": 1.539,
+   "lo": 1.167,
+   "hi": 1.989,
+   "accounts_with_both": 47,
+   "posts_with": 124,
+   "posts_without": 446
+  },
+  "adjusted_likes_ratio": null,
+  "tests_passed_main": {
+   "pairs": true,
+   "ratio": true
+  },
+  "strict_subset": {
+   "win_rate": 0.6589,
+   "lo": 0.5876,
+   "hi": 0.727,
+   "pairs": 423,
+   "accounts": 31,
+   "likes_ratio": {
+    "ratio": 1.587,
+    "lo": 1.227,
+    "hi": 2.036,
+    "accounts_with_both": 32,
+    "posts_with": 76,
+    "posts_without": 248
+   },
+   "tests_passed": {
+    "pairs": true,
+    "ratio": true
+   }
+  },
+  "all_accounts": {
+   "win_rate": 0.6388,
+   "lo": 0.5619,
+   "hi": 0.7205,
+   "pairs": 689,
+   "accounts": 51,
+   "likes_ratio": {
+    "ratio": 1.608,
+    "lo": 1.257,
+    "hi": 2.068,
+    "accounts_with_both": 56,
+    "posts_with": 134,
+    "posts_without": 497
+   }
+  },
+  "reposts": {
+   "win_rate": 0.6324,
+   "lo": 0.5541,
+   "hi": 0.708,
+   "pairs": 667,
+   "accounts": 41,
+   "likes_ratio": {
+    "ratio": 1.518,
+    "lo": 1.003,
+    "hi": 2.247,
+    "accounts_with_both": 46,
+    "posts_with": 123,
+    "posts_without": 441
+   }
+  },
+  "periods": {
+   "before_2026_04_23": {
+    "win_rate": 0.6518,
+    "lo": 0.5533,
+    "hi": 0.7381,
+    "pairs": 464,
+    "accounts": 41,
+    "likes_ratio": {
+     "ratio": 1.578,
+     "lo": 1.213,
+     "hi": 1.975,
+     "accounts_with_both": 41,
+     "posts_with": 90,
+     "posts_without": 304
+    }
+   },
+   "from_2026_04_23": {
+    "win_rate": 0.6615,
+    "lo": 0.4768,
+    "hi": 0.8296,
+    "pairs": 192,
+    "accounts": 18,
+    "likes_ratio": {
+     "ratio": 1.963,
+     "lo": 1.056,
+     "hi": 3.742,
+     "accounts_with_both": 18,
+     "posts_with": 31,
+     "posts_without": 95
+    }
+   }
+  },
+  "tiers": {
+   "under_100k": {
+    "win_rate": 0.7435,
+    "lo": 0.5374,
+    "hi": 0.8722,
+    "pairs": 93,
+    "accounts": 17,
+    "likes_ratio": {
+     "ratio": 2.116,
+     "lo": 1.413,
+     "hi": 3.107,
+     "accounts_with_both": 21,
+     "posts_with": 29,
+     "posts_without": 79
+    }
+   },
+   "100k_plus": {
+    "win_rate": 0.6209,
+    "lo": 0.5078,
+    "hi": 0.74,
+    "pairs": 449,
+    "accounts": 19,
+    "likes_ratio": {
+     "ratio": 1.546,
+     "lo": 1.071,
+     "hi": 2.149,
+     "accounts_with_both": 19,
+     "posts_with": 79,
+     "posts_without": 334
+    }
+   }
+  },
+  "model_releases_only": {
+   "win_rate": 0.668,
+   "lo": 0.5819,
+   "hi": 0.7759,
+   "pairs": 396,
+   "accounts": 29,
+   "likes_ratio": {
+    "ratio": 1.613,
+    "lo": 1.29,
+    "hi": 2.235,
+    "accounts_with_both": 30,
+    "posts_with": 75,
+    "posts_without": 234
+   }
+  },
+  "posts_with_trait_main": 131,
+  "measured_as": "team_quoted_1h",
+  "flipped": false
+ },
+ "team_quoted_1h_vs_later": {
+  "description": "a same-team quote post within 1 hour, against launches whose first same-team quote came 1 to 24 hours after",
+  "win_rate": 0.4545,
+  "lo": 0.3197,
+  "hi": 0.6433,
+  "pairs": 169,
+  "accounts": 17,
+  "supported": false,
+  "status": "not_a_lever",
+  "grade": null,
+  "level": "every account pooled (too thin among company and founder accounts)",
+  "outcome": "likes relative to the account's trailing median",
+  "design": "same account, launch-type posts, posting order balanced; NOT a lever: the trait is partly a consequence of the outcome",
+  "likes_ratio": {
+   "ratio": 1.041,
+   "lo": 0.728,
+   "hi": 1.574,
+   "accounts_with_both": 20,
+   "posts_with": 80,
+   "posts_without": 50
+  },
+  "adjusted_likes_ratio": null,
+  "tests_passed_main": {
+   "pairs": false,
+   "ratio": false
+  },
+  "strict_subset": {
+   "win_rate": 0.512,
+   "lo": 0.4182,
+   "hi": 0.6905,
+   "pairs": 62,
+   "accounts": 13,
+   "likes_ratio": {
+    "ratio": 1.375,
+    "lo": 1.0,
+    "hi": 2.032,
+    "accounts_with_both": 13,
+    "posts_with": 47,
+    "posts_without": 28
+   },
+   "tests_passed": {
+    "pairs": false,
+    "ratio": false
+   }
+  },
+  "all_accounts": {
+   "win_rate": 0.4545,
+   "lo": 0.3197,
+   "hi": 0.6433,
+   "pairs": 169,
+   "accounts": 17,
+   "likes_ratio": {
+    "ratio": 1.041,
+    "lo": 0.728,
+    "hi": 1.574,
+    "accounts_with_both": 20,
+    "posts_with": 80,
+    "posts_without": 50
+   }
+  },
+  "reposts": {
+   "win_rate": 0.4534,
+   "lo": 0.2977,
+   "hi": 0.6798,
+   "pairs": 180,
+   "accounts": 18,
+   "likes_ratio": {
+    "ratio": 0.761,
+    "lo": 0.379,
+    "hi": 1.526,
+    "accounts_with_both": 20,
+    "posts_with": 80,
+    "posts_without": 50
+   }
+  },
+  "periods": {
+   "before_2026_04_23": {
+    "win_rate": 0.5131,
+    "lo": 0.268,
+    "hi": 0.7396,
+    "pairs": 61,
+    "accounts": 12,
+    "likes_ratio": {
+     "ratio": 0.85,
+     "lo": 0.537,
+     "hi": 1.341,
+     "accounts_with_both": 14,
+     "posts_with": 50,
+     "posts_without": 26
+    }
+   },
+   "from_2026_04_23": {
+    "win_rate": 0.4598,
+    "lo": 0.3051,
+    "hi": 0.7333,
+    "pairs": 30,
+    "accounts": 12,
+    "likes_ratio": {
+     "ratio": 1.41,
+     "lo": 0.617,
+     "hi": 3.535,
+     "accounts_with_both": 12,
+     "posts_with": 19,
+     "posts_without": 16
+    }
+   }
+  },
+  "tiers": {
+   "under_100k": {},
+   "100k_plus": {
+    "win_rate": 0.4099,
+    "lo": 0.2718,
+    "hi": 0.6177,
+    "pairs": 148,
+    "accounts": 10,
+    "likes_ratio": {
+     "ratio": 0.84,
+     "lo": 0.544,
+     "hi": 1.292,
+     "accounts_with_both": 11,
+     "posts_with": 65,
+     "posts_without": 37
+    }
+   }
+  },
+  "model_releases_only": {
+   "win_rate": 0.4676,
+   "lo": 0.2692,
+   "hi": 0.7304,
+   "pairs": 63,
+   "accounts": 12,
+   "likes_ratio": {
+    "ratio": 1.103,
+    "lo": 0.608,
+    "hi": 2.037,
+    "accounts_with_both": 13,
+    "posts_with": 48,
+    "posts_without": 28
+   }
+  },
+  "posts_with_trait_main": 155,
+  "measured_as": "team_quoted_1h_vs_later",
+  "flipped": false
+ },
+ "quoted_1h_vs_later": {
+  "description": "a quote post by another corpus account within 1 hour, against launches first quoted 1 to 48 hours after",
+  "win_rate": 0.6356,
+  "lo": 0.5622,
+  "hi": 0.7152,
+  "pairs": 727,
+  "accounts": 70,
+  "supported": false,
+  "status": "not_a_lever",
+  "grade": null,
+  "level": "company and founder accounts",
+  "outcome": "likes relative to the account's trailing median",
+  "design": "same account, launch-type posts, posting order balanced; NOT a lever: the trait is partly a consequence of the outcome",
+  "likes_ratio": {
+   "ratio": 1.445,
+   "lo": 1.247,
+   "hi": 1.687,
+   "accounts_with_both": 82,
+   "posts_with": 331,
+   "posts_without": 242
+  },
+  "adjusted_likes_ratio": null,
+  "tests_passed_main": {
+   "pairs": true,
+   "ratio": true
+  },
+  "strict_subset": {
+   "win_rate": 0.6873,
+   "lo": 0.6039,
+   "hi": 0.7897,
+   "pairs": 422,
+   "accounts": 43,
+   "likes_ratio": {
+    "ratio": 1.609,
+    "lo": 1.348,
+    "hi": 1.943,
+    "accounts_with_both": 49,
+    "posts_with": 194,
+    "posts_without": 138
+   },
+   "tests_passed": {
+    "pairs": true,
+    "ratio": true
+   }
+  },
+  "all_accounts": {
+   "win_rate": 0.6449,
+   "lo": 0.5747,
+   "hi": 0.7165,
+   "pairs": 743,
+   "accounts": 85,
+   "likes_ratio": {
+    "ratio": 1.464,
+    "lo": 1.254,
+    "hi": 1.679,
+    "accounts_with_both": 101,
+    "posts_with": 357,
+    "posts_without": 264
+   }
+  },
+  "reposts": {
+   "win_rate": 0.5957,
+   "lo": 0.5306,
+   "hi": 0.6572,
+   "pairs": 738,
+   "accounts": 74,
+   "likes_ratio": {
+    "ratio": 1.318,
+    "lo": 1.064,
+    "hi": 1.608,
+    "accounts_with_both": 81,
+    "posts_with": 328,
+    "posts_without": 240
+   }
+  },
+  "periods": {
+   "before_2026_04_23": {
+    "win_rate": 0.5975,
+    "lo": 0.5108,
+    "hi": 0.708,
+    "pairs": 445,
+    "accounts": 61,
+    "likes_ratio": {
+     "ratio": 1.259,
+     "lo": 1.046,
+     "hi": 1.527,
+     "accounts_with_both": 69,
+     "posts_with": 222,
+     "posts_without": 149
+    }
+   },
+   "from_2026_04_23": {
+    "win_rate": 0.7937,
+    "lo": 0.6957,
+    "hi": 0.8727,
+    "pairs": 204,
+    "accounts": 35,
+    "likes_ratio": {
+     "ratio": 2.371,
+     "lo": 1.729,
+     "hi": 3.185,
+     "accounts_with_both": 37,
+     "posts_with": 88,
+     "posts_without": 73
+    }
+   }
+  },
+  "tiers": {
+   "under_100k": {
+    "win_rate": 0.7049,
+    "lo": 0.5559,
+    "hi": 0.8435,
+    "pairs": 52,
+    "accounts": 24,
+    "likes_ratio": {
+     "ratio": 1.366,
+     "lo": 0.941,
+     "hi": 1.985,
+     "accounts_with_both": 30,
+     "posts_with": 50,
+     "posts_without": 45
+    }
+   },
+   "100k_plus": {
+    "win_rate": 0.6536,
+    "lo": 0.5687,
+    "hi": 0.7492,
+    "pairs": 586,
+    "accounts": 37,
+    "likes_ratio": {
+     "ratio": 1.507,
+     "lo": 1.256,
+     "hi": 1.809,
+     "accounts_with_both": 41,
+     "posts_with": 252,
+     "posts_without": 158
+    }
+   }
+  },
+  "model_releases_only": {
+   "win_rate": 0.6386,
+   "lo": 0.5685,
+   "hi": 0.7322,
+   "pairs": 384,
+   "accounts": 40,
+   "likes_ratio": {
+    "ratio": 1.615,
+    "lo": 1.33,
+    "hi": 1.994,
+    "accounts_with_both": 47,
+    "posts_with": 165,
+    "posts_without": 127
+   }
+  },
+  "posts_with_trait_main": 411,
+  "measured_as": "quoted_1h_vs_later",
+  "flipped": false
+ },
+ "_context_extra": {
+  "own_quote_of_own_launch_within_24h": {
+   "vs_own_median": {
+    "ratio": 0.903,
+    "lo": 0.72,
+    "hi": 1.137,
+    "posts": 118,
+    "accounts": 95,
+    "beat_own_median": 0.3898
+   },
+   "vs_own_other_quote_posts": {
+    "ratio": 0.924,
+    "lo": 0.722,
+    "hi": 1.222,
+    "posts": 109,
+    "accounts": 86,
+    "beat_own_median": 0.4037
+   },
+   "likes_of_followup_over_likes_of_launch": 0.254
+  },
+  "own_quote_of_own_launch_day_2_to_7": {
+   "vs_own_median": {
+    "ratio": 1.092,
+    "lo": 0.754,
+    "hi": 1.621,
+    "posts": 63,
+    "accounts": 47,
+    "beat_own_median": 0.4127
+   },
+   "vs_own_other_quote_posts": {
+    "ratio": 1.079,
+    "lo": 0.758,
+    "hi": 1.534,
+    "posts": 60,
+    "accounts": 44,
+    "beat_own_median": 0.4333
+   },
+   "likes_of_followup_over_likes_of_launch": 0.181
+  },
+  "own_quote_of_own_launch_after_7_days": {
+   "vs_own_median": {
+    "ratio": 1.02,
+    "lo": 0.824,
+    "hi": 1.276,
+    "posts": 69,
+    "accounts": 53,
+    "beat_own_median": 0.4928
+   },
+   "vs_own_other_quote_posts": {
+    "ratio": 1.26,
+    "lo": 0.921,
+    "hi": 1.651,
+    "posts": 60,
+    "accounts": 44,
+    "beat_own_median": 0.5667
+   },
+   "likes_of_followup_over_likes_of_launch": 0.189
+  },
+  "teaser_posts_vs_own_median": {
+   "ratio": 0.937,
+   "lo": 0.789,
+   "hi": 1.107,
+   "posts": 189,
+   "accounts": 125,
+   "beat_own_median": 0.4339
+  },
+  "other_own_posts_1_to_24h_after": {
+   "ratio": 0.856,
+   "lo": 0.764,
+   "hi": 0.961,
+   "posts": 553,
+   "accounts": 187,
+   "beat_own_median": 0.4322
+  },
+  "other_own_posts_day_2_to_4_after": {
+   "ratio": 1.02,
+   "lo": 0.921,
+   "hi": 1.133,
+   "posts": 1212,
+   "accounts": 286,
+   "beat_own_median": 0.4827
+  },
+  "other_own_posts_day_5_to_7_after": {
+   "ratio": 1.081,
+   "lo": 0.986,
+   "hi": 1.186,
+   "posts": 1323,
+   "accounts": 273,
+   "beat_own_median": 0.5087
+  },
+  "other_own_posts_day_2_to_4_before": {
+   "ratio": 1.017,
+   "lo": 0.909,
+   "hi": 1.137,
+   "posts": 1108,
+   "accounts": 262,
+   "beat_own_median": 0.4892
+  },
+  "coverage": {
+   "launch_posts": 1980,
+   "quoted_by_a_corpus_account_within_1h": 411,
+   "within_48h": 813,
+   "same_team_within_1h": 131,
+   "same_team_within_24h": 250,
+   "note": "only quote posts by accounts that are themselves in the corpus are visible; a launch with no visible quote may still have been quoted"
+  },
+  "first_hour_quoters_dose_within_account": {
+   "0": {
+    "posts": 704,
+    "likes_vs_account_mean_launch": 0.845
+   },
+   "1": {
+    "posts": 261,
+    "likes_vs_account_mean_launch": 1.1
+   },
+   "2": {
+    "posts": 67,
+    "likes_vs_account_mean_launch": 1.779
+   },
+   "3+": {
+    "posts": 58,
+    "likes_vs_account_mean_launch": 2.597
+   }
+  }
+ },
+ "_meta": {
+  "built": "2026-11-16",
+  "corpus": "launch-type posts (launch, open-source release) in the Community Archive part of the 4.48M-post corpus; main set 1,980 posts of 530 company and founder accounts; pooled set 3,654 posts of 1,657 accounts",
+  "rule": "identical to the launch track (scripts/launch/build_launch_evidence.py); when the main set has under 200 pairs or 25 accounts the rule is applied to every account pooled and the result is at most grade C",
+  "baseline": "median likes of the account's previous 30 posts (at least 8)",
+  "min_like_ratio_pairs": 1.25,
+  "max_gap_days_pairs": 365,
+  "max_pairs_per_account": 50,
+  "traits_tested": 49,
+  "multiple_testing": "about 45 new comparisons on top of the launch track's 30; one or two passing by chance would not be surprising",
+  "trait_precision_read_by_hand": "7 samples per text trait read once: clean for cta_try, offer_free, offer_open_source, benchmark_claim, compares_named, superlative_first, availability_now, cta_waitlist (research previews count); noisy (about half correct) for offer_credits_discount, names_customer, backstory, coming_soon, backed_by; teaser posts about half are teasers of the launch that followed",
+  "not_observable": [
+   "video length (duration_ms is empty for all 852 video launch posts)",
+   "replies (link in reply, thread body, replies from well-known accounts, replying to commenters)",
+   "reposts by other accounts",
+   "paid promotion and clipping",
+   "what an image shows (chart, face, screenshot) - see the media track",
+   "team membership (no bios)"
+  ]
+ }
+}

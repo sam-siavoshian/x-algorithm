@@ -60,6 +60,9 @@ class Service:
         self.evidence = self.advisor.evidence
         lp = Path(advise.EVIDENCE_PATH).with_name("launch_evidence.json")
         self.launch_evidence = json.loads(lp.read_text()) if lp.exists() else {}
+        mp = lp.with_name("marketing_evidence.json")      # further launch effects, same method (research/tracks/marketing)
+        if self.launch_evidence and mp.exists():
+            self.launch_evidence = {**{k: v for k, v in json.loads(mp.read_text()).items() if not k.startswith("_")}, **self.launch_evidence}
 
     # --- inputs --------------------------------------------------------------------------------------------
 
@@ -97,7 +100,7 @@ class Service:
             add("link", "http" not in (lines[0] if lines else ""), "The link is not in the first line.", "The link is in the first line.", "link_not_first")
         return items
 
-    def _launch_checklist(self, draft: dict) -> list[dict]:
+    def _launch_checklist(self, draft: dict, ctx: dict | None = None) -> list[dict]:
         """For launch posts: the traits that separate an account's stronger launch posts from its weaker ones."""
         ev, tr = self.launch_evidence, post_type.traits(draft["text"], draft["media"])
         items = []
@@ -122,11 +125,27 @@ class Service:
         add("no_link", not tr["ext_link"], "No external link in the post.", "Has an external link in the post.", "no_link_in_post",
             "Whether a link in a reply recovers the clicks could not be measured.")
         add("number", tr["open_number"], "The first line contains a number.", "No number in the first line.", "open_number", "The weakest of the findings.")
+        if ctx and ctx.get("hours_since_previous") is not None:
+            add("quiet_day", ctx["hours_since_previous"] >= 24, "Nothing posted in the 24 hours before.", f"Your previous post is {ctx['hours_since_previous']:.0f} hours before this one; under 24.", "quiet_prev24h")
+            add("only_launch_this_week", not ctx.get("launch_in_previous_week"), "No other launch post in the previous 7 days.", "Another launch-type post went out in the previous 7 days.",
+                "no_launch_in_previous_week", "This one weakened after April 2026.")
         order = {"A": 0, "A-": 1, "B": 2, "B-": 3, "C": 4}
         return sorted(items, key=lambda i: (i["ok"], order.get(i["grade"], 9)))
 
-    def checklist(self, draft: dict, kind: str) -> list[dict]:
-        return self._launch_checklist(draft) if kind == "launch" and self.launch_evidence else self._generic_checklist(draft)
+    def checklist(self, draft: dict, kind: str, ctx: dict | None = None) -> list[dict]:
+        return self._launch_checklist(draft, ctx) if kind == "launch" and self.launch_evidence else self._generic_checklist(draft)
+
+    @staticmethod
+    def _timing_context(history: pl.DataFrame, when_ms: int) -> dict:
+        """What the account posted shortly before the planned time: inputs of the timing lines of the launch checklist."""
+        if not history.height:
+            return {}
+        h = history.filter(pl.col("created_at_ms") < when_ms)
+        if not h.height:
+            return {}
+        week = h.filter(pl.col("created_at_ms") >= when_ms - 7 * 86_400_000)
+        return {"hours_since_previous": (when_ms - int(h["created_at_ms"].max())) / 3_600_000,
+                "launch_in_previous_week": any(post_type.classify(t)["type"] == "launch" for t in week["text"].to_list())}
 
     def type_expectation(self, kind: str) -> dict | None:
         """How posts of this kind do against the account's own usual, for company and founder accounts."""
@@ -159,16 +178,17 @@ class Service:
         drafts = [self._draft(v) for v in versions]
         out = self.advisor.advise(history, drafts[0], account, when, alternatives=[{**d, "label": f"Version {i + 2}"} for i, d in enumerate(drafts[1:])])
         alts = {c["change"]: c for c in out["changes"] if c["operator"] is None}
+        ctx = self._timing_context(history, when)
 
         def forecast(likes_q50, views_q50):
             return {"likes_median": likes_q50, "views_median": views_q50}
         table = [{"version": 1, "text": drafts[0]["text"], **forecast(out["draft"]["likes"]["q50"], out["draft"]["views_24h"]["q50"]),
                   "likes_range": [out["draft"]["likes"]["q10"], out["draft"]["likes"]["q90"]], "views_range": [out["draft"]["views_24h"]["q10"], out["draft"]["views_24h"]["q90"]],
-                  "type": (ty := post_type.classify(drafts[0]["text"])), "checklist": self.checklist(drafts[0], ty["type"])}]
+                  "type": (ty := post_type.classify(drafts[0]["text"])), "checklist": self.checklist(drafts[0], ty["type"], ctx)}]
         for i, d in enumerate(drafts[1:]):
             c = alts[f"Version {i + 2}"]
             table.append({"version": i + 2, "text": d["text"], **forecast(c["likes_q50"], c["views_q50"]), "vs_version_1": {k: c[k] for k in ("p_better", "predicted_ratio", "status", "why", "members_agree")},
-                          "type": (ty := post_type.classify(d["text"])), "checklist": self.checklist(d, ty["type"])})
+                          "type": (ty := post_type.classify(d["text"])), "checklist": self.checklist(d, ty["type"], ctx)})
         # The pick: a version other than the first is named only when it clears the same gates as any recommendation.
         better = [r for r in table[1:] if r["vs_version_1"]["status"].startswith("recommended")]
         worse_all = len(table) > 1 and all(r["vs_version_1"]["status"] == "predicted_worse" for r in table[1:])

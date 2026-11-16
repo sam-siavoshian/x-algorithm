@@ -1,0 +1,135 @@
+{
+ "_note": "Text traits are the regular expressions in scripts/marketing/traits.py (TEXT_TRAITS) and scripts/launch/build_table.py; they run on a draft with no outcome data. Give them only for posts the launch labeller types as an own announcement; elsewhere they are untested.",
+ "tier_1_measured_effect": [
+  {
+   "name": "post_type",
+   "values": "launch, open_source, feature, funding, milestone, hiring, other",
+   "why": "launch posts get 2.2x the account's usual and the model predicts 1.03x (launch track)",
+   "source": "xviral/text/launch_labels.py"
+  },
+  {
+   "name": "names_product_first_line",
+   "why": "64.0% (59.0-69.0), grade A, launch track",
+   "source": "scripts/launch/build_table.py"
+  },
+  {
+   "name": "lines3",
+   "why": "59.2%, grade A-, launch track",
+   "source": "scripts/launch/build_table.py"
+  },
+  {
+   "name": "media_kind",
+   "values": "none, image, video",
+   "why": "video 65.4% against none, grade B, launch track; strongest for model releases (65.3%)",
+   "source": "media field"
+  },
+  {
+   "name": "open_problem",
+   "why": "announcement first 72.5%, grade B, launch track; contradicts the 'pain point first' playbook",
+   "source": "scripts/launch/build_table.py"
+  },
+  {
+   "name": "is_quote",
+   "why": "original 72.1%, grade B, launch track",
+   "source": "kind"
+  },
+  {
+   "name": "link_in_post",
+   "why": "no link 58.2%, grade B, launch track; agrees with the outside link-penalty studies in direction, not in size",
+   "source": "urls"
+  },
+  {
+   "name": "open_number",
+   "why": "55.8%, grade B weakest, launch track",
+   "source": "scripts/launch/build_table.py"
+  },
+  {
+   "name": "offer_open_source",
+   "why": "this track: open source / open weights wording, see marketing_evidence.json",
+   "source": "scripts/marketing/traits.py"
+  },
+  {
+   "name": "superlative_first",
+   "why": "this track: first / best / most capable claim, see marketing_evidence.json",
+   "source": "scripts/marketing/traits.py"
+  },
+  {
+   "name": "offer_credits_discount",
+   "why": "this track: negative, pooled over all accounts (grade C)",
+   "source": "scripts/marketing/traits.py"
+  },
+  {
+   "name": "hours_since_previous_own_post",
+   "why": "under 2 h: 0.71x (launch track, C); nothing in the previous 24 h: this track",
+   "source": "account history"
+  },
+  {
+   "name": "own_launch_posts_in_previous_7_days",
+   "why": "this track: a launch that follows another within a week does worse",
+   "source": "account history + post_type"
+  }
+ ],
+ "tier_2_context_not_a_lever": [
+  {
+   "name": "ai_model_release",
+   "why": "model releases do 1.2 to 1.5x the account's other launches; a topic the writer does not choose",
+   "source": "scripts/marketing/traits.py"
+  },
+  {
+   "name": "account_kind",
+   "values": "company, founder, other",
+   "why": "feature releases and hiring posts behave differently on company and founder accounts (launch track)",
+   "source": "scripts/launch/accounts.py"
+  },
+  {
+   "name": "follower_tier",
+   "why": "video against none is 74.9% under 100k followers and 65.2% above (launch track)",
+   "source": "author_followers"
+  },
+  {
+   "name": "period",
+   "why": "video and several B findings are weaker after April 2026; the platform changed ranking systems in 2026",
+   "source": "created_at"
+  }
+ ],
+ "tier_3_outside_evidence_only": [
+  {
+   "name": "first_hour_quotes_by_other_accounts (count, same-team count, followers of quoters)",
+   "why": "controlled evidence elsewhere that early support compounds (R:C07, R:C08); here 69.2% and a dose-response, but circular. Useful as a post-launch signal, never as advice",
+   "source": "quote graph"
+  },
+  {
+   "name": "video_duration_seconds",
+   "why": "playbooks and the code's 10-second threshold; empty in this corpus, to be filled by the media track",
+   "source": "media.duration_ms"
+  },
+  {
+   "name": "image_content (benchmark chart, product screenshot, face)",
+   "why": "Li and Xie 2020 on faces; AI playbooks on benchmark charts; text proxy showed nothing (H14)",
+   "source": "media track"
+  },
+  {
+   "name": "link_in_first_reply",
+   "why": "platform statements in both directions; replies not collected",
+   "source": "replies"
+  },
+  {
+   "name": "engagement_bait_request",
+   "why": "X's code and 2026 statements penalise it; 10 launch posts here",
+   "source": "scripts/marketing/traits.py"
+  }
+ ],
+ "do_not_add": [
+  "posting hour or weekday in Pacific time (no effect in any of seven comparisons)",
+  "call to action to try the product",
+  "free",
+  "waitlist",
+  "benchmark claim in the text",
+  "number anywhere in the text",
+  "teaser before the launch",
+  "celebration emoji",
+  "you / your in the first line",
+  "availability line",
+  "demo wording"
+ ]
+}

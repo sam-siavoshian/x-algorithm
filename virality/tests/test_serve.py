@@ -241,6 +241,7 @@ def test_product_service_and_http(trained):
     cl = {i["key"]: i for i in r["versions"][0]["checklist"]}
     assert not cl["names_product"]["ok"] and cl["names_product"]["grade"] == "A" and "1,672 pairs" in cl["names_product"]["measured"]
     assert not cl["announcement_first"]["ok"] and not cl["no_link"]["ok"] and not cl["video"]["ok"]
+    assert cl["quiet_day"]["grade"] == "B" and "1,510 pairs" in cl["quiet_day"]["measured"] and cl["only_launch_this_week"]["ok"]
 
     client = TestClient(server.create_app(svc))
     assert "Launch advisor" in client.get("/").text and client.get("/api/health").json()["loaded"]

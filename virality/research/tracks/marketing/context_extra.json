@@ -1,0 +1,125 @@
+{
+ "own_quote_of_own_launch_within_24h": {
+  "vs_own_median": {
+   "ratio": 0.903,
+   "lo": 0.72,
+   "hi": 1.137,
+   "posts": 118,
+   "accounts": 95,
+   "beat_own_median": 0.3898
+  },
+  "vs_own_other_quote_posts": {
+   "ratio": 0.924,
+   "lo": 0.722,
+   "hi": 1.222,
+   "posts": 109,
+   "accounts": 86,
+   "beat_own_median": 0.4037
+  },
+  "likes_of_followup_over_likes_of_launch": 0.254
+ },
+ "own_quote_of_own_launch_day_2_to_7": {
+  "vs_own_median": {
+   "ratio": 1.092,
+   "lo": 0.754,
+   "hi": 1.621,
+   "posts": 63,
+   "accounts": 47,
+   "beat_own_median": 0.4127
+  },
+  "vs_own_other_quote_posts": {
+   "ratio": 1.079,
+   "lo": 0.758,
+   "hi": 1.534,
+   "posts": 60,
+   "accounts": 44,
+   "beat_own_median": 0.4333
+  },
+  "likes_of_followup_over_likes_of_launch": 0.181
+ },
+ "own_quote_of_own_launch_after_7_days": {
+  "vs_own_median": {
+   "ratio": 1.02,
+   "lo": 0.824,
+   "hi": 1.276,
+   "posts": 69,
+   "accounts": 53,
+   "beat_own_median": 0.4928
+  },
+  "vs_own_other_quote_posts": {
+   "ratio": 1.26,
+   "lo": 0.921,
+   "hi": 1.651,
+   "posts": 60,
+   "accounts": 44,
+   "beat_own_median": 0.5667
+  },
+  "likes_of_followup_over_likes_of_launch": 0.189
+ },
+ "teaser_posts_vs_own_median": {
+  "ratio": 0.937,
+  "lo": 0.789,
+  "hi": 1.107,
+  "posts": 189,
+  "accounts": 125,
+  "beat_own_median": 0.4339
+ },
+ "other_own_posts_1_to_24h_after": {
+  "ratio": 0.856,
+  "lo": 0.764,
+  "hi": 0.961,
+  "posts": 553,
+  "accounts": 187,
+  "beat_own_median": 0.4322
+ },
+ "other_own_posts_day_2_to_4_after": {
+  "ratio": 1.02,
+  "lo": 0.921,
+  "hi": 1.133,
+  "posts": 1212,
+  "accounts": 286,
+  "beat_own_median": 0.4827
+ },
+ "other_own_posts_day_5_to_7_after": {
+  "ratio": 1.081,
+  "lo": 0.986,
+  "hi": 1.186,
+  "posts": 1323,
+  "accounts": 273,
+  "beat_own_median": 0.5087
+ },
+ "other_own_posts_day_2_to_4_before": {
+  "ratio": 1.017,
+  "lo": 0.909,
+  "hi": 1.137,
+  "posts": 1108,
+  "accounts": 262,
+  "beat_own_median": 0.4892
+ },
+ "coverage": {
+  "launch_posts": 1980,
+  "quoted_by_a_corpus_account_within_1h": 411,
+  "within_48h": 813,
+  "same_team_within_1h": 131,
+  "same_team_within_24h": 250,
+  "note": "only quote posts by accounts that are themselves in the corpus are visible; a launch with no visible quote may still have been quoted"
+ },
+ "first_hour_quoters_dose_within_account": {
+  "0": {
+   "posts": 704,
+   "likes_vs_account_mean_launch": 0.845
+  },
+  "1": {
+   "posts": 261,
+   "likes_vs_account_mean_launch": 1.1
+  },
+  "2": {
+   "posts": 67,
+   "likes_vs_account_mean_launch": 1.779
+  },
+  "3+": {
+   "posts": 58,
+   "likes_vs_account_mean_launch": 2.597
+  }
+ }
+}
