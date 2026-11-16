@@ -1,0 +1,169 @@
+{
+ "pairs": 850,
+ "accounts": 151,
+ "posts_scored": 582,
+ "design": "same account, both launch-type posts, both posted on or after 2026-04-23, likes differ by 1.25x or more, at most 30 pairs per account",
+ "model": "ensemble of ts46_s1, ts46_s2, compare_v2_full (the three 46-column small models), draft path, 56 posts of history",
+ "model_all": {
+  "pairs": 850,
+  "accounts": 151,
+  "accuracy": 0.6365,
+  "lo": 0.5948,
+  "hi": 0.6799
+ },
+ "model_gap_2x": {
+  "pairs": 568,
+  "accounts": 127,
+  "accuracy": 0.6602,
+  "lo": 0.6085,
+  "hi": 0.7164
+ },
+ "model_gap_3x": {
+  "pairs": 401,
+  "accounts": 105,
+  "accuracy": 0.6783,
+  "lo": 0.6186,
+  "hi": 0.7409
+ },
+ "model_within_30_days": {
+  "pairs": 278,
+  "accounts": 92,
+  "accuracy": 0.6295,
+  "lo": 0.5616,
+  "hi": 0.6913
+ },
+ "model_company_accounts": {
+  "pairs": 601,
+  "accounts": 69,
+  "accuracy": 0.6373,
+  "lo": 0.5878,
+  "hi": 0.6874
+ },
+ "model_founder_accounts": {
+  "pairs": 119,
+  "accounts": 43,
+  "accuracy": 0.6303,
+  "lo": 0.5294,
+  "hi": 0.7165
+ },
+ "model_other_accounts": {
+  "pairs": 130,
+  "accounts": 39,
+  "accuracy": 0.6385,
+  "lo": 0.5102,
+  "hi": 0.766
+ },
+ "model_confident_0.6_plus": {
+  "pairs": 217,
+  "accounts": 75,
+  "accuracy": 0.7327,
+  "lo": 0.6525,
+  "hi": 0.8104,
+  "share_of_pairs": 0.2553
+ },
+ "model_confident_0.6_plus_gap_2x": {
+  "pairs": 157,
+  "accounts": 70,
+  "accuracy": 0.7834,
+  "lo": 0.6936,
+  "hi": 0.8721
+ },
+ "model_members_agree": {
+  "pairs": 657,
+  "accounts": 131,
+  "accuracy": 0.6651,
+  "lo": 0.6171,
+  "hi": 0.7164,
+  "share_of_pairs": 0.7729
+ },
+ "rule_score_fitted_before_cutoff": {
+  "pairs": 835,
+  "accounts": 151,
+  "accuracy": 0.5569,
+  "lo": 0.5131,
+  "hi": 0.5962
+ },
+ "rule_score_gap_2x": {
+  "pairs": 561,
+  "accounts": 127,
+  "accuracy": 0.5758,
+  "lo": 0.524,
+  "hi": 0.6278
+ },
+ "survivor_count_score": {
+  "pairs": 570,
+  "accounts": 123,
+  "accuracy": 0.6316,
+  "lo": 0.5709,
+  "hi": 0.688
+ },
+ "model_when_rule_agrees": {
+  "pairs": 514,
+  "accounts": 118,
+  "accuracy": 0.6595,
+  "lo": 0.6044,
+  "hi": 0.7122
+ },
+ "model_when_rule_disagrees": {
+  "pairs": 321,
+  "accounts": 87,
+  "accuracy": 0.6075,
+  "lo": 0.5423,
+  "hi": 0.6687
+ },
+ "later_post_wins": 0.5376,
+ "rule_score_weights_likes_ratio": {
+  "video": 2.409,
+  "image": 1.579,
+  "link_in_post": 0.997,
+  "thread_marker": 1.096,
+  "open_announce": 1.141,
+  "open_problem": 0.704,
+  "open_number": 1.177,
+  "names_product_first_line": 1.185,
+  "long280": 1.087,
+  "lines3": 1.447,
+  "tags": 0.864,
+  "hashtag": 0.694,
+  "is_quote": 0.832,
+  "weekend": 1.118,
+  "h18_23": 0.985,
+  "prev2h": 0.759
+ },
+ "rule_score_fit": {
+  "posts": 1768,
+  "accounts": 426
+ },
+ "pairs_differing_in_video": {
+  "pairs": 220,
+  "version_with_it_wins": 0.5045,
+  "model_prefers_version_with_it": 0.6773,
+  "model_accuracy": 0.6182
+ },
+ "pairs_differing_in_names_product_first_line": {
+  "pairs": 264,
+  "version_with_it_wins": 0.7386,
+  "model_prefers_version_with_it": 0.6136,
+  "model_accuracy": 0.6705
+ },
+ "pairs_differing_in_open_problem": {
+  "pairs": 61,
+  "version_with_it_wins": 0.3934,
+  "model_prefers_version_with_it": 0.3934,
+  "model_accuracy": 0.6393
+ },
+ "pairs_differing_in_is_quote": {
+  "pairs": 67,
+  "version_with_it_wins": 0.4478,
+  "model_prefers_version_with_it": 0.3731,
+  "model_accuracy": 0.6269
+ },
+ "launch_vs_own_median": {
+  "posts": 576,
+  "actual_median_ratio": 2.191,
+  "predicted_median_ratio": 1.026,
+  "actual_beat_own_median": 0.7569,
+  "predicted_beat_own_median": 0.5122,
+  "spearman_pred_vs_actual_lift": 0.478
+ }
+}

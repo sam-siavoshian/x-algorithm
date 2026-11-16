@@ -112,7 +112,7 @@ function render(r) {
     <div class="stat"><b>${num(v1.views_median)}</b><span>views in 24h (${num(v1.views_range[0])} to ${num(v1.views_range[1])})</span></div>
     <div class="stat"><b>${pct(o.own_top_10pct)}</b><span>odds of your own top 10%</span></div>
     <div class="stat"><b>${pct(o.reach_followers_10x, 1)}</b><span>odds of 10x your followers</span></div></div>
-    <p class="small" style="margin:12px 0 0">Based on ${r.account.history_posts} past posts (${esc(r.account.history_source)}) and ${num(r.account.followers)} followers.${r.account.new_account ? " With little history the ranges are wide; add past posts to narrow them." : ""}</p></div>`;
+    <p class="small" style="margin:12px 0 0">Based on ${r.account.history_posts} past posts (${esc(r.account.history_source)}) and ${num(r.account.followers)} followers.${r.account.new_account ? " With little history the ranges are wide; add past posts to narrow them." : ""}</p>${r.type_expectation ? `<p class="small" style="margin:8px 0 0">${esc(r.type_expectation.statement)}</p>` : ""}</div>`;
   if (r.versions.length > 1) {
     h += `<div class="card"><h2>Versions compared</h2><table><tr><th></th><th>Likes</th><th>Views</th><th>Against version 1</th></tr>` + r.versions.map(v =>
       `<tr><td>Version ${v.version}</td><td>${num(v.likes_median)}</td><td>${num(v.views_median)}</td><td>${v.vs_version_1 ? statusTag(v.vs_version_1.status) + ` <span class="small">${pct(v.vs_version_1.p_better)} likely better</span>` : '<span class="small">baseline</span>'}</td></tr>`).join("") + `</table></div>`;
@@ -123,7 +123,7 @@ function render(r) {
     : `<p style="margin:0">No single change we can stand behind for this draft.</p>`) +
     (rest.length ? `<details style="margin-top:10px"><summary>Also checked (${rest.length})</summary><ul class="plain">` + rest.map(c => `<li>${statusTag(c.status)} ${esc(c.change)} <span class="small">${pct(c.p_better)} likely better</span></li>`).join("") + `</ul></details>` : "") + `</div>`;
   const cl = v1.checklist || [];
-  if (cl.length) h += `<div class="card"><h2>Measured checklist</h2><ul class="plain">` + cl.map(i => `<li><span class="tag ${i.ok ? "good" : "warn"}">${i.ok ? "yes" : "no"}</span> ${esc(i.text)}<div class="small">${esc(i.measured)}</div></li>`).join("") + `</ul></div>`;
+  if (cl.length) h += `<div class="card"><h2>${r.post_type.type === "launch" ? "Launch checklist, measured on launch posts" : "Measured checklist"}</h2><ul class="plain">` + cl.map(i => `<li><span class="tag ${i.ok ? "good" : "warn"}">${i.ok ? "yes" : "no"}</span> ${esc(i.text)}${i.grade ? ` <span class="tag">evidence ${esc(i.grade)}</span>` : ""}<div class="small">${esc(i.measured)}</div></li>`).join("") + `</ul></div>`;
   if (r.rules.length) h += `<div class="card"><h2>Rules from X's ranking code</h2><ul class="plain">` + r.rules.map(g => `<li><span class="tag ${g.status === "fail" ? "bad" : "warn"}">${esc(g.status)}</span> ${esc(g.detail)}</li>`).join("") + `</ul></div>`;
   if (r.record.length) h += `<div class="card"><h2>From your own posts</h2><ul class="plain">` + r.record.map(f => `<li>With ${esc(f.attribute)}: median ${num(f.median_with)} ${esc(f.outcome)} over ${f.n_with} posts. Without: ${num(f.median_without)} over ${f.n_without}.</li>`).join("") + `</ul></div>`;
   h += `<p class="small">${esc(r.method.validation)} Comparisons use predicted ${esc(r.method.outcome_compared)}. Took ${r.seconds}s.</p>`;

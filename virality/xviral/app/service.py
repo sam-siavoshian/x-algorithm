@@ -58,6 +58,8 @@ class Service:
         self.scorer, self.posts, self.max_history = scorer, posts, max_history
         self.advisor = advise.Advisor(scorer, scales, evidence=evidence)
         self.evidence = self.advisor.evidence
+        lp = Path(advise.EVIDENCE_PATH).with_name("launch_evidence.json")
+        self.launch_evidence = json.loads(lp.read_text()) if lp.exists() else {}
 
     # --- inputs --------------------------------------------------------------------------------------------
 
@@ -77,7 +79,7 @@ class Service:
 
     # --- the measured checklist -----------------------------------------------------------------------------
 
-    def checklist(self, draft: dict, kind: str) -> list[dict]:
+    def _generic_checklist(self, draft: dict) -> list[dict]:
         ev, text = self.evidence, draft["text"]
         items = []
 
@@ -85,16 +87,57 @@ class Service:
             e = ev.get(evidence_key) or {}
             if not e.get("supported"):
                 return
-            items.append({"key": key, "ok": bool(ok), "text": yes if ok else no,
+            items.append({"key": key, "ok": bool(ok), "text": yes if ok else no, "grade": None,
                           "measured": f"In {e['pairs']:,} pairs of posts by the same account on the same topic, the version with this did better {100 * e['win_rate']:.0f}% of the time "
                                       f"({100 * e['lo']:.0f} to {100 * e['hi']:.0f}%)."})
         lines = [ln for ln in text.split("\n") if ln.strip()]
-        first = lines[0] if lines else ""
         add("media", bool(draft["media"]), "Has an image or video.", "No image or video attached.", "media")
         add("lines", len(lines) >= 3, "Broken into three or more lines.", "One block of text; fewer than three lines.", "lines")
         if "http" in text:
-            add("link", "http" not in first, "The link is not in the first line.", "The link is in the first line.", "link_not_first")
+            add("link", "http" not in (lines[0] if lines else ""), "The link is not in the first line.", "The link is in the first line.", "link_not_first")
         return items
+
+    def _launch_checklist(self, draft: dict) -> list[dict]:
+        """For launch posts: the traits that separate an account's stronger launch posts from its weaker ones."""
+        ev, tr = self.launch_evidence, post_type.traits(draft["text"], draft["media"])
+        items = []
+
+        def add(key: str, ok: bool, yes: str, no: str, evidence_key: str, note: str = ""):
+            e = ev.get(evidence_key) or {}
+            if not e.get("grade"):
+                return
+            ratio = (e.get("likes_ratio") or {}).get("ratio")
+            items.append({"key": key, "ok": bool(ok), "text": yes if ok else no, "grade": e["grade"],
+                          "measured": f"Among launch posts by the same account, the one with this did better {100 * e['win_rate']:.0f}% of the time ({100 * e['lo']:.0f} to {100 * e['hi']:.0f}%), "
+                                      f"{e['pairs']:,} pairs from {e['accounts']} accounts" + (f"; about {ratio:.1f}x the likes." if ratio else ".") + (" " + note if note else "")})
+        add("names_product", tr["names_product_first_line"], "The first line names the product.", "The first line does not name the product.", "names_product_first_line")
+        add("lines", tr["lines3"], "Laid out on three or more lines.", "Fewer than three lines.", "lines3")
+        if tr["video"]:
+            add("video", True, "Has a video or GIF.", "", "video_vs_none")
+        elif tr["image"]:
+            add("video", False, "", "Has an image, not a video or GIF.", "video_vs_image", "A still image is not established as better than no media for a launch post.")
+        else:
+            add("video", False, "", "No video or GIF.", "video_vs_none", "A still image is not established as better than no media for a launch post.")
+        add("announcement_first", not tr["open_problem"], "Opens with the announcement.", "Opens with a problem statement or a question, not the announcement.", "announcement_not_problem_first")
+        add("no_link", not tr["ext_link"], "No external link in the post.", "Has an external link in the post.", "no_link_in_post",
+            "Whether a link in a reply recovers the clicks could not be measured.")
+        add("number", tr["open_number"], "The first line contains a number.", "No number in the first line.", "open_number", "The weakest of the findings.")
+        order = {"A": 0, "A-": 1, "B": 2, "B-": 3, "C": 4}
+        return sorted(items, key=lambda i: (i["ok"], order.get(i["grade"], 9)))
+
+    def checklist(self, draft: dict, kind: str) -> list[dict]:
+        return self._launch_checklist(draft) if kind == "launch" and self.launch_evidence else self._generic_checklist(draft)
+
+    def type_expectation(self, kind: str) -> dict | None:
+        """How posts of this kind do against the account's own usual, for company and founder accounts."""
+        e = ((self.launch_evidence.get("_types") or {}).get("company_and_founder") or {}).get(kind, {}).get("likes")
+        if not e or e["posts"] < 50:
+            return None
+        return {"likes_vs_usual": e["geo_mean_ratio"], "lo": e["geo_mean_lo"], "hi": e["geo_mean_hi"], "beat_usual": e["beat_own_median"], "own_top_10pct": e.get("top10_of_own"),
+                "posts": e["posts"], "accounts": e["accounts"],
+                "statement": f"{post_type.LABELS[kind]} posts by company and founder accounts got {e['geo_mean_ratio']:.1f}x the account's usual likes ({e['geo_mean_lo']:.1f} to {e['geo_mean_hi']:.1f}); "
+                             f"{100 * e['beat_own_median']:.0f}% beat the account's usual. Measured on {e['posts']:,} posts from {e['accounts']} accounts. "
+                             "The forecast above does not yet include this lift."}
 
     # --- the report ------------------------------------------------------------------------------------------
 
@@ -120,11 +163,11 @@ class Service:
             return {"likes_median": likes_q50, "views_median": views_q50}
         table = [{"version": 1, "text": drafts[0]["text"], **forecast(out["draft"]["likes"]["q50"], out["draft"]["views_24h"]["q50"]),
                   "likes_range": [out["draft"]["likes"]["q10"], out["draft"]["likes"]["q90"]], "views_range": [out["draft"]["views_24h"]["q10"], out["draft"]["views_24h"]["q90"]],
-                  "type": post_type.classify(drafts[0]["text"]), "checklist": self.checklist(drafts[0], "")}]
+                  "type": (ty := post_type.classify(drafts[0]["text"])), "checklist": self.checklist(drafts[0], ty["type"])}]
         for i, d in enumerate(drafts[1:]):
             c = alts[f"Version {i + 2}"]
             table.append({"version": i + 2, "text": d["text"], **forecast(c["likes_q50"], c["views_q50"]), "vs_version_1": {k: c[k] for k in ("p_better", "predicted_ratio", "status", "why", "members_agree")},
-                          "type": post_type.classify(d["text"]), "checklist": self.checklist(d, "")})
+                          "type": (ty := post_type.classify(d["text"])), "checklist": self.checklist(d, ty["type"])})
         # The pick: a version other than the first is named only when it clears the same gates as any recommendation.
         better = [r for r in table[1:] if r["vs_version_1"]["status"].startswith("recommended")]
         worse_all = len(table) > 1 and all(r["vs_version_1"]["status"] == "predicted_worse" for r in table[1:])
@@ -145,6 +188,7 @@ class Service:
             "account": {"handle": handle or None, "followers": int(followers), "history_posts": history.height, "history_source": source,
                         "new_account": history.height < MIN_HISTORY},
             "post_type": table[0]["type"],
+            "type_expectation": self.type_expectation(table[0]["type"]["type"]),
             "odds": {"own_top_10pct": top, "reach_followers_1x": d["p_reach_1x"], "reach_followers_10x": d["p_reach_10x"], "reach_followers_100x": d["p_reach_100x"],
                      "lift_vs_own_median": d["lift_vs_own_median"], "own_median": d["own_median"]},
             "versions": table,

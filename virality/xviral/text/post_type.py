@@ -1,32 +1,50 @@
-"""What kind of company post a draft is. Rules, first match wins; the order puts the rarer, more specific kinds first."""
+"""What kind of company post a draft is, and the traits of a launch post that have a measured effect.
+
+Types use the rules of xviral/text/launch_labels.py, validated by reading samples (research/tracks/launch/REPORT.md).
+Traits use the same definitions as the evidence in xviral/data/launch_evidence.json (scripts/launch/build_table.py),
+so a checklist line and its number describe the same thing.
+"""
 
 from __future__ import annotations
 
 import re
 
-_F = re.IGNORECASE
-TYPES: list[tuple[str, str, re.Pattern]] = [
-    ("funding", "Funding announcement", re.compile(
-        r"\b(raised|raising|closed)\b.{0,40}(\$|€|£)\s?\d|\b(seed|pre-seed|series [a-e])\b.{0,30}\b(round|funding|led by)\b|\bled by\b.{0,60}\b(capital|ventures|vc|partners)\b|\bbacked by\b", _F)),
-    ("hiring", "Hiring", re.compile(r"\bwe(?:'re| are) hiring\b|\bjoin (?:us|our team)\b|\bopen roles?\b|\bhiring (?:a|an|our|for|engineers?|designers?)\b|\bcome work with\b", _F)),
-    ("launch", "Product launch", re.compile(
-        r"^\W*(introducing|announcing|meet|say hello to|launching)\b|\b(we(?:'re| are| just)?|i(?:'m| am| just)?) (?:excited to |thrilled to |proud to )?(?:launch(?:ed|ing)?|announc(?:e|ed|ing)|introduc(?:e|ed|ing)|unveil(?:ed|ing)?)\b"
-        r"|\bis (?:now |finally )?(?:live|here|out|public|generally available)\b|\bnow (?:in )?(?:public )?(?:beta|ga)\b|\blaunch(?:es|ed|ing)? (?:today|now|on product hunt)\b|\bproduct hunt\b|\bwaitlist\b|\bearly access\b", _F)),
-    ("open_source", "Open-source release", re.compile(r"\bopen[- ]sourc(?:e|ed|ing)\b|\bgithub\.com/|\bmit licen[sc]e|\bapache 2", _F)),
-    ("milestone", "Milestone or metric", re.compile(
-        r"\b(just )?(hit|crossed|passed|reached|surpassed)\b.{0,30}(\$?\d[\d,.]*\s?(k|m|b|million|billion)?\b.{0,20}\b(users?|customers?|arr|mrr|revenue|downloads?|stars?|signups?|installs?|requests?))"
-        r"|\$\d[\d,.]*\s?(k|m|million)?\s?(arr|mrr)\b|\b\d[\d,.]*\s?(k|m|million)?\+? (users|customers|downloads|github stars)\b", _F)),
-    ("feature", "Feature release or update", re.compile(
-        r"^\W*new( in| feature)?\b[: ]|\b(just |we )?(shipped|shipping|released|rolling out|rolled out)\b|\bnow (?:supports?|available|with|you can)\b|\bchangelog\b|\bv?\d+\.\d+(\.\d+)? (?:is )?(?:out|released|live)\b|\bupdate:", _F)),
-    ("demo", "Demo or walkthrough", re.compile(r"\b(demo|walkthrough|here(?:'s| is) how (?:it works|we)|watch (?:it|this|how)|in action)\b", _F)),
-]
-LABELS = {k: label for k, label, _ in TYPES} | {"other": "General post"}
+import polars as pl
+
+from xviral.text import launch_labels as L
+
+LABELS = {"funding": "Funding announcement", "hiring": "Hiring", "launch": "Product launch", "open_source": "Open-source release",
+          "feature": "Feature release or update", "milestone": "Milestone or metric", "demo": "Demo or walkthrough", "other": "General post"}
+
+_PROBLEM = re.compile(r"\?\s*$|^(tired of|sick of|stop|ever wonder|what if|why|how|most|every|everyone|nobody|no one)\b|\b(problem|broken|pain|painful|struggle|hard to|too slow|slow|expensive|waste|wasting|"
+                      r"frustrat|bottleneck|sucks|can't|cannot|don't|doesn't|shouldn't|isn't|never)\b")
+_NAMES = re.compile(r"(?:[Ii]ntroducing|[Aa]nnouncing|[Mm]eet|[Ll]aunching|[Ll]aunch(?:ed)?|[Rr]eleas(?:e|ed|ing)|[Uu]nveiling|[Ss]ay hello to|[Oo]pen[- ]?sourc(?:ed|ing))\s+(?:the |our |my |a |an )?(?:new )?[@A-Z0-9]"
+                    r"|\b[A-Z][a-z]+[A-Z]\w*|\b[A-Z][A-Za-z]*[- ]?\d+(?:\.\d+)*\b|@\w+")
+_NUMBER = re.compile(r"(^|[\s$€£#(])\d")
+_LINK = re.compile(r"https?://\S+")
+_OWN_LINK = re.compile(r"https?://(www\.)?(x\.com|twitter\.com|t\.co)/")
 
 
 def classify(text: str | None) -> dict:
-    t = (text or "").strip()
-    for key, label, rx in TYPES:
-        m = rx.search(t)
-        if m:
-            return {"type": key, "label": label, "matched": m.group(0).strip()[:60]}
-    return {"type": "other", "label": LABELS["other"], "matched": None}
+    d = L.add_types(pl.DataFrame({"text": [text or ""]}))
+    key = d["ptype_raw"][0]
+    return {"type": key, "label": LABELS[key]}
+
+
+def traits(text: str | None, media: list[dict] | None = None, kind: str = "original") -> dict:
+    raw = text or ""
+    nolink = _LINK.sub("", raw).strip()
+    lines = [ln for ln in nolink.split("\n") if ln.strip()]
+    first = lines[0] if lines else ""
+    lc1 = first.lower().replace("’", "'")
+    types = {m.get("type") for m in (media or [])}
+    return {
+        "names_product_first_line": bool(_NAMES.search(first)),
+        "lines3": len(lines) >= 3,
+        "video": bool(types & {"video", "animated_gif", "gif"}),
+        "image": bool(types) and not bool(types & {"video", "animated_gif", "gif"}),
+        "open_problem": bool(_PROBLEM.search(lc1)),
+        "open_number": bool(_NUMBER.search(lc1)),
+        "ext_link": any(not _OWN_LINK.match(u) for u in _LINK.findall(raw)),
+        "is_quote": kind == "quote",
+    }

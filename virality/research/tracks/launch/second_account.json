@@ -1,0 +1,54 @@
+{
+ "quotes_of_launches_by_another_account": 3481,
+ "launch_posts_quoted": 1449,
+ "same_team_quotes": 587,
+ "same_team_quote_vs_quoter_own_median": {
+  "ratio": 1.698,
+  "lo": 1.472,
+  "hi": 2.007,
+  "posts": 560,
+  "accounts": 401,
+  "beat_own_median": 0.6196
+ },
+ "same_team_quote_vs_quoter_usual_quote_post": {
+  "ratio": 1.442,
+  "lo": 1.265,
+  "hi": 1.674,
+  "posts": 526,
+  "accounts": 370
+ },
+ "same_team_quote_vs_original": {
+  "lift_ratio_quote_over_original": 0.325,
+  "lo": 0.236,
+  "hi": 0.429,
+  "pairs": 493,
+  "original_accounts": 189,
+  "median_raw_likes_quote_over_original": 0.046,
+  "quote_gets_more_raw_likes": 0.0548
+ },
+ "launch_quoted_by_second_corpus_account_within_48h": {
+  "ratio": 2.299,
+  "lo": 2.035,
+  "hi": 2.602,
+  "accounts": 302,
+  "posts_quoted": 885,
+  "posts_not_quoted": 1021,
+  "note": "not a lever: a launch that is doing well attracts quotes"
+ },
+ "launch_lift_company_accounts": {
+  "ratio": 2.201,
+  "lo": 1.975,
+  "hi": 2.445,
+  "posts": 1356,
+  "accounts": 218,
+  "median_raw_likes": 958.5
+ },
+ "launch_lift_founder_accounts": {
+  "ratio": 2.313,
+  "lo": 2.05,
+  "hi": 2.622,
+  "posts": 862,
+  "accounts": 362,
+  "median_raw_likes": 493.0
+ }
+}

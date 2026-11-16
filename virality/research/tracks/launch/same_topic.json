@@ -1,0 +1,194 @@
+{
+ "one_side_launch": {
+  "pairs": 44,
+  "accounts": 33,
+  "effects": {
+   "video": {
+    "pairs": 4,
+    "too_thin": true
+   },
+   "image": {
+    "pairs": 5,
+    "too_thin": true
+   },
+   "media": {
+    "pairs": 7,
+    "too_thin": true
+   },
+   "link_in_post": {
+    "pairs": 2,
+    "too_thin": true
+   },
+   "thread_marker": {
+    "pairs": 16,
+    "too_thin": true
+   },
+   "open_announce": {
+    "pairs": 29,
+    "too_thin": true
+   },
+   "open_problem": {
+    "pairs": 9,
+    "too_thin": true
+   },
+   "open_number": {
+    "pairs": 19,
+    "too_thin": true
+   },
+   "names_product_first_line": {
+    "pairs": 17,
+    "too_thin": true
+   },
+   "long280": {
+    "pairs": 9,
+    "too_thin": true
+   },
+   "lines3": {
+    "pairs": 13,
+    "too_thin": true
+   },
+   "tags": {
+    "pairs": 7,
+    "too_thin": true
+   },
+   "hashtag": {
+    "pairs": 0,
+    "too_thin": true
+   },
+   "is_quote": {
+    "pairs": 2,
+    "too_thin": true
+   }
+  },
+  "later_post_wins": 0.3864
+ },
+ "one_side_announcement": {
+  "pairs": 84,
+  "accounts": 62,
+  "effects": {
+   "video": {
+    "pairs": 7,
+    "too_thin": true
+   },
+   "image": {
+    "pairs": 12,
+    "too_thin": true
+   },
+   "media": {
+    "pairs": 15,
+    "too_thin": true
+   },
+   "link_in_post": {
+    "pairs": 5,
+    "too_thin": true
+   },
+   "thread_marker": {
+    "pairs": 22,
+    "too_thin": true
+   },
+   "open_announce": {
+    "pairs": 32,
+    "too_thin": true
+   },
+   "open_problem": {
+    "pairs": 14,
+    "too_thin": true
+   },
+   "open_number": {
+    "win_rate": 0.5697,
+    "lo": 0.428,
+    "hi": 0.7211,
+    "pairs": 36,
+    "accounts": 31
+   },
+   "names_product_first_line": {
+    "pairs": 29,
+    "too_thin": true
+   },
+   "long280": {
+    "pairs": 14,
+    "too_thin": true
+   },
+   "lines3": {
+    "pairs": 26,
+    "too_thin": true
+   },
+   "tags": {
+    "pairs": 13,
+    "too_thin": true
+   },
+   "hashtag": {
+    "pairs": 1,
+    "too_thin": true
+   },
+   "is_quote": {
+    "pairs": 5,
+    "too_thin": true
+   }
+  },
+  "later_post_wins": 0.4048
+ },
+ "one_side_announcement_company_founder": {
+  "pairs": 33,
+  "accounts": 27,
+  "effects": {
+   "video": {
+    "pairs": 5,
+    "too_thin": true
+   },
+   "image": {
+    "pairs": 4,
+    "too_thin": true
+   },
+   "media": {
+    "pairs": 5,
+    "too_thin": true
+   },
+   "link_in_post": {
+    "pairs": 0,
+    "too_thin": true
+   },
+   "thread_marker": {
+    "pairs": 10,
+    "too_thin": true
+   },
+   "open_announce": {
+    "pairs": 14,
+    "too_thin": true
+   },
+   "open_problem": {
+    "pairs": 2,
+    "too_thin": true
+   },
+   "open_number": {
+    "pairs": 14,
+    "too_thin": true
+   },
+   "names_product_first_line": {
+    "pairs": 11,
+    "too_thin": true
+   },
+   "long280": {
+    "pairs": 7,
+    "too_thin": true
+   },
+   "lines3": {
+    "pairs": 16,
+    "too_thin": true
+   },
+   "tags": {
+    "pairs": 5,
+    "too_thin": true
+   },
+   "hashtag": {
+    "pairs": 1,
+    "too_thin": true
+   },
+   "is_quote": {
+    "pairs": 2,
+    "too_thin": true
+   }
+  },
+  "later_post_wins": 0.5455
+ }
+}

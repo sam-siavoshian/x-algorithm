@@ -1,0 +1,38 @@
+{
+ "pairs": 152,
+ "team_accounts": 30,
+ "company_accounts": 19,
+ "definition": [
+  "A team member = a person account that quote-posts a company account's own announcements at least twice in the first",
+  "person (we / our). Pairs: the company's launch post and that person's quote of it within 7 days.",
+  "Writes data/launch/founder_vs_company.json."
+ ],
+ "raw_likes_team_quote_over_company_post": {
+  "median_ratio": 0.112,
+  "lo": 0.043,
+  "hi": 0.316,
+  "team_quote_gets_more_likes": 0.0987,
+  "share_lo": 0.0281,
+  "share_hi": 0.2302
+ },
+ "team_quote_vs_own_median": {
+  "ratio": 2.413,
+  "lo": 1.515,
+  "hi": 3.817,
+  "posts": 149,
+  "accounts": 30,
+  "beat_own_median": 0.7248
+ },
+ "lift_team_quote_over_lift_company_post": {
+  "ratio": 0.533,
+  "lo": 0.312,
+  "hi": 0.97,
+  "pairs": 145
+ },
+ "when_team_member_has_more_followers_than_company": {
+  "pairs": 13,
+  "team_quote_gets_more_likes": 0.0769,
+  "median_ratio": 0.316
+ },
+ "pairs_with_both_follower_counts": 113
+}

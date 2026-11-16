@@ -210,7 +210,8 @@ def test_product_service_and_http(trained):
     assert r["versions"][1]["likes_median"] > r["versions"][0]["likes_median"]
     media = {i["key"]: i for i in r["versions"][0]["checklist"]}["media"]
     assert media["ok"] is False and "2,247 pairs" in media["measured"]
-    assert {i["key"]: i for i in r["versions"][1]["checklist"]}["media"]["ok"] is True
+    assert r["versions"][1]["type"]["type"] == "launch"                                # a launch post gets the launch checklist
+    assert {i["key"]: i for i in r["versions"][1]["checklist"]}["video"]["text"] == "Has an image, not a video or GIF."
 
     r = svc.analyze({"handle": "user23", "versions": [launch, plain]})           # the better one first: the pick stays on it
     assert r["pick"]["version"] == 1
@@ -229,8 +230,17 @@ def test_product_service_and_http(trained):
     assert post_type.classify("We raised a $12M Series A led by Example Ventures")["type"] == "funding"
     assert post_type.classify("We just crossed 10,000 users")["type"] == "milestone"
     assert post_type.classify("We're hiring a founding engineer")["type"] == "hiring"
-    assert post_type.classify("Now supports SSO for every plan")["type"] == "feature"
+    assert post_type.classify("You can now sign in with SSO on every plan")["type"] == "feature"
     assert post_type.classify("coffee was good today")["type"] == "other"
+    tr = post_type.traits("Introducing Atlas 2: agents that file your taxes\n\nIt reads receipts.\nIt fills the forms. https://atlas.example/launch", [{"type": "video"}])
+    assert tr["names_product_first_line"] and tr["lines3"] and tr["video"] and tr["ext_link"] and not tr["open_problem"]
+    assert post_type.traits("Tired of slow builds?\nWe fixed it.")["open_problem"]
+
+    r = svc.analyze({"handle": "user23", "versions": [{"text": "Tired of slow builds? We are launching today, link below https://example.com/x"}]})
+    assert r["post_type"]["type"] == "launch" and "2,156 posts" in r["type_expectation"]["statement"]
+    cl = {i["key"]: i for i in r["versions"][0]["checklist"]}
+    assert not cl["names_product"]["ok"] and cl["names_product"]["grade"] == "A" and "1,672 pairs" in cl["names_product"]["measured"]
+    assert not cl["announcement_first"]["ok"] and not cl["no_link"]["ok"] and not cl["video"]["ok"]
 
     client = TestClient(server.create_app(svc))
     assert "Launch advisor" in client.get("/").text and client.get("/api/health").json()["loaded"]

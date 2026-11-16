@@ -33,3 +33,7 @@ rising alongside. Baseline (three 46-column `small` models, bge-small encoder):
   changes plus any new files), and any checkpoint that beats the baseline. Upload partial results as you go.
 - Time budget: about 6 hours. When finished or stuck, send one short message to the session that created you
   (send_message with session_id "@parent") with the headline numbers and the path of your report, then stop.
+
+## Results so far
+
+- **launch** (done 2026-11-16): `research/tracks/launch/REPORT.md`, `LAUNCH_PLAYBOOK.md`, evidence in `xviral/data/launch_evidence.json`, code in `scripts/launch/`. On 850 held-out pairs of launch posts by the same account, the baseline ensemble is 63.7% correct, 73.3% on confident calls, and 78.3% on confident calls where the real gap is 2x or more. The model predicts launch posts at 1.03x the account's usual likes; they get 2.19x. That gap is the "posttype" track.

@@ -1,0 +1,751 @@
+{
+ "accounts_by_kind_and_tier": [
+  {
+   "akind": "company",
+   "tier": "100k+",
+   "accounts": 43,
+   "accounts_in_hygiene": 33,
+   "accounts_with_view_counts": 6,
+   "posts": 3842
+  },
+  {
+   "akind": "company",
+   "tier": "10k-100k",
+   "accounts": 53,
+   "accounts_in_hygiene": 42,
+   "accounts_with_view_counts": 12,
+   "posts": 3003
+  },
+  {
+   "akind": "company",
+   "tier": "1k-10k",
+   "accounts": 9,
+   "accounts_in_hygiene": 7,
+   "accounts_with_view_counts": 3,
+   "posts": 318
+  },
+  {
+   "akind": "company",
+   "tier": "<1k",
+   "accounts": 2,
+   "accounts_in_hygiene": 0,
+   "accounts_with_view_counts": 0,
+   "posts": 45
+  },
+  {
+   "akind": "company",
+   "tier": "unknown",
+   "accounts": 163,
+   "accounts_in_hygiene": 125,
+   "accounts_with_view_counts": 40,
+   "posts": 6307
+  },
+  {
+   "akind": "founder",
+   "tier": "100k+",
+   "accounts": 66,
+   "accounts_in_hygiene": 56,
+   "accounts_with_view_counts": 14,
+   "posts": 8177
+  },
+  {
+   "akind": "founder",
+   "tier": "10k-100k",
+   "accounts": 179,
+   "accounts_in_hygiene": 151,
+   "accounts_with_view_counts": 44,
+   "posts": 10503
+  },
+  {
+   "akind": "founder",
+   "tier": "1k-10k",
+   "accounts": 80,
+   "accounts_in_hygiene": 65,
+   "accounts_with_view_counts": 14,
+   "posts": 3018
+  },
+  {
+   "akind": "founder",
+   "tier": "<1k",
+   "accounts": 11,
+   "accounts_in_hygiene": 11,
+   "accounts_with_view_counts": 4,
+   "posts": 400
+  },
+  {
+   "akind": "founder",
+   "tier": "unknown",
+   "accounts": 192,
+   "accounts_in_hygiene": 148,
+   "accounts_with_view_counts": 44,
+   "posts": 8507
+  }
+ ],
+ "accounts": [
+  {
+   "akind": "other",
+   "accounts": 39477,
+   "in_hygiene": 6583,
+   "with_view_counts": 29954
+  },
+  {
+   "akind": "company",
+   "accounts": 270,
+   "in_hygiene": 207,
+   "with_view_counts": 61
+  },
+  {
+   "akind": "founder",
+   "accounts": 528,
+   "in_hygiene": 431,
+   "with_view_counts": 120
+  }
+ ],
+ "by_account_kind_and_type": [
+  {
+   "akind": "company",
+   "ptype": "demo",
+   "posts": 66,
+   "accounts": 44,
+   "with_views": 0,
+   "without_views": 66,
+   "with_likes_baseline": 48,
+   "with_views_baseline": 0,
+   "in_hygiene": 60
+  },
+  {
+   "akind": "company",
+   "ptype": "feature",
+   "posts": 252,
+   "accounts": 102,
+   "with_views": 13,
+   "without_views": 239,
+   "with_likes_baseline": 208,
+   "with_views_baseline": 4,
+   "in_hygiene": 220
+  },
+  {
+   "akind": "company",
+   "ptype": "funding",
+   "posts": 45,
+   "accounts": 32,
+   "with_views": 0,
+   "without_views": 45,
+   "with_likes_baseline": 26,
+   "with_views_baseline": 0,
+   "in_hygiene": 44
+  },
+  {
+   "akind": "company",
+   "ptype": "hiring",
+   "posts": 64,
+   "accounts": 34,
+   "with_views": 14,
+   "without_views": 50,
+   "with_likes_baseline": 50,
+   "with_views_baseline": 10,
+   "in_hygiene": 52
+  },
+  {
+   "akind": "company",
+   "ptype": "launch",
+   "posts": 1636,
+   "accounts": 236,
+   "with_views": 178,
+   "without_views": 1458,
+   "with_likes_baseline": 1330,
+   "with_views_baseline": 146,
+   "in_hygiene": 1368
+  },
+  {
+   "akind": "company",
+   "ptype": "milestone",
+   "posts": 7,
+   "accounts": 5,
+   "with_views": 0,
+   "without_views": 7,
+   "with_likes_baseline": 6,
+   "with_views_baseline": 0,
+   "in_hygiene": 5
+  },
+  {
+   "akind": "company",
+   "ptype": "open_source",
+   "posts": 32,
+   "accounts": 23,
+   "with_views": 2,
+   "without_views": 30,
+   "with_likes_baseline": 26,
+   "with_views_baseline": 0,
+   "in_hygiene": 31
+  },
+  {
+   "akind": "founder",
+   "ptype": "demo",
+   "posts": 199,
+   "accounts": 116,
+   "with_views": 10,
+   "without_views": 189,
+   "with_likes_baseline": 157,
+   "with_views_baseline": 3,
+   "in_hygiene": 168
+  },
+  {
+   "akind": "founder",
+   "ptype": "feature",
+   "posts": 540,
+   "accounts": 239,
+   "with_views": 88,
+   "without_views": 452,
+   "with_likes_baseline": 483,
+   "with_views_baseline": 71,
+   "in_hygiene": 446
+  },
+  {
+   "akind": "founder",
+   "ptype": "funding",
+   "posts": 77,
+   "accounts": 61,
+   "with_views": 2,
+   "without_views": 75,
+   "with_likes_baseline": 48,
+   "with_views_baseline": 1,
+   "in_hygiene": 69
+  },
+  {
+   "akind": "founder",
+   "ptype": "hiring",
+   "posts": 152,
+   "accounts": 104,
+   "with_views": 18,
+   "without_views": 134,
+   "with_likes_baseline": 126,
+   "with_views_baseline": 15,
+   "in_hygiene": 129
+  },
+  {
+   "akind": "founder",
+   "ptype": "launch",
+   "posts": 1055,
+   "accounts": 413,
+   "with_views": 84,
+   "without_views": 971,
+   "with_likes_baseline": 826,
+   "with_views_baseline": 56,
+   "in_hygiene": 877
+  },
+  {
+   "akind": "founder",
+   "ptype": "milestone",
+   "posts": 31,
+   "accounts": 27,
+   "with_views": 2,
+   "without_views": 29,
+   "with_likes_baseline": 24,
+   "with_views_baseline": 1,
+   "in_hygiene": 26
+  },
+  {
+   "akind": "founder",
+   "ptype": "open_source",
+   "posts": 48,
+   "accounts": 43,
+   "with_views": 6,
+   "without_views": 42,
+   "with_likes_baseline": 36,
+   "with_views_baseline": 3,
+   "in_hygiene": 47
+  },
+  {
+   "akind": "other",
+   "ptype": "demo",
+   "posts": 328,
+   "accounts": 269,
+   "with_views": 19,
+   "without_views": 309,
+   "with_likes_baseline": 281,
+   "with_views_baseline": 17,
+   "in_hygiene": 171
+  },
+  {
+   "akind": "other",
+   "ptype": "feature",
+   "posts": 1277,
+   "accounts": 884,
+   "with_views": 253,
+   "without_views": 1024,
+   "with_likes_baseline": 1174,
+   "with_views_baseline": 197,
+   "in_hygiene": 466
+  },
+  {
+   "akind": "other",
+   "ptype": "funding",
+   "posts": 110,
+   "accounts": 102,
+   "with_views": 12,
+   "without_views": 98,
+   "with_likes_baseline": 99,
+   "with_views_baseline": 9,
+   "in_hygiene": 50
+  },
+  {
+   "akind": "other",
+   "ptype": "hiring",
+   "posts": 375,
+   "accounts": 317,
+   "with_views": 40,
+   "without_views": 335,
+   "with_likes_baseline": 333,
+   "with_views_baseline": 27,
+   "in_hygiene": 155
+  },
+  {
+   "akind": "other",
+   "ptype": "launch",
+   "posts": 2488,
+   "accounts": 1806,
+   "with_views": 588,
+   "without_views": 1900,
+   "with_likes_baseline": 2136,
+   "with_views_baseline": 476,
+   "in_hygiene": 814
+  },
+  {
+   "akind": "other",
+   "ptype": "milestone",
+   "posts": 45,
+   "accounts": 42,
+   "with_views": 8,
+   "without_views": 37,
+   "with_likes_baseline": 41,
+   "with_views_baseline": 7,
+   "in_hygiene": 20
+  },
+  {
+   "akind": "other",
+   "ptype": "open_source",
+   "posts": 75,
+   "accounts": 67,
+   "with_views": 12,
+   "without_views": 63,
+   "with_likes_baseline": 64,
+   "with_views_baseline": 5,
+   "in_hygiene": 39
+  }
+ ],
+ "by_type": [
+  {
+   "ptype": "demo",
+   "posts": 593,
+   "accounts": 429,
+   "with_views": 29,
+   "without_views": 564,
+   "with_likes_baseline": 486,
+   "with_views_baseline": 20,
+   "in_hygiene": 399
+  },
+  {
+   "ptype": "feature",
+   "posts": 2069,
+   "accounts": 1225,
+   "with_views": 354,
+   "without_views": 1715,
+   "with_likes_baseline": 1865,
+   "with_views_baseline": 272,
+   "in_hygiene": 1132
+  },
+  {
+   "ptype": "funding",
+   "posts": 232,
+   "accounts": 195,
+   "with_views": 14,
+   "without_views": 218,
+   "with_likes_baseline": 173,
+   "with_views_baseline": 10,
+   "in_hygiene": 163
+  },
+  {
+   "ptype": "hiring",
+   "posts": 591,
+   "accounts": 455,
+   "with_views": 72,
+   "without_views": 519,
+   "with_likes_baseline": 509,
+   "with_views_baseline": 52,
+   "in_hygiene": 336
+  },
+  {
+   "ptype": "launch",
+   "posts": 5179,
+   "accounts": 2455,
+   "with_views": 850,
+   "without_views": 4329,
+   "with_likes_baseline": 4292,
+   "with_views_baseline": 678,
+   "in_hygiene": 3059
+  },
+  {
+   "ptype": "milestone",
+   "posts": 83,
+   "accounts": 74,
+   "with_views": 10,
+   "without_views": 73,
+   "with_likes_baseline": 71,
+   "with_views_baseline": 8,
+   "in_hygiene": 51
+  },
+  {
+   "ptype": "open_source",
+   "posts": 155,
+   "accounts": 133,
+   "with_views": 20,
+   "without_views": 135,
+   "with_likes_baseline": 126,
+   "with_views_baseline": 8,
+   "in_hygiene": 117
+  }
+ ],
+ "company_founder_by_type_and_tier": [
+  {
+   "ptype": "demo",
+   "tier": "100k+",
+   "posts": 62,
+   "accounts": 34,
+   "with_views": 0,
+   "without_views": 62,
+   "with_likes_baseline": 55,
+   "in_hygiene": 57
+  },
+  {
+   "ptype": "demo",
+   "tier": "10k-100k",
+   "posts": 104,
+   "accounts": 54,
+   "with_views": 6,
+   "without_views": 98,
+   "with_likes_baseline": 82,
+   "in_hygiene": 87
+  },
+  {
+   "ptype": "demo",
+   "tier": "1k-10k",
+   "posts": 28,
+   "accounts": 18,
+   "with_views": 2,
+   "without_views": 26,
+   "with_likes_baseline": 17,
+   "in_hygiene": 23
+  },
+  {
+   "ptype": "demo",
+   "tier": "<1k",
+   "posts": 2,
+   "accounts": 2,
+   "with_views": 0,
+   "without_views": 2,
+   "with_likes_baseline": 2,
+   "in_hygiene": 2
+  },
+  {
+   "ptype": "demo",
+   "tier": "unknown",
+   "posts": 69,
+   "accounts": 52,
+   "with_views": 2,
+   "without_views": 67,
+   "with_likes_baseline": 49,
+   "in_hygiene": 59
+  },
+  {
+   "ptype": "feature",
+   "tier": "100k+",
+   "posts": 281,
+   "accounts": 62,
+   "with_views": 6,
+   "without_views": 275,
+   "with_likes_baseline": 268,
+   "in_hygiene": 248
+  },
+  {
+   "ptype": "feature",
+   "tier": "10k-100k",
+   "posts": 197,
+   "accounts": 98,
+   "with_views": 26,
+   "without_views": 171,
+   "with_likes_baseline": 165,
+   "in_hygiene": 178
+  },
+  {
+   "ptype": "feature",
+   "tier": "1k-10k",
+   "posts": 42,
+   "accounts": 26,
+   "with_views": 6,
+   "without_views": 36,
+   "with_likes_baseline": 32,
+   "in_hygiene": 36
+  },
+  {
+   "ptype": "feature",
+   "tier": "<1k",
+   "posts": 9,
+   "accounts": 9,
+   "with_views": 2,
+   "without_views": 7,
+   "with_likes_baseline": 9,
+   "in_hygiene": 7
+  },
+  {
+   "ptype": "feature",
+   "tier": "unknown",
+   "posts": 263,
+   "accounts": 146,
+   "with_views": 61,
+   "without_views": 202,
+   "with_likes_baseline": 217,
+   "in_hygiene": 197
+  },
+  {
+   "ptype": "funding",
+   "tier": "100k+",
+   "posts": 11,
+   "accounts": 7,
+   "with_views": 0,
+   "without_views": 11,
+   "with_likes_baseline": 10,
+   "in_hygiene": 11
+  },
+  {
+   "ptype": "funding",
+   "tier": "10k-100k",
+   "posts": 51,
+   "accounts": 40,
+   "with_views": 1,
+   "without_views": 50,
+   "with_likes_baseline": 33,
+   "in_hygiene": 47
+  },
+  {
+   "ptype": "funding",
+   "tier": "1k-10k",
+   "posts": 16,
+   "accounts": 10,
+   "with_views": 0,
+   "without_views": 16,
+   "with_likes_baseline": 10,
+   "in_hygiene": 14
+  },
+  {
+   "ptype": "funding",
+   "tier": "unknown",
+   "posts": 44,
+   "accounts": 36,
+   "with_views": 1,
+   "without_views": 43,
+   "with_likes_baseline": 21,
+   "in_hygiene": 41
+  },
+  {
+   "ptype": "hiring",
+   "tier": "100k+",
+   "posts": 30,
+   "accounts": 16,
+   "with_views": 5,
+   "without_views": 25,
+   "with_likes_baseline": 30,
+   "in_hygiene": 25
+  },
+  {
+   "ptype": "hiring",
+   "tier": "10k-100k",
+   "posts": 81,
+   "accounts": 49,
+   "with_views": 9,
+   "without_views": 72,
+   "with_likes_baseline": 65,
+   "in_hygiene": 68
+  },
+  {
+   "ptype": "hiring",
+   "tier": "1k-10k",
+   "posts": 32,
+   "accounts": 20,
+   "with_views": 8,
+   "without_views": 24,
+   "with_likes_baseline": 26,
+   "in_hygiene": 24
+  },
+  {
+   "ptype": "hiring",
+   "tier": "<1k",
+   "posts": 3,
+   "accounts": 3,
+   "with_views": 1,
+   "without_views": 2,
+   "with_likes_baseline": 2,
+   "in_hygiene": 3
+  },
+  {
+   "ptype": "hiring",
+   "tier": "unknown",
+   "posts": 70,
+   "accounts": 50,
+   "with_views": 9,
+   "without_views": 61,
+   "with_likes_baseline": 53,
+   "in_hygiene": 61
+  },
+  {
+   "ptype": "launch",
+   "tier": "100k+",
+   "posts": 803,
+   "accounts": 96,
+   "with_views": 12,
+   "without_views": 791,
+   "with_likes_baseline": 692,
+   "in_hygiene": 698
+  },
+  {
+   "ptype": "launch",
+   "tier": "10k-100k",
+   "posts": 696,
+   "accounts": 192,
+   "with_views": 93,
+   "without_views": 603,
+   "with_likes_baseline": 560,
+   "in_hygiene": 603
+  },
+  {
+   "ptype": "launch",
+   "tier": "1k-10k",
+   "posts": 158,
+   "accounts": 67,
+   "with_views": 15,
+   "without_views": 143,
+   "with_likes_baseline": 119,
+   "in_hygiene": 119
+  },
+  {
+   "ptype": "launch",
+   "tier": "<1k",
+   "posts": 18,
+   "accounts": 10,
+   "with_views": 7,
+   "without_views": 11,
+   "with_likes_baseline": 14,
+   "in_hygiene": 16
+  },
+  {
+   "ptype": "launch",
+   "tier": "unknown",
+   "posts": 1016,
+   "accounts": 284,
+   "with_views": 135,
+   "without_views": 881,
+   "with_likes_baseline": 771,
+   "in_hygiene": 809
+  },
+  {
+   "ptype": "milestone",
+   "tier": "100k+",
+   "posts": 8,
+   "accounts": 6,
+   "with_views": 0,
+   "without_views": 8,
+   "with_likes_baseline": 8,
+   "in_hygiene": 6
+  },
+  {
+   "ptype": "milestone",
+   "tier": "10k-100k",
+   "posts": 15,
+   "accounts": 12,
+   "with_views": 1,
+   "without_views": 14,
+   "with_likes_baseline": 13,
+   "in_hygiene": 13
+  },
+  {
+   "ptype": "milestone",
+   "tier": "1k-10k",
+   "posts": 2,
+   "accounts": 2,
+   "with_views": 0,
+   "without_views": 2,
+   "with_likes_baseline": 2,
+   "in_hygiene": 2
+  },
+  {
+   "ptype": "milestone",
+   "tier": "<1k",
+   "posts": 2,
+   "accounts": 2,
+   "with_views": 1,
+   "without_views": 1,
+   "with_likes_baseline": 1,
+   "in_hygiene": 2
+  },
+  {
+   "ptype": "milestone",
+   "tier": "unknown",
+   "posts": 11,
+   "accounts": 10,
+   "with_views": 0,
+   "without_views": 11,
+   "with_likes_baseline": 6,
+   "in_hygiene": 8
+  },
+  {
+   "ptype": "open_source",
+   "tier": "100k+",
+   "posts": 21,
+   "accounts": 18,
+   "with_views": 1,
+   "without_views": 20,
+   "with_likes_baseline": 17,
+   "in_hygiene": 21
+  },
+  {
+   "ptype": "open_source",
+   "tier": "10k-100k",
+   "posts": 24,
+   "accounts": 19,
+   "with_views": 1,
+   "without_views": 23,
+   "with_likes_baseline": 18,
+   "in_hygiene": 24
+  },
+  {
+   "ptype": "open_source",
+   "tier": "1k-10k",
+   "posts": 2,
+   "accounts": 2,
+   "with_views": 1,
+   "without_views": 1,
+   "with_likes_baseline": 2,
+   "in_hygiene": 2
+  },
+  {
+   "ptype": "open_source",
+   "tier": "<1k",
+   "posts": 1,
+   "accounts": 1,
+   "with_views": 0,
+   "without_views": 1,
+   "with_likes_baseline": 1,
+   "in_hygiene": 1
+  },
+  {
+   "ptype": "open_source",
+   "tier": "unknown",
+   "posts": 32,
+   "accounts": 26,
+   "with_views": 5,
+   "without_views": 27,
+   "with_likes_baseline": 24,
+   "in_hygiene": 30
+  }
+ ]
+}
