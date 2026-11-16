@@ -87,6 +87,10 @@ def to_int(x: Any) -> int | None:
         return int(x)
     if isinstance(x, int):
         return x
+    if isinstance(x, str):
+        s = x.strip()
+        if s.lstrip("-").isdigit():
+            return int(s)       # exact: a 19-digit post id read through a float loses its low bits
     try:
         f = float(x)
     except (TypeError, ValueError):

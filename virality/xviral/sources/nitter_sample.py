@@ -163,3 +163,79 @@ def ingest_streaming(out_dir: str | Path, known_handles: list[str] | None = None
         finally:
             shutil.rmtree(tmp, ignore_errors=True)
     return {"shards": len(files), "kept": kept}
+
+
+# ---------------------------------------------------------------------------------------------------------------
+# Replies and threads (2026-11-16, data track). `read_shard` keeps root posts only, so the corpus has no replies and
+# "link in the reply" and threads cannot be measured. 60% of this corpus is replies, each with its own view count.
+# `read_shard_accounts` keeps every non-repost row of a list of accounts, marks replies, and returns a side table
+# with who was replied to. The source gives the handles replied to (`replying-to`), not the parent post id:
+# a self-reply is a reply whose only addressee is the author, and its parent is recovered by time
+# (`link_self_replies`): the author's latest earlier post within a window.
+#
+# The same guards as `read_shard` apply (likes <= views in at least 99% of rows after undoing the column shift).
+
+# `external-link` is an empty string, not null, when a post has no link card; a bare domain in the text also counts as a link.
+LINK_IN_TEXT = r"(?i)https?://|\b[\w-]{2,}\.(com|ai|io|dev|app|co|so|xyz|sh|org|net|gg|tech)(/|\b)"
+
+SIDE_SCHEMA = {"post_id": pl.Int64, "author_handle": pl.String, "replying_to": pl.List(pl.String), "is_self_reply": pl.Boolean, "n_addressees": pl.Int32, "has_link": pl.Boolean}
+
+
+def read_shard_accounts(path: str | Path, keep_handles: pl.Series, mature_before: str = "2026-05-01") -> tuple[pl.DataFrame, pl.DataFrame]:
+    """Root posts and replies (no reposts) by `keep_handles` (lower-case, no '@') -> (posts in the unified schema, reply side table)."""
+    path = Path(path)
+    lf = pl.scan_parquet(path).filter(~pl.col("is-retweet").fill_null(False) & _HANDLE.is_not_null() & _HANDLE.is_in(keep_handles.implode()))
+    df = lf.collect()
+    if df.height == 0:
+        return conform(pl.DataFrame({"post_id": []})), pl.DataFrame(schema=SIDE_SCHEMA)
+    ids = {h: synthetic_author_id(h) for h in df.select(_HANDLE.alias("h"))["h"].unique().to_list()}
+    cutoff = date_to_ms(mature_before)
+    q = pl.col("quoted-post").struct
+    to = pl.col("replying-to").list.eval(pl.element().str.strip_prefix("@").str.to_lowercase())
+    is_reply = pl.col("replying-to").list.len().fill_null(0) > 0
+    df = df.with_columns(
+        _HANDLE.replace_strict(ids, return_dtype=pl.Int64).alias("author_id"), _HANDLE.alias("_h"), to.alias("_to"),
+        pl.col("id").cast(pl.Int64, strict=False).alias("post_id"), pl.col("username").str.strip_prefix("@").alias("author_handle"), pl.col("name").alias("author_display_name"),
+        pl.col("date").str.to_datetime(strict=False, time_zone="UTC").dt.epoch("ms").alias("created_at_src_ms"),
+        pl.col("quotes").alias("likes_true"), pl.col("likes").alias("views_true"), pl.col("comments").alias("replies"), pl.col("retweets").alias("reposts"),
+        pl.when(is_reply).then(pl.lit("reply")).when(q.field("link").is_not_null()).then(pl.lit("quote")).otherwise(pl.lit("original")).alias("kind"),
+        q.field("text").alias("quoted_text"), is_reply.alias("is_reply"),
+    ).filter(pl.col("post_id").is_not_null()).with_columns(snowflake_ms_expr("post_id").alias("created_at_ms"))
+    df = df.drop("likes", "quotes").rename({"likes_true": "likes", "views_true": "views"})
+    if df.height >= 1000:
+        ok = float((df["likes"].fill_null(0) <= df["views"].fill_null(0)).mean())
+        if ok < 0.99:
+            raise ValueError(f"{path.name}: likes <= views in only {ok:.1%} of rows; the column shift this reader corrects is not present")
+    df = df.with_columns(
+        pl.lit(None, dtype=pl.Int64).alias("quotes"),
+        pl.when(pl.col("created_at_ms") < cutoff).then(pl.lit(cutoff)).otherwise(None).alias("snapshot_at_ms"), pl.lit("assumed_mature").alias("snapshot_kind"),
+        pl.lit("count").alias("views_state"), pl.lit(SOURCE).alias("source"), pl.lit(path.name).alias("source_file"), pl.lit(False).alias("synthetic_id"),
+    )
+    media, urls = [], []
+    for pics, gifs, ext in zip(df["pictures"].to_list(), df["gifs"].to_list(), df["external-link"].to_list()):
+        m = [{"type": "photo", "url": u, "video_url": None, "width": None, "height": None, "duration_ms": None, "alt": None} for u in (pics or [])]
+        m += [{"type": "gif", "url": u, "video_url": None, "width": None, "height": None, "duration_ms": None, "alt": None} for u in (gifs or [])]
+        media.append(m)
+        urls.append([{"tco": None, "expanded": ext, "final_domain": registrable_domain(ext), "is_media": False}] if ext else [])
+    df = df.with_columns(pl.Series("media", media, dtype=pl.List(MEDIA_STRUCT)), pl.Series("urls", urls, dtype=pl.List(URL_STRUCT)),
+                         pl.col("text").fill_null("").str.count_matches(r"(?:^|[^\w])@\w{1,15}").cast(pl.Int32).alias("mentions_n"),
+                         pl.col("text").fill_null("").str.count_matches(r"(?:^|[^\w&])#\w+").cast(pl.Int32).alias("hashtags_n"))
+    side = df.filter(pl.col("is_reply")).select(
+        "post_id", "author_handle", pl.col("_to").alias("replying_to"), ((pl.col("_to").list.len() == 1) & (pl.col("_to").list.first() == pl.col("_h"))).alias("is_self_reply"),
+        pl.col("_to").list.len().cast(pl.Int32).alias("n_addressees"),
+        ((pl.col("external-link").fill_null("") != "") | pl.col("text").fill_null("").str.contains(LINK_IN_TEXT)).alias("has_link"))
+    return conform(df), side
+
+
+def link_self_replies(posts: pl.DataFrame, side: pl.DataFrame, window_minutes: int = 30) -> pl.DataFrame:
+    """For each self-reply, the author's latest earlier post within the window: its presumed parent.
+
+    Timestamps are to the minute and only sampled posts are present, so this is a lower bound: a self-reply whose
+    parent was not sampled gets no parent, and a parent is the nearest sampled post, not certainly the direct one.
+    Returns post_id, parent_post_id, gap_ms, parent_is_root.
+    """
+    p = posts.select("post_id", pl.col("author_handle").str.to_lowercase().alias("h"), "created_at_ms", "is_reply").sort("created_at_ms")
+    s = p.join(side.filter(pl.col("is_self_reply")).select("post_id"), on="post_id", how="semi")
+    cand = p.rename({"post_id": "parent_post_id", "created_at_ms": "parent_ms", "is_reply": "parent_is_reply"})
+    j = s.join_asof(cand, left_on="created_at_ms", right_on="parent_ms", by="h", strategy="backward", allow_exact_matches=False, tolerance=window_minutes * 60_000)
+    return j.filter(pl.col("parent_post_id").is_not_null()).select("post_id", "parent_post_id", (pl.col("created_at_ms") - pl.col("parent_ms")).alias("gap_ms"), (~pl.col("parent_is_reply")).alias("parent_is_root"))
