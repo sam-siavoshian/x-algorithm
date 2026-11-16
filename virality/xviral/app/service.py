@@ -88,6 +88,7 @@ class Service:
         self.scorer.fast = fast
         self.advisor = advise.Advisor(scorer, scales, evidence=evidence)
         self.evidence = self.advisor.evidence
+        self.rewriter = None                                        # xviral.rewrite.OpenAIRewriter, set by load() when configured
         data = Path(advise.EVIDENCE_PATH).parent
         self.launch_evidence = json.loads((data / "launch_evidence.json").read_text()) if (data / "launch_evidence.json").exists() else {}
         mp = data / "marketing_evidence.json"                       # further launch effects, same method (research/tracks/marketing)
@@ -414,6 +415,28 @@ class Service:
 
     # --- the report ------------------------------------------------------------------------------------------
 
+    def suggestions(self, history: pl.DataFrame, draft: dict, account: dict, when: int, n: int, launch: bool) -> dict:
+        """Rewrites proposed by a language model, screened for faithfulness, then judged like any other version.
+        A rewrite is called better only when it clears the advisor's gates; the others are listed as not better."""
+        from xviral import rewrite
+
+        proposals = self.rewriter.candidates(draft["text"], n=n, launch=launch)
+        screened = rewrite.screen(draft["text"], proposals, self.scorer.embed_fn, self.advisor.min_meaning_cos)
+        live = [s for s in screened if s["ok"]]
+        rows = []
+        if live:
+            out = self.advisor.advise(history, draft, account, when, alternatives=[{"text": s["text"], "media": draft["media"], "label": f"Suggested {i + 1}"} for i, s in enumerate(live)])
+            by = {c["change"]: c for c in out["changes"] if c["operator"] is None}
+            for i, s in enumerate(live):
+                c = by[f"Suggested {i + 1}"]
+                rows.append({"text": s["text"], "status": c["status"], "p_better": c["p_better"], "predicted_ratio": c["predicted_ratio"], "members_agree": c["members_agree"],
+                             "likes_median": c["likes_q50"], "meaning_cos": s.get("meaning_cos"),
+                             "checklist": self.checklist({"text": s["text"], "media": draft["media"]}, "launch" if launch else "")})
+        rows.sort(key=lambda r: -(r["p_better"] or 0))
+        return {"written_by": f"language model ({self.rewriter.model}); judged by the forecasting model",
+                "proposed": len(proposals), "dropped": [{"why": s["why"]} for s in screened if not s["ok"]],
+                "better": [r for r in rows if r["status"].startswith("recommended")], "not_better": [r for r in rows if not r["status"].startswith("recommended")]}
+
     def analyze(self, req: dict) -> dict:
         t0 = time.time()
         clock = time.perf_counter()
@@ -438,6 +461,10 @@ class Service:
                                   record=self._record(handle, history, source))
         alts = {c["change"]: c for c in out["changes"] if c["operator"] is None}
         d = out["draft"]
+        suggest = int(req.get("suggest") or 0)
+        suggested = None
+        if suggest and self.rewriter is not None:
+            suggested = self.suggestions(history, drafts[0], account, when, min(suggest, 8), post_type.classify(drafts[0]["text"])["type"] == "launch")
         ctx = self._timing_context(history, when)
         table = [{"version": 1, "text": drafts[0]["text"], "likes_median": d["likes"]["q50"], "views_median": d["views_24h"]["q50"],
                   "likes_range": [d["likes"]["q10"], d["likes"]["q90"]], "views_range": [d["views_24h"]["q10"], d["views_24h"]["q90"]],
@@ -493,6 +520,7 @@ class Service:
             "launch_plan": plan,
             "benchmarks": benchmarks,
             "changes": [c for c in out["changes"] if c["operator"] is not None],
+            "suggested": suggested,
             "rules": [self._rule(g) for g in out["rules"]],
             "record": out["record"],
             "method": {"outcome_compared": out["outcome_compared"], "thresholds": out["thresholds"],

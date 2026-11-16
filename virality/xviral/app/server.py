@@ -93,6 +93,7 @@ class AnalyzeRequest(BaseModel):
     versions: list[Version] = Field(min_length=1, max_length=6)
     past_posts: list[PastPost] = Field(default_factory=list, max_length=500, description="the account's past posts (for example from an X analytics export)")
     when: str | None = Field(default=None, description="planned posting time, ISO 8601; enables the 2-hour spacing check")
+    suggest: int = Field(default=0, ge=0, le=8, description="how many rewrites of version 1 to propose and judge; needs XVIRAL_REWRITER_MODEL on the server")
     launch: bool | None = Field(default=None, description="force the launch plan on or off; by default it appears when a version reads as a launch")
 
     @field_validator("handle")
@@ -204,6 +205,10 @@ def create_app(service=None, settings: Settings | None = None, gate: accounts.Ga
                     try:
                         state["service"] = S.load(cfg.checkpoints, cfg.scales, posts=cfg.posts, sid_codebook=cfg.sid, encoder=cfg.encoder, device=cfg.device,
                                                   type_correction=os.environ.get("XVIRAL_TYPE_CORRECTION") or None)
+                        if os.environ.get("XVIRAL_REWRITER_MODEL"):      # an OpenAI chat model; the key is OPENAI_API_KEY or proxy-injected
+                            from xviral.rewrite import OpenAIRewriter
+
+                            state["service"].rewriter = OpenAIRewriter(os.environ["XVIRAL_REWRITER_MODEL"])
                     except Exception as e:      # noqa: BLE001
                         state["error"] = f"{type(e).__name__}: {e}"
                         log.exception("model load failed")

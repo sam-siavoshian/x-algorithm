@@ -419,3 +419,37 @@ def test_settings_from_env(monkeypatch):
     monkeypatch.setenv("XVIRAL_LOG_TEXT", "1")
     s = server.Settings.from_env()
     assert s.checkpoints == ["a.pt", "b.pt"] and s.rate_per_minute == 5 and s.log_text and s.encoder == "BAAI/bge-small-en-v1.5" and s.max_upload_mb == 64
+
+
+def test_rewrite_screening_and_suggestions(trained):
+    """Rewrites: mechanical faithfulness checks, then the same gates as any version. The language model is a stub."""
+    from xviral import rewrite
+    from xviral.app import service
+
+    draft = "We shipped the new agent today, 3x faster. Docs: https://example.com/docs cc @acme"
+    assert rewrite.faithful(draft, "The new agent is out.\n3x faster.\nDocs: https://example.com/docs cc @acme")[0]
+    assert rewrite.faithful(draft, "The new agent is out, 10x faster. https://example.com/docs")[1].startswith("adds a number")
+    assert rewrite.faithful(draft, "The new agent is out, 3x faster.")[1] == "links differ from the draft"
+    assert rewrite.faithful(draft, "3x faster agent https://example.com/docs thanks @rival")[1] == "adds a handle"
+    assert rewrite.faithful(draft, "3x faster agent #ai https://example.com/docs")[1] == "adds a hashtag"
+
+    tmp_path, posts, table, mcfg = trained
+    scorer = serve.DraftScorer(tmp_path / "run" / "best.pt", embed)
+    posts.write_parquet(tmp_path / "posts2.parquet")
+    svc = service.Service(scorer, {"likes": 6.0, "views": 6.0}, posts=tmp_path / "posts2.parquet")
+
+    class Stub:
+        model = "stub"
+
+        def candidates(self, text, n=5, launch=False, limit=None):
+            return ["launch day: we shipped the new agent this week", "some thoughts on the week, 99 of them", "some other thoughts on the week ahead"][:n]
+
+    svc.rewriter = Stub()
+    r = svc.analyze({"handle": "user23", "versions": [{"text": "some thoughts on the week ahead"}], "suggest": 3})
+    s = r["suggested"]
+    assert s["proposed"] == 3 and any("adds a number" in d["why"] for d in s["dropped"])
+    assert any(d["why"] == "drifts from what the draft says" for d in s["dropped"])      # the stub encoder puts launch posts elsewhere
+    judged = s["better"] + s["not_better"]
+    assert [j["text"] for j in judged] == ["some other thoughts on the week ahead"] and judged[0]["p_better"] is not None
+    assert all(b["status"].startswith("recommended") for b in s["better"]) and all(not b["status"].startswith("recommended") for b in s["not_better"])
+    assert svc.analyze({"handle": "user23", "versions": [{"text": "some thoughts on the week ahead"}]})["suggested"] is None

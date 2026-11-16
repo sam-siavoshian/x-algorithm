@@ -169,3 +169,7 @@ API, configuration, errors, privacy, the media-understanding interface and the s
 [docs/launch_advisor_api.md](docs/launch_advisor_api.md). A `Dockerfile` is in this folder. Tests:
 `tests/test_app.py`. Screenshot: `docs/launch_advisor.png`. Accuracy goal and the research tracks working toward it:
 `research/tracks/README.md`.
+
+### Rewrites
+
+With `XVIRAL_REWRITER_MODEL` set to an OpenAI chat model (for example `gpt-5.4-mini`; the key is `OPENAI_API_KEY`), a request with `suggest: n` gets `n` rewrites of version 1 proposed by that model (`xviral/rewrite.py`). A rewrite is dropped before scoring if it adds a number, changes the links, adds a handle or hashtag, or drifts from the draft's meaning. The rest are judged by the forecasting model through the same gates as any other version, and only those that clear them are listed as better. The language model writes candidate text; it decides nothing.
