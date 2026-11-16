@@ -1,0 +1,59 @@
+{
+ "train_posts": 10880,
+ "train_accounts": 1051,
+ "test_pairs": 3741,
+ "test_accounts": 303,
+ "sets": {
+  "embedding_32pc": {
+   "ridge_10": {
+    "accuracy": 0.5253,
+    "lo": 0.4958,
+    "hi": 0.553
+   },
+   "ridge_100": {
+    "accuracy": 0.5245,
+    "lo": 0.4949,
+    "hi": 0.5531
+   },
+   "ridge_1000": {
+    "accuracy": 0.5263,
+    "lo": 0.4974,
+    "hi": 0.5559
+   }
+  },
+  "attributes": {
+   "ridge_10": {
+    "accuracy": 0.4961,
+    "lo": 0.4693,
+    "hi": 0.5219
+   },
+   "ridge_100": {
+    "accuracy": 0.4967,
+    "lo": 0.4696,
+    "hi": 0.5227
+   },
+   "ridge_1000": {
+    "accuracy": 0.498,
+    "lo": 0.4708,
+    "hi": 0.5251
+   }
+  },
+  "both": {
+   "ridge_10": {
+    "accuracy": 0.5448,
+    "lo": 0.5183,
+    "hi": 0.5711
+   },
+   "ridge_100": {
+    "accuracy": 0.5469,
+    "lo": 0.5198,
+    "hi": 0.5748
+   },
+   "ridge_1000": {
+    "accuracy": 0.5472,
+    "lo": 0.5202,
+    "hi": 0.5753
+   }
+  }
+ }
+}

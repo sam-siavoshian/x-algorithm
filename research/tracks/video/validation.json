@@ -1,0 +1,100 @@
+{
+ "method": "40 poster frames per class drawn at random (seed 11) from own-announcement video posts with features, read by eye on contact sheets by the worker (one reader, no second opinion); the class rule was fixed on a different sample (the 900 oldest frames) before this read",
+ "classes": {
+  "ui": {
+   "read": 40,
+   "correct": 36,
+   "precision": 0.9,
+   "definition": "product UI on screen: app, website, editor, terminal, chat (a screen recording or UI mock-up)",
+   "misses": "a grid of simulation clips, a chat-bubble graphic, a title card, a slide diagram"
+  },
+  "face": {
+   "read": 40,
+   "correct": 34,
+   "precision": 0.85,
+   "definition": "a real person is the subject of the frame",
+   "stricter": {
+    "definition": "a person addressing the camera or being interviewed (talking head)",
+    "correct": 28,
+    "precision": 0.7
+   },
+   "misses": "a car with a caption, a title card with a portrait thumbnail, an animated character, a room with a distant figure; under the stricter reading also film stills, memes and generated portraits"
+  },
+  "title": {
+   "read": 40,
+   "correct": 36,
+   "precision": 0.9,
+   "definition": "a title card or logo: a product name, headline or mark on a plain or decorative background",
+   "misses": "a quiz graphic, a captioned film still, an aerial shot with a word on it, a textless gold sphere"
+  },
+  "graphic": {
+   "read": 40,
+   "correct": 33,
+   "precision": 0.82,
+   "definition": "motion graphics, a 3D render, an illustration, game footage or generated imagery",
+   "misses": "three frames of real people, real footage with a caption, three UI frames"
+  },
+  "real": {
+   "read": 40,
+   "correct": 35,
+   "precision": 0.87,
+   "definition": "real-world footage without a person in close-up: hardware, a robot, a room, a stage, outdoors",
+   "misses": "two title cards, two app graphics, a render"
+  },
+  "other": {
+   "read": 40,
+   "correct": 30,
+   "precision": 0.75,
+   "definition": "nothing much visible: an empty, near-black, blank or barely started frame",
+   "misses": "dim UI screenshots, a pixel-art scene, a line illustration, a dark render"
+  },
+  "chart": {
+   "read": 0,
+   "precision": null,
+   "definition": "a chart, diagram or slide",
+   "note": "12 announcement videos and about 1% of all frames: too few to validate or analyse"
+  }
+ },
+ "attributes": {
+  "has_face": {
+   "read": 40,
+   "correct": 36,
+   "precision": 0.9,
+   "definition": "a human face is visible in the first frame (OpenCV YuNet detector)",
+   "misses": "drawn characters, an avatar, a collage"
+  },
+  "empty_first": {
+   "read": 40,
+   "correct": 31,
+   "precision": 0.78,
+   "definition": "a bare first frame: black, blank, or a small mark on a flat background, with no readable text",
+   "stricter": {
+    "definition": "nothing visible at all (black or blank)",
+    "correct": 27,
+    "precision": 0.68
+   },
+   "misses": "dim UI screenshots in which the text detector found nothing"
+  },
+  "lower_text_nonui": {
+   "read": 40,
+   "correct": 14,
+   "precision": 0.35,
+   "definition": "intended as a proxy for burned-in captions: text in the lower third of a non-UI first frame",
+   "verdict": "NOT a caption detector: 14 of 40 frames carry a spoken-word caption; the rest are name cards, titles, logos and labels. The attribute is reported only as 'text in the lower third'; burned-in captions are unmeasured."
+  },
+  "not_validated": [
+   "big_face",
+   "text_on_frame",
+   "text_heavy",
+   "dark_first"
+  ],
+  "from_the_media_record": "portrait/square/landscape, 16:9, 1080 px, under 720 px, GIF, upload route are read from the poster's pixel size, the corpus media record and the thumbnail URL; no model involved",
+  "big_headline": {
+   "read": 40,
+   "correct": 31,
+   "precision": 0.78,
+   "definition": "a headline-size line of readable text in the first frame (a product name, title or headline; a detected text line at least 8% of the frame height tall)",
+   "misses": "small labels, a UI screen, an article page, a table, small-print titles"
+  }
+ }
+}
