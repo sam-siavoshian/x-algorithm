@@ -11,6 +11,7 @@ counted, and each external URL adds URL_WEIGHTED_LEN instead. Attachment URLs
 from __future__ import annotations
 
 from dataclasses import dataclass
+from functools import lru_cache
 
 from xviral.constants import SINGLE_WEIGHT_CODEPOINT_RANGES, URL_WEIGHTED_LEN
 
@@ -42,6 +43,7 @@ class TextMetrics:
     external_urls: int
 
 
+@lru_cache(maxsize=65_536)          # a pure function of its arguments; the serving path sees the same history texts again and again
 def text_metrics(text: str | None, attachment_urls: int = 0) -> TextMetrics:
     if not text:
         return TextMetrics(0, 0)

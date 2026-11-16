@@ -3,145 +3,361 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
 <title>Launch advisor</title>
-<style>
-  :root { --bg:#f6f5f1; --card:#fff; --ink:#16181d; --mute:#667085; --line:#e4e2da; --accent:#1f5eff; --good:#0a7d4f; --warn:#b25e09; --bad:#b42318; }
-  @media (prefers-color-scheme: dark) { :root { --bg:#101216; --card:#191c22; --ink:#eceef2; --mute:#98a2b3; --line:#2a2e37; --accent:#7aa2ff; --good:#3ecf8e; --warn:#f0a94a; --bad:#f97066; } }
-  * { box-sizing: border-box; }
-  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
-  main { max-width:1080px; margin:0 auto; padding:28px 16px 80px; }
-  h1 { font-size:28px; margin:0 0 4px; letter-spacing:-0.02em; }
-  h2 { font-size:13px; text-transform:uppercase; letter-spacing:.08em; color:var(--mute); margin:0 0 10px; font-weight:600; }
-  p.lead { color:var(--mute); margin:0 0 24px; max-width:62ch; }
-  .grid { display:grid; grid-template-columns:minmax(0,5fr) minmax(0,6fr); gap:20px; align-items:start; }
-  @media (max-width:860px) { .grid { grid-template-columns:1fr; } }
-  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:18px; margin-bottom:16px; }
-  label { display:block; font-size:13px; color:var(--mute); margin:0 0 4px; }
-  input[type=text], input[type=number], textarea { width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:8px; background:transparent; color:inherit; font:inherit; }
-  textarea { min-height:120px; resize:vertical; }
-  .row { display:flex; gap:12px; } .row > div { flex:1; min-width:0; }
+<style id="styles">
+  :root { --bg:#f7f7f5; --card:#ffffff; --ink:#15171c; --ink2:#3d4350; --mute:#6b7280; --line:#e3e3de; --soft:#f0f0ec;
+          --accent:#2457e6; --accent-ink:#ffffff; --good:#0b7a4b; --warn:#a4570a; --bad:#b42318; --range:#c9ccd4; --band:rgba(36,87,230,.10); }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+          --bg:#0f1115; --card:#171a20; --ink:#eceef2; --ink2:#c3c8d2; --mute:#949bab; --line:#2a2f38; --soft:#1f232b;
+          --accent:#7ea2ff; --accent-ink:#0f1115; --good:#45c98c; --warn:#f0a94a; --bad:#f97066; --range:#4a505c; --band:rgba(126,162,255,.14); } }
+  :root[data-theme="dark"] { --bg:#0f1115; --card:#171a20; --ink:#eceef2; --ink2:#c3c8d2; --mute:#949bab; --line:#2a2f38; --soft:#1f232b;
+          --accent:#7ea2ff; --accent-ink:#0f1115; --good:#45c98c; --warn:#f0a94a; --bad:#f97066; --range:#4a505c; --band:rgba(126,162,255,.14); }
+  * { box-sizing:border-box; }
+  html { -webkit-text-size-adjust:100%; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  .wrap { max-width:1180px; margin:0 auto; padding:20px 16px 72px; }
+  header.top { display:flex; justify-content:space-between; align-items:baseline; gap:12px; margin-bottom:18px; }
+  h1 { font-size:22px; margin:0; letter-spacing:-.01em; }
+  .sub { color:var(--mute); margin:2px 0 0; font-size:14px; max-width:62ch; }
+  h2 { font-size:12px; text-transform:uppercase; letter-spacing:.07em; color:var(--mute); margin:0 0 10px; font-weight:600; }
+  h3 { font-size:15px; margin:0 0 6px; }
+  .grid { display:grid; grid-template-columns:minmax(0,5fr) minmax(0,7fr); gap:20px; align-items:start; }
+  @media (max-width:900px) { .grid { grid-template-columns:1fr; } }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px; margin-bottom:14px; }
+  label, .lbl { display:block; font-size:13px; color:var(--ink2); margin:0 0 4px; font-weight:500; }
+  input[type=text], input[type=number], input[type=datetime-local], select, textarea {
+    width:100%; padding:9px 11px; border:1px solid var(--line); border-radius:8px; background:var(--card); color:inherit; font:inherit; }
+  input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-visible { outline:2px solid var(--accent); outline-offset:1px; }
+  textarea { min-height:108px; resize:vertical; }
+  .row { display:flex; gap:10px; flex-wrap:wrap; } .row > div { flex:1 1 150px; min-width:0; }
+  .hint { font-size:12.5px; color:var(--mute); margin:4px 0 0; }
   .version { border-top:1px solid var(--line); padding-top:14px; margin-top:14px; }
-  .version:first-of-type { border-top:0; padding-top:0; margin-top:0; }
-  .vhead { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; font-weight:600; }
-  .checks { display:flex; gap:16px; margin-top:6px; font-size:14px; } .checks label { display:flex; gap:6px; align-items:center; color:inherit; margin:0; }
-  button { font:inherit; border-radius:8px; padding:10px 16px; border:1px solid var(--line); background:transparent; color:inherit; cursor:pointer; }
-  button.primary { background:var(--accent); border-color:var(--accent); color:#fff; font-weight:600; width:100%; padding:12px; }
-  button.link { border:0; padding:0; color:var(--accent); font-size:14px; }
-  button:disabled { opacity:.6; cursor:wait; }
-  .pick { font-size:19px; font-weight:600; letter-spacing:-0.01em; margin:0; }
-  .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:12px; }
-  .stat b { display:block; font-size:22px; font-variant-numeric:tabular-nums; letter-spacing:-0.01em; } .stat span { font-size:13px; color:var(--mute); }
+  .version:first-child { border-top:0; padding-top:0; margin-top:0; }
+  .vhead { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+  .vhead b { font-size:14px; }
+  .count { font-size:12px; color:var(--mute); font-variant-numeric:tabular-nums; } .count.over { color:var(--bad); }
+  .media { display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-top:8px; font-size:13px; }
+  .seg { display:inline-flex; border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+  .seg label { margin:0; padding:5px 10px; cursor:pointer; color:var(--ink2); font-weight:500; border-left:1px solid var(--line); }
+  .seg label:first-child { border-left:0; }
+  .seg input { position:absolute; opacity:0; pointer-events:none; }
+  .seg input:checked + span { color:var(--accent); font-weight:600; }
+  .seg label:has(input:checked) { background:var(--soft); }
+  .file { color:var(--ink2); }
+  button { font:inherit; border-radius:8px; padding:8px 14px; border:1px solid var(--line); background:var(--card); color:inherit; cursor:pointer; }
+  button.primary { background:var(--accent); border-color:var(--accent); color:var(--accent-ink); font-weight:600; width:100%; padding:12px; font-size:15px; }
+  button.link { border:0; padding:0; background:none; color:var(--accent); font-size:13px; }
+  button:disabled { opacity:.6; cursor:progress; }
+  .err { color:var(--bad); font-size:14px; min-height:1.2em; margin:8px 0 0; }
+  .ok { color:var(--good); }
+  details > summary { cursor:pointer; color:var(--accent); font-size:13.5px; }
+  .tag { display:inline-block; font-size:12px; line-height:18px; padding:0 7px; border-radius:99px; border:1px solid var(--line); color:var(--ink2); white-space:nowrap; font-weight:500; }
+  .tag.good { color:var(--good); border-color:currentColor; } .tag.warn { color:var(--warn); border-color:currentColor; } .tag.bad { color:var(--bad); border-color:currentColor; }
+  .tag.grade { font-variant-numeric:tabular-nums; min-width:26px; text-align:center; }
+  .verdict { font-size:19px; line-height:1.35; font-weight:600; letter-spacing:-.01em; margin:0; }
+  .verdict-card { border-left:4px solid var(--accent); }
+  .muted { color:var(--mute); } .small { font-size:13px; } .ink2 { color:var(--ink2); }
   table { width:100%; border-collapse:collapse; font-size:14px; font-variant-numeric:tabular-nums; }
-  th, td { text-align:left; padding:8px 6px; border-bottom:1px solid var(--line); vertical-align:top; } th { color:var(--mute); font-weight:500; font-size:12px; }
-  tr:last-child td { border-bottom:0; }
-  .tag { display:inline-block; font-size:12px; padding:2px 8px; border-radius:99px; border:1px solid var(--line); color:var(--mute); }
-  .tag.good { color:var(--good); border-color:var(--good); } .tag.warn { color:var(--warn); border-color:var(--warn); } .tag.bad { color:var(--bad); border-color:var(--bad); }
-  ul.plain { list-style:none; margin:0; padding:0; } ul.plain li { padding:10px 0; border-bottom:1px solid var(--line); } ul.plain li:last-child { border-bottom:0; }
-  .small { font-size:13px; color:var(--mute); } .err { color:var(--bad); }
-  details summary { cursor:pointer; color:var(--accent); font-size:14px; }
-  .empty { color:var(--mute); text-align:center; padding:48px 16px; }
+  th, td { text-align:left; padding:8px 6px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { color:var(--mute); font-weight:500; font-size:12px; } tr:last-child td { border-bottom:0; }
+  td.num, th.num { text-align:right; white-space:nowrap; }
+  tr.win td { background:var(--soft); }
+  .scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; }
+  .stat b { display:block; font-size:22px; font-variant-numeric:tabular-nums; letter-spacing:-.01em; } .stat span { font-size:12.5px; color:var(--mute); }
+  ul.plain { list-style:none; margin:0; padding:0; } ul.plain > li { padding:10px 0; border-bottom:1px solid var(--line); } ul.plain > li:last-child { border-bottom:0; }
+  .plan td.mark { text-align:center; width:44px; font-weight:600; }
+  .yes { color:var(--good); } .no { color:var(--bad); } .na { color:var(--mute); }
+  .chart svg { display:block; width:100%; height:auto; overflow:visible; }
+  .chart text { fill:var(--ink2); font-size:12px; font-family:inherit; } .chart .axis text { fill:var(--mute); font-size:11px; }
+  .chart .grid line { stroke:var(--line); } .chart .rng { stroke:var(--range); stroke-width:8; stroke-linecap:round; }
+  .chart .med { fill:var(--accent); stroke:var(--card); stroke-width:2; } .chart .ref { stroke:var(--ink2); stroke-width:1.5; stroke-dasharray:4 3; }
+  .chart .band { fill:var(--band); } .chart .hit { fill:transparent; } .chart g.r:hover .rng { stroke:var(--mute); }
+  .legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12.5px; color:var(--ink2); margin:8px 0 0; }
+  .legend i { display:inline-block; vertical-align:middle; margin-right:5px; }
+  .tip { position:fixed; pointer-events:none; background:var(--ink); color:var(--bg); font-size:12.5px; padding:6px 8px; border-radius:6px; max-width:280px; z-index:9; display:none; }
+  .actions { display:flex; gap:8px; flex-wrap:wrap; }
+  .empty { color:var(--mute); padding:40px 16px; text-align:center; }
+  .empty ol { text-align:left; display:inline-block; margin:8px 0 0; padding-left:20px; }
+  .theme { font-size:13px; padding:5px 10px; }
+  .vt { white-space:pre-wrap; color:var(--ink2); font-size:13px; margin:2px 0 0; max-height:4.6em; overflow:hidden; }
+  @media (max-width:560px) { .verdict { font-size:17px; } .stat b { font-size:20px; } th, td { padding:7px 4px; } }
+  @media print { .no-print, form, #inputs { display:none !important; } .grid { grid-template-columns:1fr; } body { background:#fff; } .card { break-inside:avoid; } }
 </style>
 </head>
 <body>
-<main>
-  <h1>Launch advisor</h1>
-  <p class="lead">Paste the versions of a post you are considering. You get a forecast for your account, which version is likely to do better, and only the changes that have a measured effect on real posts.</p>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Launch advisor</h1>
+      <p class="sub">Forecasts for draft X posts on your account, which version is likely to do better, and only the checks that have a measured effect on real posts.</p>
+    </div>
+    <button class="theme no-print" id="theme" type="button" aria-label="Colour theme">Theme: auto</button>
+  </header>
   <div class="grid">
-    <section>
+    <section id="inputs" aria-label="Inputs">
       <div class="card">
         <h2>Account</h2>
         <div class="row">
-          <div><label for="handle">X handle</label><input id="handle" type="text" placeholder="@yourstartup" autocomplete="off"></div>
-          <div><label for="followers">Followers</label><input id="followers" type="number" min="0" placeholder="12000"></div>
+          <div><label for="handle">X handle</label><input id="handle" type="text" placeholder="@yourstartup" autocomplete="off" spellcheck="false" maxlength="16"></div>
+          <div><label for="followers">Followers</label><input id="followers" type="number" min="0" inputmode="numeric" placeholder="if we don't know you"></div>
         </div>
-        <details style="margin-top:12px">
-          <summary>Add your past posts (recommended for accounts we do not know)</summary>
-          <p class="small">One post per line: date, likes, views, then the text, separated by tabs or " | ". Example: 2026-10-02 | 240 | 31000 | We just shipped offline mode.</p>
-          <textarea id="past" placeholder="2026-10-02 | 240 | 31000 | We just shipped offline mode."></textarea>
-        </details>
+        <p class="hint" id="acct" aria-live="polite"></p>
+        <div style="margin-top:12px">
+          <span class="lbl">Your past posts</span>
+          <div class="row" style="align-items:center">
+            <div style="flex:0 0 auto"><label class="file" style="margin:0"><input id="csv" type="file" accept=".csv,text/csv" hidden><button type="button" id="csvbtn">Import X analytics CSV</button></label></div>
+            <div class="small" id="csvinfo" aria-live="polite">Needed when we have no posts for your account. Export it from analytics.x.com (Content, Export data).</div>
+          </div>
+          <details style="margin-top:10px">
+            <summary>Or paste posts by hand</summary>
+            <p class="hint">One post per line: date | likes | views | text. Example: 2026-10-02 | 240 | 31000 | We just shipped offline mode.</p>
+            <textarea id="past" placeholder="2026-10-02 | 240 | 31000 | We just shipped offline mode."></textarea>
+          </details>
+        </div>
       </div>
       <div class="card">
-        <h2>Draft versions</h2>
+        <h2>When and what</h2>
+        <div class="row">
+          <div><label for="when">Planned posting time</label><input id="when" type="datetime-local"><p class="hint">Your local time. Enables the 2-hour spacing check.</p></div>
+          <div><label for="launch">Launch plan</label><select id="launch"><option value="">Auto (launch posts)</option><option value="1">Always</option><option value="0">Never</option></select></div>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Versions of the post <span class="muted" id="vcount"></span></h2>
         <div id="versions"></div>
-        <p style="margin:12px 0 0"><button class="link" id="add" type="button">Add another version</button></p>
+        <p style="margin:12px 0 0"><button class="link" id="add" type="button">+ Add a version (up to 6)</button></p>
       </div>
       <button class="primary" id="go" type="button">Analyze</button>
-      <p class="err small" id="err"></p>
+      <p class="err" id="err" role="alert"></p>
     </section>
-    <section id="out"><div class="card empty">Your report appears here.</div></section>
+    <section id="out" aria-live="polite"><div class="card empty">
+      <b>Your report appears here.</b>
+      <ol class="small"><li>Enter your handle, or a follower count and your past posts.</li><li>Paste one to six versions of the post, with their media.</li><li>Analyze.</li></ol>
+    </div></section>
   </div>
-</main>
+</div>
+<div class="tip" id="tip"></div>
 <script>
-const $ = (s, r = document) => r.querySelector(s);
-const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-const num = v => v == null ? "n/a" : v >= 1e6 ? (v / 1e6).toFixed(1) + "M" : v >= 1e4 ? Math.round(v / 1e3) + "k" : v >= 1e3 ? (v / 1e3).toFixed(1) + "k" : Math.round(v).toString();
-const pct = (v, d = 0) => v == null ? "n/a" : (100 * v < 1 && v > 0 ? "<1" : (100 * v).toFixed(d)) + "%";
-let count = 0;
+"use strict";
+const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const num = v => v == null || !isFinite(v) ? "n/a" : v >= 1e6 ? (v / 1e6).toFixed(1) + "M" : v >= 1e4 ? Math.round(v / 1e3) + "k" : v >= 1e3 ? (v / 1e3).toFixed(1) + "k" : v >= 10 ? Math.round(v).toString() : v.toFixed(v < 1 ? 1 : 0);
+const pct = (v, d = 0) => v == null ? "n/a" : (v > 0 && 100 * v < 1 ? "<1" : (100 * v).toFixed(d)) + "%";
+const x1 = v => v == null ? "n/a" : v.toFixed(v < 10 ? 1 : 0) + "x";
+const store = { get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} } };
+
+// theme: auto / light / dark
+const themes = ["auto", "light", "dark"];
+function applyTheme(t) { if (t === "auto") document.documentElement.removeAttribute("data-theme"); else document.documentElement.setAttribute("data-theme", t); $("#theme").textContent = "Theme: " + t; }
+let theme = store.get("theme") || "auto"; applyTheme(theme);
+$("#theme").onclick = () => { theme = themes[(themes.indexOf(theme) + 1) % 3]; store.set("theme", theme); applyTheme(theme); };
+
+// versions
 function addVersion(text = "") {
-  count += 1;
   const el = document.createElement("div");
   el.className = "version";
-  el.innerHTML = `<div class="vhead"><span>Version <span class="n"></span></span><button class="link rm" type="button">Remove</button></div>
-    <textarea placeholder="Write or paste the post">${esc(text)}</textarea>
-    <div class="checks"><label><input type="checkbox" class="img"> Image attached</label><label><input type="checkbox" class="vid"> Video attached</label></div>`;
+  const id = Math.random().toString(36).slice(2, 8);
+  el.innerHTML = `<div class="vhead"><b>Version <span class="n"></span></b><span><span class="count"></span> <button class="link rm" type="button">Remove</button></span></div>
+    <textarea aria-label="Post text" placeholder="Write or paste the post">${esc(text)}</textarea>
+    <div class="media"><span class="seg" role="radiogroup" aria-label="Media">
+      <label><input type="radio" name="m${id}" value="none" checked><span>No media</span></label>
+      <label><input type="radio" name="m${id}" value="image"><span>Image</span></label>
+      <label><input type="radio" name="m${id}" value="video"><span>Video</span></label></span>
+      <input type="file" class="mfile" accept="image/png,image/jpeg,image/webp,image/gif,video/mp4,video/quicktime,video/webm" hidden>
+      <button type="button" class="link attach">Attach the file</button><span class="small finfo"></span></div>`;
+  const ta = $("textarea", el), cnt = $(".count", el), f = $(".mfile", el);
+  const upd = () => { const n = [...ta.value].length; cnt.textContent = n + " / 280"; cnt.classList.toggle("over", n > 280); };
+  ta.addEventListener("input", upd); upd();
   $(".rm", el).onclick = () => { el.remove(); renumber(); };
-  $("#versions").appendChild(el);
-  renumber();
+  $(".attach", el).onclick = () => f.click();
+  f.onchange = () => {
+    const file = f.files[0], info = $(".finfo", el);
+    if (!file) { info.textContent = ""; return; }
+    const kind = file.type.startsWith("video") || file.type === "image/gif" ? "video" : "image";
+    $(`input[value=${kind}]`, el).checked = true;
+    info.innerHTML = `${esc(file.name)}, ${(file.size / 1e6).toFixed(1)} MB <button type="button" class="link clr">clear</button>`;
+    $(".clr", info).onclick = () => { f.value = ""; info.textContent = ""; };
+  };
+  $("#versions").appendChild(el); renumber(); return el;
 }
 function renumber() {
-  const all = document.querySelectorAll(".version");
+  const all = $$(".version");
   all.forEach((el, i) => { $(".n", el).textContent = i + 1; $(".rm", el).style.display = all.length > 1 ? "" : "none"; });
   $("#add").style.display = all.length >= 6 ? "none" : "";
+  $("#vcount").textContent = all.length > 1 ? `(${all.length})` : "";
 }
+$("#add").onclick = () => $("textarea", addVersion()).focus();
+
+// account lookup: tells the user what we hold, and warms the server's cache for the account
+let lastHandle = "";
+$("#handle").addEventListener("blur", async () => {
+  const h = $("#handle").value.trim().replace(/^@/, "");
+  if (!h || h === lastHandle) return; lastHandle = h;
+  const el = $("#acct"); el.textContent = "Looking up @" + h + "...";
+  try {
+    const r = await fetch("/api/account?handle=" + encodeURIComponent(h)), b = await r.json();
+    if (!r.ok) { el.textContent = typeof b.detail === "string" ? b.detail : ""; return; }
+    el.innerHTML = b.known ? `<span class="ok">We have ${b.history_posts} public posts for @${esc(b.handle)}</span>, the latest on ${esc(b.last_post_at.slice(0, 10))}${b.followers ? `, and ${num(b.followers)} followers` : ""}.`
+      : `We have no posts for @${esc(h)}. Add your follower count and import your analytics export.`;
+  } catch (e) { el.textContent = ""; }
+});
+
+// analytics import
+let imported = null;
+$("#csvbtn").onclick = () => $("#csv").click();
+$("#csv").onchange = async () => {
+  const f = $("#csv").files[0]; if (!f) return;
+  const info = $("#csvinfo"); info.textContent = "Reading " + f.name + "...";
+  const fd = new FormData(); fd.append("file", f); fd.append("handle", $("#handle").value);
+  try {
+    const r = await fetch("/api/import/analytics", { method: "POST", body: fd }), b = await r.json();
+    if (!r.ok) throw new Error(typeof b.detail === "string" ? b.detail : "The file could not be read.");
+    imported = b.past_posts; const s = b.summary;
+    info.innerHTML = `<span class="ok">${s.posts} posts imported</span> (${esc((s.from || "").slice(0, 10))} to ${esc((s.to || "").slice(0, 10))})` +
+      (s.skipped_replies ? `, ${s.skipped_replies} replies left out` : "") + `. <button type="button" class="link" id="csvclr">Remove</button>`;
+    if (s.handle && !$("#handle").value) $("#handle").value = "@" + s.handle;
+    $("#csvclr").onclick = () => { imported = null; $("#csv").value = ""; info.textContent = "Import removed."; };
+  } catch (e) { imported = null; info.innerHTML = `<span class="err">${esc(e.message)}</span>`; }
+  $("#csv").value = "";
+};
 function pastPosts() {
-  return $("#past").value.split("\n").map(l => l.trim()).filter(Boolean).map(l => {
-    const p = l.split(/\t|\s\|\s/);
-    if (p.length < 4) return null;
+  const typed = $("#past").value.split("\n").map(l => l.trim()).filter(Boolean).map(l => {
+    const p = l.split(/\t|\s\|\s/); if (p.length < 4) return null;
     const n = x => { const v = parseInt(String(x).replace(/[, ]/g, ""), 10); return Number.isFinite(v) ? v : null; };
     return { posted_at: p[0].trim(), likes: n(p[1]), views: n(p[2]), text: p.slice(3).join(" | ").trim() };
   }).filter(Boolean);
+  return (imported || []).concat(typed);
 }
-const statusTag = s => s === "recommended_likely" ? '<span class="tag good">likely better</span>' : s === "recommended" ? '<span class="tag good">probably better</span>'
-  : s === "predicted_worse" ? '<span class="tag bad">predicted worse</span>' : s === "untested" ? '<span class="tag warn">untested</span>' : '<span class="tag">too close to call</span>';
+
+// report
+const STATUS = { recommended_likely: ["good", "likely better"], recommended: ["good", "probably better"], predicted_worse: ["bad", "predicted worse"], untested: ["warn", "untested"], uncalibrated: ["", "not calibrated"] };
+const statusTag = s => { const [c, t] = STATUS[s] || ["", "too close to call"]; return `<span class="tag ${c}">${t}</span>`; };
+const mark = v => v === true ? '<span class="yes" aria-label="yes">✓</span>' : v === false ? '<span class="no" aria-label="no">✗</span>' : '<span class="na" aria-label="not checked">–</span>';
+
+function standing(r, v) {
+  const c = r.comparison; if (!c || c.status === "one_version") return "";
+  if (c.winner === v) return '<span class="tag good">predicted best</span>';
+  if (c.eliminated.includes(v)) return '<span class="tag bad">predicted worse</span>';
+  return '<span class="tag">too close to call</span>';
+}
+
+function chart(r) {
+  // Likes forecast per version (10th to 90th percentile, median dot) on a log scale, against the account's usual and
+  // what launch posts did for accounts of its size.
+  const vs = r.versions, usual = r.benchmarks.own_usual && r.benchmarks.own_usual.likes, size = r.benchmarks.launch_for_size;
+  const band = size && size.applied_to_your_usual;
+  const vals = vs.flatMap(v => [v.likes_range[0], v.likes_range[1], v.likes_median]).concat(usual ? [usual] : []).concat(band ? [band.lo, band.hi] : []).filter(v => v > 0);
+  let lo = Math.log10(Math.max(1, Math.min(...vals) * 0.8)), hi = Math.log10(Math.max(...vals) * 1.25);
+  lo = Math.floor(lo * 2) / 2; hi = Math.ceil(hi * 2) / 2; if (hi - lo < 1) hi = lo + 1;
+  const W = 640, L = 78, R = 16, top = band || usual ? 30 : 8, rowH = 30, H = top + vs.length * rowH + 26;
+  const X = v => L + (Math.log10(Math.max(v, 1)) - lo) / (hi - lo) * (W - L - R);
+  let g = `<g class="grid axis">`;
+  for (let e = Math.ceil(lo); e <= hi; e++) for (const m of [1, 3]) { const v = m * 10 ** e; if (Math.log10(v) < lo || Math.log10(v) > hi) continue;
+    g += `<line x1="${X(v)}" x2="${X(v)}" y1="${top - 4}" y2="${H - 22}"/><text x="${X(v)}" y="${H - 6}" text-anchor="middle">${num(v)}</text>`; }
+  g += `</g>`;
+  let refs = "";
+  if (band) refs += `<rect class="band" x="${X(band.lo)}" y="${top - 4}" width="${Math.max(2, X(band.hi) - X(band.lo))}" height="${H - 22 - top + 4}"/>
+    <text x="${X(band.likes)}" y="${top - 18}" text-anchor="middle">Launch posts, your size</text><line class="ref" style="stroke:var(--accent)" x1="${X(band.likes)}" x2="${X(band.likes)}" y1="${top - 12}" y2="${H - 22}"/>`;
+  if (usual) refs += `<line class="ref" x1="${X(usual)}" x2="${X(usual)}" y1="${top - 4}" y2="${H - 22}"/><text x="${X(usual)}" y="${top - 6}" text-anchor="middle">Your usual</text>`;
+  const rows = vs.map((v, i) => { const y = top + i * rowH + rowH / 2;
+    const tip = `Version ${v.version}: ${num(v.likes_median)} likes typical; 8 in 10 outcomes between ${num(v.likes_range[0])} and ${num(v.likes_range[1])}` + (usual ? `; ${x1(v.likes_median / usual)} your usual` : "");
+    return `<g class="r" data-tip="${esc(tip)}"><rect class="hit" x="0" y="${y - rowH / 2}" width="${W}" height="${rowH}"/>
+      <text x="0" y="${y + 4}">Version ${v.version}</text><line class="rng" x1="${X(v.likes_range[0])}" x2="${Math.max(X(v.likes_range[1]), X(v.likes_range[0]) + 1)}" y1="${y}" y2="${y}"/>
+      <circle class="med" cx="${X(v.likes_median)}" cy="${y}" r="5.5"/></g>`; }).join("");
+  return `<div class="chart"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Likes forecast for each version against benchmarks">${g}${refs}${rows}</svg></div>
+    <div class="legend"><span><i style="width:18px;height:6px;border-radius:3px;background:var(--range)"></i>80% range</span><span><i style="width:10px;height:10px;border-radius:50%;background:var(--accent)"></i>typical (median)</span>
+    ${usual ? '<span><i style="width:16px;border-top:1.5px dashed var(--ink2)"></i>your usual</span>' : ""}${band ? '<span><i style="width:14px;height:10px;background:var(--band);border-left:1.5px dashed var(--accent)"></i>launch posts by accounts your size, applied to your usual</span>' : ""}</div>`;
+}
+
 function render(r) {
-  const v1 = r.versions[0], o = r.odds;
+  const vs = r.versions, v1 = vs[0], o = r.odds, c = r.comparison, b = r.benchmarks, multi = vs.length > 1;
   let h = "";
-  if (r.pick) h += `<div class="card"><h2>Verdict</h2><p class="pick">${esc(r.pick.statement)}</p></div>`;
-  h += `<div class="card"><h2>Forecast for version 1 <span class="tag">${esc(r.post_type.label)}</span></h2><div class="stats">
-    <div class="stat"><b>${num(v1.likes_median)}</b><span>likes, typical (${num(v1.likes_range[0])} to ${num(v1.likes_range[1])})</span></div>
-    <div class="stat"><b>${num(v1.views_median)}</b><span>views in 24h (${num(v1.views_range[0])} to ${num(v1.views_range[1])})</span></div>
-    <div class="stat"><b>${pct(o.own_top_10pct)}</b><span>odds of your own top 10%</span></div>
-    <div class="stat"><b>${pct(o.reach_followers_10x, 1)}</b><span>odds of 10x your followers</span></div></div>
-    <p class="small" style="margin:12px 0 0">Based on ${r.account.history_posts} past posts (${esc(r.account.history_source)}) and ${num(r.account.followers)} followers.${r.account.new_account ? " With little history the ranges are wide; add past posts to narrow them." : ""}</p>${r.type_expectation ? `<p class="small" style="margin:8px 0 0">${esc(r.type_expectation.statement)}</p>` : ""}</div>`;
-  if (r.versions.length > 1) {
-    h += `<div class="card"><h2>Versions compared</h2><table><tr><th></th><th>Likes</th><th>Views</th><th>Against version 1</th></tr>` + r.versions.map(v =>
-      `<tr><td>Version ${v.version}</td><td>${num(v.likes_median)}</td><td>${num(v.views_median)}</td><td>${v.vs_version_1 ? statusTag(v.vs_version_1.status) + ` <span class="small">${pct(v.vs_version_1.p_better)} likely better</span>` : '<span class="small">baseline</span>'}</td></tr>`).join("") + `</table></div>`;
+  // 1. the verdict
+  h += `<div class="card verdict-card"><h2>${multi ? "Verdict" : "Forecast"}</h2>`;
+  if (multi) h += `<p class="verdict">${esc(c.statement)}</p>`;
+  else h += `<p class="verdict">Typically ${num(v1.likes_median)} likes and ${num(v1.views_median)} views in 24 hours (8 in 10 outcomes: ${num(v1.likes_range[0])} to ${num(v1.likes_range[1])} likes).</p>`;
+  h += `<p class="small muted" style="margin:8px 0 0">${r.account.handle ? "@" + esc(r.account.handle) + ", " : ""}${num(r.account.followers)} followers, ${r.account.history_posts} past posts (${esc(r.account.history_source)}).${r.account.new_account ? " With little history the ranges are wide." : ""}${r.when ? " Posting time " + esc(r.when.replace("T", " ").replace("Z", " UTC")) + "." : ""}</p></div>`;
+  // 2. versions and the chart
+  h += `<div class="card"><h2>${multi ? "Versions compared" : "Forecast against benchmarks"}</h2>`;
+  if (multi) {
+    const usual = b.own_usual && b.own_usual.likes;
+    h += `<div class="scroll"><table><thead><tr><th>Version</th><th class="num">Likes</th><th class="num">80% range</th><th class="num">Views 24h</th>${usual ? '<th class="num">vs usual</th>' : ""}${r.launch_plan ? `<th class="num">Launch checks</th>` : ""}</tr></thead><tbody>` +
+      vs.map(v => `<tr class="${c.winner === v.version ? "win" : ""}"><td><b>${v.version}</b>${v.media ? ` <span class="tag">${esc(v.media.kind)}${v.media.duration_s ? " " + Math.round(v.media.duration_s) + "s" : v.media.width ? " " + v.media.width + "×" + v.media.height : ""}</span>` : ""} ${standing(r, v.version)}<div class="vt">${esc(v.text)}</div></td>
+        <td class="num"><b>${num(v.likes_median)}</b></td><td class="num">${num(v.likes_range[0])} to ${num(v.likes_range[1])}</td><td class="num">${num(v.views_median)}</td>
+        ${usual ? `<td class="num">${x1(v.likes_median / usual)}</td>` : ""}${r.launch_plan ? `<td class="num">${v.plan_checks_met} of ${r.launch_plan.checks_on_the_text}</td>` : ""}</tr>`).join("") + `</tbody></table></div>`;
+    const pairs = c.pairs.filter(p => p.status !== "no_confident_difference");
+    h += `<details style="margin-top:10px"><summary>Every pair (${c.pairs.length})</summary><div class="scroll"><table><thead><tr><th>Pair</th><th class="num">Chance the second does better</th><th class="num">Predicted ratio</th><th>Models agree</th><th></th></tr></thead><tbody>` +
+      c.pairs.map(p => `<tr><td>${p.a} vs ${p.b}</td><td class="num">${pct(p.p_b_better)}</td><td class="num">${p.predicted_ratio_b_over_a.toFixed(2)}x</td><td>${p.members_agree === false ? "no" : "yes"}</td><td>${statusTag(p.status)}</td></tr>`).join("") +
+      `</tbody></table></div><p class="small muted">A version is named best only when it clears ${pct(r.method.thresholds.speak)} confidence against every other version and every model agrees.</p></details>`;
+    h += `<div style="margin-top:14px">${chart(r)}</div>`;
+  } else {
+    h += `<div class="stats"><div class="stat"><b>${num(v1.likes_median)}</b><span>likes, typical</span></div><div class="stat"><b>${num(v1.views_median)}</b><span>views in 24h, typical</span></div>
+      <div class="stat"><b>${pct(o.own_top_10pct)}</b><span>chance of your own top 10%</span></div><div class="stat"><b>${pct(o.reach_followers_10x, 1)}</b><span>chance of 10x your followers in views</span></div></div><div style="margin-top:14px">${chart(r)}</div>`;
   }
-  const rec = r.changes.filter(c => c.status.startsWith("recommended")), rest = r.changes.filter(c => !c.status.startsWith("recommended"));
-  h += `<div class="card"><h2>Changes to version 1</h2>` + (rec.length ? `<ul class="plain">` + rec.map(c =>
-    `<li>${statusTag(c.status)} <b>${esc(c.change)}</b><div class="small">${pct(c.p_better)} likely better, about ${c.predicted_ratio.toFixed(2)}x the likes.${c.evidence ? ` Measured on real posts: the version with this won ${pct(c.evidence.win_rate)} of ${c.evidence.pairs.toLocaleString()} pairs.` : ""}</div></li>`).join("") + `</ul>`
+  const bl = [b.own_usual && b.own_usual.statement, b.launch_for_size && b.launch_for_size.statement, b.launch_type && b.launch_type.statement].filter(Boolean);
+  if (!b.launch_type && r.type_expectation) bl.push(r.type_expectation.statement);
+  if (bl.length) h += `<ul class="plain small ink2" style="margin-top:10px">${bl.map(s => `<li>${esc(s)}</li>`).join("")}</ul>`;
+  h += `</div>`;
+  // 3. the launch-day plan
+  const p = r.launch_plan;
+  if (p) {
+    h += `<div class="card plan"><h2>Launch-day plan, measured on launch posts</h2><div class="scroll"><table><thead><tr><th>Check</th><th>Grade</th>${vs.map(v => `<th class="num" style="text-align:center">V${v.version}</th>`).join("")}</tr></thead><tbody>` +
+      p.items.map(i => `<tr><td><b>${esc(i.rule)}</b><div class="small muted">${esc(i.measured)}${i.notes.length ? " " + i.notes.map(esc).join(" ") : ""}</div></td><td><span class="tag grade" title="${esc(p.grades[i.grade] || "")}">${esc(i.grade)}</span></td>${i.met.map(m => `<td class="mark">${mark(m)}</td>`).join("")}</tr>`).join("") +
+      `</tbody></table></div><p class="small muted" style="margin:10px 0 0">${esc(p.basis)} Grades: ${Object.entries(p.grades).map(([g, d]) => `<b>${esc(g)}</b> ${esc(d)}`).join("; ")}.</p></div>`;
+  } else if ((v1.checklist || []).length) {
+    h += `<div class="card"><h2>Measured checklist for version 1</h2><ul class="plain">` + v1.checklist.map(i => `<li>${mark(i.ok)} ${esc(i.text)}<div class="small muted">${esc(i.measured)}</div></li>`).join("") + `</ul></div>`;
+  }
+  // 4. single changes to version 1
+  const rec = r.changes.filter(x => x.status.startsWith("recommended")), rest = r.changes.filter(x => !x.status.startsWith("recommended"));
+  h += `<div class="card"><h2>Single changes to version 1</h2>` + (rec.length ? `<ul class="plain">` + rec.map(x =>
+    `<li>${statusTag(x.status)} <b>${esc(x.change[0].toUpperCase() + x.change.slice(1))}</b><div class="small muted">${pct(x.p_better)} likely to do better, about ${x.predicted_ratio.toFixed(2)}x the ${esc(x.outcome)}.${x.evidence && x.evidence.win_rate != null ? ` Measured on real posts: the version with this won ${pct(x.evidence.win_rate)} of ${x.evidence.pairs.toLocaleString()} pairs.` : ""}${x.evidence && x.evidence.ratio_when_closer != null ? ` Posts closer than 2 hours to the previous one got ${x.evidence.ratio_when_closer.toFixed(2)}x the views across ${x.evidence.accounts} accounts.` : ""}</div></li>`).join("") + `</ul>`
     : `<p style="margin:0">No single change we can stand behind for this draft.</p>`) +
-    (rest.length ? `<details style="margin-top:10px"><summary>Also checked (${rest.length})</summary><ul class="plain">` + rest.map(c => `<li>${statusTag(c.status)} ${esc(c.change)} <span class="small">${pct(c.p_better)} likely better</span></li>`).join("") + `</ul></details>` : "") + `</div>`;
-  const cl = v1.checklist || [];
-  if (cl.length) h += `<div class="card"><h2>${r.post_type.type === "launch" ? "Launch checklist, measured on launch posts" : "Measured checklist"}</h2><ul class="plain">` + cl.map(i => `<li><span class="tag ${i.ok ? "good" : "warn"}">${i.ok ? "yes" : "no"}</span> ${esc(i.text)}${i.grade ? ` <span class="tag">evidence ${esc(i.grade)}</span>` : ""}<div class="small">${esc(i.measured)}</div></li>`).join("") + `</ul></div>`;
+    (rest.length ? `<details style="margin-top:10px"><summary>Also checked (${rest.length})</summary><ul class="plain">` + rest.map(x => `<li>${statusTag(x.status)} ${esc(x.change)} <span class="small muted">${pct(x.p_better)} likely to do better</span></li>`).join("") + `</ul></details>` : "") + `</div>`;
   if (r.rules.length) h += `<div class="card"><h2>Rules from X's ranking code</h2><ul class="plain">` + r.rules.map(g => `<li><span class="tag ${g.status === "fail" ? "bad" : "warn"}">${esc(g.status)}</span> ${esc(g.detail)}</li>`).join("") + `</ul></div>`;
   if (r.record.length) h += `<div class="card"><h2>From your own posts</h2><ul class="plain">` + r.record.map(f => `<li>With ${esc(f.attribute)}: median ${num(f.median_with)} ${esc(f.outcome)} over ${f.n_with} posts. Without: ${num(f.median_without)} over ${f.n_without}.</li>`).join("") + `</ul></div>`;
-  h += `<p class="small">${esc(r.method.validation)} Comparisons use predicted ${esc(r.method.outcome_compared)}. Took ${r.seconds}s.</p>`;
+  h += `<div class="card small muted"><h2>How far to trust this</h2><p style="margin:0 0 6px">${esc(r.method.validation)}${r.method.launch_validation ? " " + esc(r.method.launch_validation) : ""} Comparisons use predicted ${esc(r.method.outcome_compared)}.</p>
+    <p style="margin:0">Report generated ${esc(r.generated_at.replace("T", " ").replace("Z", " UTC"))} in ${r.seconds}s.</p></div>`;
+  h += `<div class="actions no-print" id="export"><button type="button" id="xjson">Download JSON</button><button type="button" id="xhtml">Download page</button><button type="button" id="xprint">Print or save as PDF</button></div>`;
   $("#out").innerHTML = h;
+  $("#xjson").onclick = () => download(JSON.stringify(r, null, 1), "application/json", "json");
+  $("#xhtml").onclick = () => download(shareable(r), "text/html", "html");
+  $("#xprint").onclick = () => window.print();
+  $$("#out g.r").forEach(gr => { gr.addEventListener("mousemove", e => { const t = $("#tip"); t.textContent = gr.dataset.tip; t.style.display = "block"; t.style.left = Math.min(e.clientX + 12, innerWidth - 290) + "px"; t.style.top = e.clientY + 14 + "px"; });
+    gr.addEventListener("mouseleave", () => { $("#tip").style.display = "none"; }); });
 }
-$("#add").onclick = () => addVersion();
+function shareable(r) {
+  // A static copy of the report: the same styles, no script, nothing loaded from anywhere.
+  const body = $("#out").cloneNode(true); $$(".no-print", body).forEach(e => e.remove()); $$("details", body).forEach(d => d.setAttribute("open", ""));
+  const title = "Launch advisor report" + (r.account.handle ? " for @" + r.account.handle : "");
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="color-scheme" content="light dark"><title>${esc(title)}</title>${$("#styles").outerHTML}</head>
+<body><div class="wrap" style="max-width:820px"><header class="top"><div><h1>${esc(title)}</h1><p class="sub">Generated ${esc(r.generated_at.replace("T", " ").replace("Z", " UTC"))}. Every line is a forecast, a validated verdict, a rule from X's code, or a measured effect with its numbers.</p></div></header>${body.innerHTML}</div></body></html>`;
+}
+function download(text, type, ext) {
+  const a = document.createElement("a"), url = URL.createObjectURL(new Blob([text], { type }));
+  a.href = url; a.download = `launch-advisor-${new Date().toISOString().slice(0, 16).replace(/[:T]/g, "")}.${ext}`; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
 $("#go").onclick = async () => {
-  const versions = [...document.querySelectorAll(".version")].map(el => ({ text: $("textarea", el).value, image: $(".img", el).checked, video: $(".vid", el).checked })).filter(v => v.text.trim());
-  const f = parseInt($("#followers").value, 10);
+  const els = $$(".version"), versions = [], files = [];
+  els.forEach(el => { const text = $("textarea", el).value; if (!text.trim()) return; const m = $("input[type=radio]:checked", el).value, f = $(".mfile", el).files[0];
+    versions.push({ text, image: m === "image" && !f, video: m === "video" && !f }); files.push(f || null); });
+  const f = parseInt($("#followers").value, 10), w = $("#when").value;
   $("#err").textContent = "";
-  if (!versions.length) { $("#err").textContent = "Write at least one version."; return; }
-  $("#go").disabled = true; $("#go").textContent = "Analyzing";
+  if (!versions.length) { $("#err").textContent = "Write at least one version of the post."; return; }
+  const req = { handle: $("#handle").value.trim() || null, followers: Number.isFinite(f) ? f : null, versions, past_posts: pastPosts(),
+                when: w ? new Date(w).toISOString() : null, launch: $("#launch").value === "" ? null : $("#launch").value === "1" };
+  $("#go").disabled = true; $("#go").textContent = "Analyzing...";
   try {
-    const res = await fetch("/api/analyze", { method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ handle: $("#handle").value || null, followers: Number.isFinite(f) ? f : null, versions, past_posts: pastPosts() }) });
-    const body = await res.json();
-    if (!res.ok) throw new Error(typeof body.detail === "string" ? body.detail : "The request could not be read. Check the fields and try again.");
+    let opts;
+    if (files.some(Boolean)) { const fd = new FormData(); fd.append("request", JSON.stringify(req)); files.forEach((x, i) => { if (x) fd.append("media_" + (i + 1), x); }); opts = { method: "POST", body: fd }; }
+    else opts = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(req) };
+    const res = await fetch("/api/analyze", opts);
+    let body; try { body = await res.json(); } catch (e) { throw new Error(`The server answered ${res.status}. Try again in a moment.`); }
+    if (!res.ok) throw new Error(typeof body.detail === "string" ? body.detail[0].toUpperCase() + body.detail.slice(1) + (/[.?]$/.test(body.detail) ? "" : ".") : "The request could not be read. Check the fields and try again.");
     render(body);
+    if (innerWidth < 900) $("#out").scrollIntoView({ behavior: "smooth" });
   } catch (e) { $("#err").textContent = e.message; }
   $("#go").disabled = false; $("#go").textContent = "Analyze";
 };

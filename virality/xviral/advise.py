@@ -170,6 +170,13 @@ class Advisor:
         agree = all(s == np.sign(diff) for s in signs) if signs else None
         return {"p_better": p, "predicted_ratio": float(10 ** diff), "members_agree": agree, "members": len(signs)}
 
+    def compare(self, base: dict, alt: dict) -> dict:
+        """One version against another on the validated outcome, both taken from the same scoring pass. The pair is
+        treated like any user's alternative: compared, never explained."""
+        cmp = self._compare(base, alt, self._target())
+        status, why = self._status(cmp, {"supported": True}, True)
+        return {**cmp, "status": status, "why": why}
+
     def _status(self, cmp: dict, ev: dict | None, meaning_ok: bool = True) -> tuple[str, str]:
         p = cmp["p_better"]
         if p is None:
@@ -187,9 +194,11 @@ class Advisor:
         return "no_confident_difference", "the two versions are too close to call"
 
     def advise(self, history: pl.DataFrame, draft: dict, account: dict, when_ms: int | None = None,
-               rewrite_fn: Callable[[str, str], str] | None = None, alternatives: list[dict] | None = None) -> dict:
+               rewrite_fn: Callable[[str, str], str] | None = None, alternatives: list[dict] | None = None,
+               record: list[dict] | None = None) -> dict:
         """alternatives: the user's own other versions ({"text": ..., "label": ...}); they are compared with the
-        draft like any change, with no reason attached, since more than one thing differs."""
+        draft like any change, with no reason attached, since more than one thing differs.
+        record: own_record(history) when the caller already holds it (the product caches it per account)."""
         ctx = {"rewrite_fn": rewrite_fn}
         variants: list[tuple[Operator | None, str, dict]] = []
         for op in OPERATORS:
@@ -218,7 +227,8 @@ class Advisor:
             changes.append({"change": label, "operator": op.name if op else None, "status": status, "why": why, **cmp, "outcome": target,
                             "text": new.get("text"), "adds_media": bool(new.get("media")) and not draft.get("media"),
                             "evidence": None if ev is None else {k: ev[k] for k in ("win_rate", "lo", "hi", "pairs", "design", "supported") if k in ev},
-                            "views_q50": rep["views_24h"]["q50"], "likes_q50": rep["likes"]["q50"]})
+                            "views_q50": rep["views_24h"]["q50"], "likes_q50": rep["likes"]["q50"],
+                            **({"report": {k: rep.get(k) for k in ("views_24h", "likes", "members")}} if op is None else {})})
 
         # Spacing: a post close behind the previous one competes with it; compared at a later time, same draft.
         gap = next((g for g in base["gates"] if g["gate"] == "author_diversity"), None)
@@ -236,9 +246,9 @@ class Advisor:
         changes.sort(key=lambda c: (order[c["status"]], -(c["p_better"] or 0)))
         return {
             "draft": {k: base[k] for k in ("text", "views_24h", "likes", "p_reach_1x", "p_reach_10x", "p_reach_100x", "p_own_top_10pct",
-                                           "lift_vs_own_median", "own_median", "history_posts_used")},
+                                           "lift_vs_own_median", "own_median", "history_posts_used")} | {"members": base.get("members")},
             "rules": [g for g in base["gates"] if g["status"] in ("warn", "fail")],
-            "record": own_record(history),
+            "record": own_record(history) if record is None else record,
             "changes": changes,
             "outcome_compared": target,
             "thresholds": {"speak": self.speak, "likely": self.strong},

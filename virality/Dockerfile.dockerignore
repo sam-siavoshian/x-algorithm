@@ -1,0 +1,10 @@
+# Build context is the repository root (xviral imports phoenix/reference/mm_encoder.py by path). Send only what the
+# service needs.
+*
+!virality/pyproject.toml
+!virality/xviral
+!virality/research/15_pair_confidence.json
+!phoenix/reference
+!home-mixer/params/param.rs
+!vm-ranker/params.rs
+**/__pycache__

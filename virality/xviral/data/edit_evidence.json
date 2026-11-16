@@ -1,0 +1,128 @@
+{
+ "media": {
+  "description": "an image or video is attached",
+  "win_rate": 0.6485,
+  "lo": 0.6149,
+  "hi": 0.6819,
+  "pairs": 2247,
+  "accounts": 622,
+  "supported": true,
+  "outcome": "likes",
+  "design": "same account, same topic, posting order balanced"
+ },
+ "lines": {
+  "description": "the text is laid out on three or more lines",
+  "win_rate": 0.6149,
+  "lo": 0.5818,
+  "hi": 0.6449,
+  "pairs": 1830,
+  "accounts": 672,
+  "supported": true,
+  "outcome": "likes",
+  "design": "same account, same topic, posting order balanced"
+ },
+ "longer": {
+  "description": "the text is at least 1.5 times longer",
+  "win_rate": 0.5868,
+  "lo": 0.5714,
+  "hi": 0.6012,
+  "pairs": 5424,
+  "accounts": 1289,
+  "supported": true,
+  "outcome": "likes",
+  "design": "same account, same topic, posting order balanced"
+ },
+ "link_not_first": {
+  "description": "the link is not in the first line",
+  "win_rate": 0.6135,
+  "lo": 0.5414,
+  "hi": 0.6802,
+  "pairs": 309,
+  "accounts": 173,
+  "supported": true,
+  "outcome": "likes",
+  "design": "same account, same topic, posting order balanced"
+ },
+ "link_at_end": {
+  "description": "the link is at the very end",
+  "win_rate": 0.4853,
+  "lo": 0.4008,
+  "hi": 0.5719,
+  "pairs": 175,
+  "accounts": 125,
+  "supported": false,
+  "outcome": "likes",
+  "design": "same account, same topic, posting order balanced"
+ },
+ "question_open": {
+  "description": "the post opens with a question",
+  "win_rate": 0.4885,
+  "lo": 0.4587,
+  "hi": 0.5203,
+  "pairs": 1261,
+  "accounts": 435,
+  "supported": false,
+  "outcome": "likes",
+  "design": "same account, same topic, posting order balanced"
+ },
+ "first_person_open": {
+  "description": "the post opens in the first person",
+  "win_rate": 0.5174,
+  "lo": 0.4932,
+  "hi": 0.5416,
+  "pairs": 1808,
+  "accounts": 642,
+  "supported": false,
+  "outcome": "likes",
+  "design": "same account, same topic, posting order balanced"
+ },
+ "hashtag": {
+  "description": "the post has a hashtag",
+  "win_rate": 0.5339,
+  "lo": 0.4533,
+  "hi": 0.6107,
+  "pairs": 202,
+  "accounts": 121,
+  "supported": false,
+  "outcome": "likes",
+  "design": "same account, same topic, posting order balanced"
+ },
+ "no_hashtag": {
+  "description": "the post has no hashtag",
+  "win_rate": 0.4661,
+  "lo": 0.3895,
+  "hi": 0.5437,
+  "pairs": 202,
+  "accounts": 121,
+  "supported": false,
+  "outcome": "likes",
+  "design": "same account, same topic, posting order balanced"
+ },
+ "mention": {
+  "description": "the post mentions another account",
+  "win_rate": 0.509,
+  "lo": 0.4678,
+  "hi": 0.5489,
+  "pairs": 1062,
+  "accounts": 453,
+  "supported": false,
+  "outcome": "likes",
+  "design": "same account, same topic, posting order balanced"
+ },
+ "_meta": {
+  "built": "2026-11-11",
+  "corpus": "4.48M filtered posts (Community Archive + 2026 view corpus)",
+  "min_like_ratio": 1.25,
+  "max_gap_days": 30
+ },
+ "spacing": {
+  "description": "the post goes out at least 2 hours after the account's previous post",
+  "ratio_when_closer": 0.723,
+  "lo": 0.679,
+  "hi": 0.764,
+  "accounts": 465,
+  "supported": true,
+  "outcome": "views",
+  "design": "within account; mechanism in X's code (home-mixer AuthorDiversityDecay)"
+ }
+}

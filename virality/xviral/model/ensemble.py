@@ -38,7 +38,10 @@ class Ensemble(torch.nn.Module):
             assert all(m.cfg.hist_heads[k] == self.cfg.hist_heads[k] for k in self.cfg.hist_heads), "members disagree on head bins"
 
     def forward(self, table, ep) -> dict:
-        outs = [m(table, ep) for m in self.models]
+        return self.combine([m(table, ep) for m in self.models])
+
+    def combine(self, outs: list[dict]) -> dict:
+        """The mixture from the members' outputs, in member order."""
         hist = {}
         for name in self.cfg.hist_heads:
             p = torch.stack([torch.softmax(o["hist"][name].float() / T.get(name, 1.0), -1) for o, T in zip(outs, self.temperatures)]).mean(0)

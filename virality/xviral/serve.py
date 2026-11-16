@@ -107,6 +107,16 @@ class DraftScorer:
         self._emb_cache: dict[str, np.ndarray] = {}
         self.emb_cache_limit = 200_000
         self.feature_cache: dict | None = None
+        # fast=True is the product's request path (research/tracks/product/REPORT.md). Same numbers up to floating-point
+        # noise, less work: only the history rows the model can read are embedded, all drafts are featurised in one pass,
+        # and each ensemble member runs once. False keeps the original path, which the equality test compares against.
+        self.fast = False
+        self.timings: dict[str, float] = {}
+
+    def _tick(self, name: str, t0: float) -> float:
+        now = time.perf_counter()
+        self.timings[name] = self.timings.get(name, 0.0) + now - t0
+        return now
 
     def embed_fn(self, texts: list[str]) -> np.ndarray:
         """The encoder with a cache by rendered text: an account's history is embedded once across calls."""
@@ -155,6 +165,48 @@ class DraftScorer:
         }
         return conform(pl.DataFrame([row], schema_overrides={"media": pl.List(MEDIA_STRUCT), "urls": pl.List(URL_STRUCT)}, infer_schema_length=None))
 
+    def _feature_rows(self, hist: pl.DataFrame, drafts: list[dict], account: dict, when_ms: int, now: pl.DataFrame) -> pl.DataFrame:
+        """History rows, then one row per draft. Each draft is featurised alone against the history."""
+        parts: list[pl.DataFrame] = []
+        for i, d in enumerate(drafts):
+            f = feature_frame(pl.concat([hist, self._draft_row(d, i, account, when_ms)], how="vertical_relaxed"), now, account)
+            if not parts:
+                parts.append(f.filter(pl.col("source") != "draft"))
+            parts.append(f.filter(pl.col("source") == "draft"))
+        return pl.concat(parts, how="vertical_relaxed")
+
+    def _feature_rows_batched(self, hist: pl.DataFrame, drafts: list[dict], account: dict, when_ms: int, now: pl.DataFrame) -> pl.DataFrame:
+        """The same rows from one pass over the feature functions. Every feature is computed per author, so each
+        draft after the first gets a copy of the history under an author ID of its own: no draft sees another, and
+        the history is not recomputed once per draft through the whole chain of feature functions."""
+        aid, base = account["author_id"], -(1 << 61)
+        frames, snaps, clones = [hist, self._draft_row(drafts[0], 0, account, when_ms)], [now], []
+        for i, d in enumerate(drafts[1:], start=1):
+            clone = base - i
+            clones.append(clone)
+            frames.append(hist.with_columns(pl.lit(clone, dtype=pl.Int64).alias("author_id"),
+                                            (pl.lit(base - i * (1 << 32), dtype=pl.Int64) - pl.int_range(pl.len(), dtype=pl.Int64)).alias("post_id")))
+            frames.append(self._draft_row(d, i, account, when_ms).with_columns(pl.lit(clone, dtype=pl.Int64).alias("author_id")))
+            snaps.append(now.with_columns(pl.lit(clone, dtype=pl.Int64).alias("author_id")))
+        allp = pl.concat(frames, how="vertical_relaxed")
+        if aid in clones or allp["post_id"].n_unique() != allp.height:      # an ID collision: not worth reasoning about, take the plain path
+            return self._feature_rows(hist, drafts, account, when_ms, now)
+        f = feature_frame(allp, pl.concat(snaps), account)
+        own = f.filter((pl.col("author_id") == aid) & (pl.col("source") != "draft"))
+        dr = f.filter(pl.col("source") == "draft").with_columns(pl.lit(aid, dtype=pl.Int64).alias("author_id"))
+        ids = [int(self._draft_row(d, i, account, when_ms)["post_id"][0]) for i, d in enumerate(drafts)]
+        dr = dr.join(pl.DataFrame({"post_id": ids, "_o": list(range(len(ids)))}, schema={"post_id": pl.Int64, "_o": pl.Int64}), on="post_id", how="left").sort("_o").drop("_o")
+        return pl.concat([own, dr], how="vertical_relaxed")
+
+    def _rows_the_model_reads(self, posts: pl.DataFrame, n_drafts: int) -> np.ndarray:
+        """Indices of the rows whose embedding and semantic ID can reach the model: the drafts and the history rows an
+        episode can hold (the newest `max_history`; ties on the timestamp are all kept). Older history enters only
+        through the trailing features, which do not use embeddings."""
+        n_hist, H = posts.height - n_drafts, self.model.cfg.max_history
+        t = posts["created_at_ms"].to_numpy()[:n_hist]
+        keep = np.arange(n_hist) if n_hist <= H else np.nonzero(t >= np.sort(t)[-H])[0]
+        return np.concatenate([keep, np.arange(n_hist, posts.height)]).astype(np.int64)
+
     def featurize(self, history: pl.DataFrame, drafts: list[dict], account: dict, when_ms: int | None = None) -> tuple[features.FeatureTable, pl.DataFrame]:
         """The table holds the history followed by the drafts. Each draft is featurised alone against the
         history, as the account's next post, so no draft's features see another draft."""
@@ -175,19 +227,26 @@ class DraftScorer:
             if post_type.COLUMNS[0] in self.meta["num_base"] or self.type_correction:
                 posts = with_post_type(posts)     # kept out of the cache (see below): 0.1 s, and never stale
         else:
-            parts: list[pl.DataFrame] = []
-            for i, d in enumerate(drafts):
-                f = feature_frame(pl.concat([hist, self._draft_row(d, i, account, when_ms)], how="vertical_relaxed"), now, account)
-                if not parts:
-                    parts.append(f.filter(pl.col("source") != "draft"))
-                parts.append(f.filter(pl.col("source") == "draft"))
-            posts = pl.concat(parts, how="vertical_relaxed")
-            emb = np.asarray(self.embed_fn(features.render_texts(posts))) if self.meta["emb_dim"] else None
-            sid = None
-            if self.sid_codebook and emb is not None and self.meta["sid_levels"]:
-                from xviral.embed import sid as sidmod
+            t0 = time.perf_counter()
+            posts = self._feature_rows_batched(hist, drafts, account, when_ms, now) if self.fast and len(drafts) > 1 else self._feature_rows(hist, drafts, account, when_ms, now)
+            t0 = self._tick("features", t0)
+            emb = sid = None
+            if self.meta["emb_dim"]:
+                texts = features.render_texts(posts)
+                use = self._rows_the_model_reads(posts, len(drafts)) if self.fast else np.arange(posts.height)
+                vec = np.asarray(self.embed_fn([texts[i] for i in use]))
+                emb = vec if len(use) == posts.height else np.zeros((posts.height, vec.shape[1]), vec.dtype)
+                if emb is not vec:
+                    emb[use] = vec               # rows the model never reads stay zero
+                t0 = self._tick("embedding", t0)
+                if self.sid_codebook and self.meta["sid_levels"]:
+                    from xviral.embed import sid as sidmod
 
-                sid = sidmod.phoenix_codes(sidmod.assign(emb, self.sid_codebook))
+                    codes = sidmod.phoenix_codes(sidmod.assign(vec, self.sid_codebook))
+                    sid = codes if emb is vec else np.zeros((posts.height, codes.shape[1]), codes.dtype)
+                    if emb is not vec:
+                        sid[use] = codes
+                    self._tick("semantic_ids", t0)
             if key is not None:
                 # The post-type columns are cheap and are recomputed from the cached frame on every read, so a cache
                 # written before they existed, or before their definition changed, still serves any model.
@@ -200,13 +259,23 @@ class DraftScorer:
         """One report per draft, in the order given. account: handle, followers, following, created_at_ms, verified."""
         when_ms = when_ms or int(time.time() * 1000)
         table, rows = self.featurize(history, drafts, account, when_ms)
+        t0 = time.perf_counter()
         n = len(drafts)
         first = table.n - n                        # drafts are the newest rows of the single author
-        by_id = {r["post_id"]: r for r in Predictor(self.model, table, self.tcfg, self.temperature).report_joint(first, n, mutual_share=mutual_share)}
-        if hasattr(self.model, "models") and len(self.model.models) > 1:      # ensemble: each member's medians, for agreement checks
-            for m, T in zip(self.model.models, self.model.temperatures):
+        members = self.model.models if hasattr(self.model, "models") and len(self.model.models) > 1 else []
+        if self.fast and members:                  # one episode, each member run once; the mixture is built from the same outputs
+            ep = episodes.build(table, torch.tensor([first], device=table.device), self.model.cfg, self.tcfg, train=False, n_candidates=n)
+            outs = [m(table, ep) for m in members]
+            by_id = {r["post_id"]: r for r in Predictor(self.model, table, self.tcfg, self.temperature).reports_from(ep, self.model.combine(outs), first, n, mutual_share)}
+            for m, T, o in zip(members, self.model.temperatures, outs):
+                for r in Predictor(m, table, self.tcfg, T).reports_from(ep, o, first, n, mutual_share):
+                    by_id[r["post_id"]].setdefault("members", []).append({"views_q50": r["views_24h"]["q50"], "likes_q50": r["likes"]["q50"]})
+        else:
+            by_id = {r["post_id"]: r for r in Predictor(self.model, table, self.tcfg, self.temperature).report_joint(first, n, mutual_share=mutual_share)}
+            for m, T in zip(members, self.model.temperatures if members else []):      # ensemble: each member's medians, for agreement checks
                 for r in Predictor(m, table, self.tcfg, T).report_joint(first, n, mutual_share=mutual_share):
                     by_id[r["post_id"]].setdefault("members", []).append({"views_q50": r["views_24h"]["q50"], "likes_q50": r["likes"]["q50"]})
+        self._tick("model", t0)
         acct = {"author_id": int(rows["author_id"][0]), **account}
         feat = {r["post_id"]: r for r in rows.tail(n).iter_rows(named=True)}
         recent = int((rows.head(first)["created_at_ms"] >= when_ms - 48 * 3_600_000).sum())

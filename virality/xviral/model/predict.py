@@ -47,12 +47,18 @@ class Predictor:
         before `first_row`), candidates isolated from each other."""
         anchor = torch.tensor([first_row], device=self.table.device)
         ep = episodes.build(self.table, anchor, self.model.cfg, self.tcfg, train=False, n_candidates=n)
-        out = self.model(self.table, ep)
-        return [r for c in range(n) for r in self._reports(ep, out, anchor + c, c, mutual_share)]
+        return self.reports_from(ep, self.model(self.table, ep), first_row, n, mutual_share)
 
-    def _reports(self, ep, out, rows: torch.Tensor, cand: int, mutual_share: float) -> list[dict]:
+    def reports_from(self, ep, out, first_row: int, n: int, mutual_share: float = 0.0) -> list[dict]:
+        """Reports for the `n` candidates of an episode already built and scored. The serving path uses this to
+        run each ensemble member once: the member's output gives its own report and feeds the mixture."""
+        anchor = torch.tensor([first_row], device=self.table.device)
+        summary = self.model.summarize(ep, out, self.temperature)        # once for all candidates
+        return [r for c in range(n) for r in self._reports(ep, out, anchor + c, c, mutual_share, summary)]
+
+    def _reports(self, ep, out, rows: torch.Tensor, cand: int, mutual_share: float, summary: dict | None = None) -> list[dict]:
         t = self.table.t
-        s = {k: v[:, cand].float().cpu().numpy() for k, v in self.model.summarize(ep, out, self.temperature).items()}
+        s = {k: v[:, cand].float().cpu().numpy() for k, v in (summary or self.model.summarize(ep, out, self.temperature)).items()}
         followers = t["followers"][rows].cpu().numpy()
         med_like, med_view = ep.ctx[:, 3].cpu().numpy(), ep.ctx[:, 5].cpu().numpy()
         has_like, has_view = ep.ctx[:, 7].cpu().numpy() > 0, ep.ctx[:, 8].cpu().numpy() > 0

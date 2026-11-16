@@ -144,13 +144,28 @@ formats.
 
 ## The product: launch advisor
 
-`xviral/app/` is the service and web page for startup accounts. Give it a handle (or a follower count and past posts for an account we do not know) and one to six versions of a post. It returns a forecast for the account, which version is likely to do better with a probability validated on real pairs of posts, the changes that clear every gate of `xviral/advise.py`, a checklist where each line carries its measured effect, and the rules from X's code that apply. No sentence comes from a language model.
+`xviral/app/` is the service and web page for startup accounts. Give it a handle (or a follower count and past posts,
+for example an X analytics CSV export, for an account we do not know) and one to six versions of a post, each with an
+image or video file if you have one. It returns:
+
+- a forecast for each version, shown against the account's own usual and against what launch posts did for accounts of
+  the same size;
+- which version is likely to do better, named only when it clears the gates against every other version with a
+  probability validated on real pairs of posts, otherwise "too close to call";
+- for a launch, a launch-day plan: the seven traits measured on launch posts (`xviral/data/launch_evidence.json`),
+  graded A to C, checked against every version, each with its numbers;
+- the single changes that clear every gate of `xviral/advise.py`, and the rules from X's code that apply.
+
+No sentence comes from a language model. The report exports as JSON and as a static page.
 
 ```bash
-pip install -e ".[app,encoders]"
-XVIRAL_CHECKPOINTS=a/best.pt,b/best.pt,c/best.pt XVIRAL_SCALES=pair_confidence.json \
+pip install -e ".[app]" sentence-transformers
+XVIRAL_CHECKPOINTS=a/best.pt,b/best.pt,c/best.pt XVIRAL_SCALES=research/15_pair_confidence.json \
 XVIRAL_POSTS=work/hygiene/posts.parquet XVIRAL_SID=work/emb/sid_codebook.npz \
 uvicorn xviral.app.server:app --port 8000
 ```
 
-`POST /api/analyze` takes `{handle, followers, versions: [{text, image, video}], past_posts: [{text, posted_at, likes, views}], when}`; the page at `/` is a front for it. Screenshot: `docs/launch_advisor.png`. Accuracy goal and the research tracks working toward it: `research/tracks/README.md`.
+API, configuration, errors, privacy, the media-understanding interface and the seam for accounts and billing:
+[docs/launch_advisor_api.md](docs/launch_advisor_api.md). A `Dockerfile` is in this folder. Tests:
+`tests/test_app.py`. Screenshot: `docs/launch_advisor.png`. Accuracy goal and the research tracks working toward it:
+`research/tracks/README.md`.
