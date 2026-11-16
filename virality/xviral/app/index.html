@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Launch advisor</title>
+<style>
+  :root { --bg:#f6f5f1; --card:#fff; --ink:#16181d; --mute:#667085; --line:#e4e2da; --accent:#1f5eff; --good:#0a7d4f; --warn:#b25e09; --bad:#b42318; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#101216; --card:#191c22; --ink:#eceef2; --mute:#98a2b3; --line:#2a2e37; --accent:#7aa2ff; --good:#3ecf8e; --warn:#f0a94a; --bad:#f97066; } }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width:1080px; margin:0 auto; padding:28px 16px 80px; }
+  h1 { font-size:28px; margin:0 0 4px; letter-spacing:-0.02em; }
+  h2 { font-size:13px; text-transform:uppercase; letter-spacing:.08em; color:var(--mute); margin:0 0 10px; font-weight:600; }
+  p.lead { color:var(--mute); margin:0 0 24px; max-width:62ch; }
+  .grid { display:grid; grid-template-columns:minmax(0,5fr) minmax(0,6fr); gap:20px; align-items:start; }
+  @media (max-width:860px) { .grid { grid-template-columns:1fr; } }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:18px; margin-bottom:16px; }
+  label { display:block; font-size:13px; color:var(--mute); margin:0 0 4px; }
+  input[type=text], input[type=number], textarea { width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:8px; background:transparent; color:inherit; font:inherit; }
+  textarea { min-height:120px; resize:vertical; }
+  .row { display:flex; gap:12px; } .row > div { flex:1; min-width:0; }
+  .version { border-top:1px solid var(--line); padding-top:14px; margin-top:14px; }
+  .version:first-of-type { border-top:0; padding-top:0; margin-top:0; }
+  .vhead { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; font-weight:600; }
+  .checks { display:flex; gap:16px; margin-top:6px; font-size:14px; } .checks label { display:flex; gap:6px; align-items:center; color:inherit; margin:0; }
+  button { font:inherit; border-radius:8px; padding:10px 16px; border:1px solid var(--line); background:transparent; color:inherit; cursor:pointer; }
+  button.primary { background:var(--accent); border-color:var(--accent); color:#fff; font-weight:600; width:100%; padding:12px; }
+  button.link { border:0; padding:0; color:var(--accent); font-size:14px; }
+  button:disabled { opacity:.6; cursor:wait; }
+  .pick { font-size:19px; font-weight:600; letter-spacing:-0.01em; margin:0; }
+  .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:12px; }
+  .stat b { display:block; font-size:22px; font-variant-numeric:tabular-nums; letter-spacing:-0.01em; } .stat span { font-size:13px; color:var(--mute); }
+  table { width:100%; border-collapse:collapse; font-size:14px; font-variant-numeric:tabular-nums; }
+  th, td { text-align:left; padding:8px 6px; border-bottom:1px solid var(--line); vertical-align:top; } th { color:var(--mute); font-weight:500; font-size:12px; }
+  tr:last-child td { border-bottom:0; }
+  .tag { display:inline-block; font-size:12px; padding:2px 8px; border-radius:99px; border:1px solid var(--line); color:var(--mute); }
+  .tag.good { color:var(--good); border-color:var(--good); } .tag.warn { color:var(--warn); border-color:var(--warn); } .tag.bad { color:var(--bad); border-color:var(--bad); }
+  ul.plain { list-style:none; margin:0; padding:0; } ul.plain li { padding:10px 0; border-bottom:1px solid var(--line); } ul.plain li:last-child { border-bottom:0; }
+  .small { font-size:13px; color:var(--mute); } .err { color:var(--bad); }
+  details summary { cursor:pointer; color:var(--accent); font-size:14px; }
+  .empty { color:var(--mute); text-align:center; padding:48px 16px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Launch advisor</h1>
+  <p class="lead">Paste the versions of a post you are considering. You get a forecast for your account, which version is likely to do better, and only the changes that have a measured effect on real posts.</p>
+  <div class="grid">
+    <section>
+      <div class="card">
+        <h2>Account</h2>
+        <div class="row">
+          <div><label for="handle">X handle</label><input id="handle" type="text" placeholder="@yourstartup" autocomplete="off"></div>
+          <div><label for="followers">Followers</label><input id="followers" type="number" min="0" placeholder="12000"></div>
+        </div>
+        <details style="margin-top:12px">
+          <summary>Add your past posts (recommended for accounts we do not know)</summary>
+          <p class="small">One post per line: date, likes, views, then the text, separated by tabs or " | ". Example: 2026-10-02 | 240 | 31000 | We just shipped offline mode.</p>
+          <textarea id="past" placeholder="2026-10-02 | 240 | 31000 | We just shipped offline mode."></textarea>
+        </details>
+      </div>
+      <div class="card">
+        <h2>Draft versions</h2>
+        <div id="versions"></div>
+        <p style="margin:12px 0 0"><button class="link" id="add" type="button">Add another version</button></p>
+      </div>
+      <button class="primary" id="go" type="button">Analyze</button>
+      <p class="err small" id="err"></p>
+    </section>
+    <section id="out"><div class="card empty">Your report appears here.</div></section>
+  </div>
+</main>
+<script>
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const num = v => v == null ? "n/a" : v >= 1e6 ? (v / 1e6).toFixed(1) + "M" : v >= 1e4 ? Math.round(v / 1e3) + "k" : v >= 1e3 ? (v / 1e3).toFixed(1) + "k" : Math.round(v).toString();
+const pct = (v, d = 0) => v == null ? "n/a" : (100 * v < 1 && v > 0 ? "<1" : (100 * v).toFixed(d)) + "%";
+let count = 0;
+function addVersion(text = "") {
+  count += 1;
+  const el = document.createElement("div");
+  el.className = "version";
+  el.innerHTML = `<div class="vhead"><span>Version <span class="n"></span></span><button class="link rm" type="button">Remove</button></div>
+    <textarea placeholder="Write or paste the post">${esc(text)}</textarea>
+    <div class="checks"><label><input type="checkbox" class="img"> Image attached</label><label><input type="checkbox" class="vid"> Video attached</label></div>`;
+  $(".rm", el).onclick = () => { el.remove(); renumber(); };
+  $("#versions").appendChild(el);
+  renumber();
+}
+function renumber() {
+  const all = document.querySelectorAll(".version");
+  all.forEach((el, i) => { $(".n", el).textContent = i + 1; $(".rm", el).style.display = all.length > 1 ? "" : "none"; });
+  $("#add").style.display = all.length >= 6 ? "none" : "";
+}
+function pastPosts() {
+  return $("#past").value.split("\n").map(l => l.trim()).filter(Boolean).map(l => {
+    const p = l.split(/\t|\s\|\s/);
+    if (p.length < 4) return null;
+    const n = x => { const v = parseInt(String(x).replace(/[, ]/g, ""), 10); return Number.isFinite(v) ? v : null; };
+    return { posted_at: p[0].trim(), likes: n(p[1]), views: n(p[2]), text: p.slice(3).join(" | ").trim() };
+  }).filter(Boolean);
+}
+const statusTag = s => s === "recommended_likely" ? '<span class="tag good">likely better</span>' : s === "recommended" ? '<span class="tag good">probably better</span>'
+  : s === "predicted_worse" ? '<span class="tag bad">predicted worse</span>' : s === "untested" ? '<span class="tag warn">untested</span>' : '<span class="tag">too close to call</span>';
+function render(r) {
+  const v1 = r.versions[0], o = r.odds;
+  let h = "";
+  if (r.pick) h += `<div class="card"><h2>Verdict</h2><p class="pick">${esc(r.pick.statement)}</p></div>`;
+  h += `<div class="card"><h2>Forecast for version 1 <span class="tag">${esc(r.post_type.label)}</span></h2><div class="stats">
+    <div class="stat"><b>${num(v1.likes_median)}</b><span>likes, typical (${num(v1.likes_range[0])} to ${num(v1.likes_range[1])})</span></div>
+    <div class="stat"><b>${num(v1.views_median)}</b><span>views in 24h (${num(v1.views_range[0])} to ${num(v1.views_range[1])})</span></div>
+    <div class="stat"><b>${pct(o.own_top_10pct)}</b><span>odds of your own top 10%</span></div>
+    <div class="stat"><b>${pct(o.reach_followers_10x, 1)}</b><span>odds of 10x your followers</span></div></div>
+    <p class="small" style="margin:12px 0 0">Based on ${r.account.history_posts} past posts (${esc(r.account.history_source)}) and ${num(r.account.followers)} followers.${r.account.new_account ? " With little history the ranges are wide; add past posts to narrow them." : ""}</p></div>`;
+  if (r.versions.length > 1) {
+    h += `<div class="card"><h2>Versions compared</h2><table><tr><th></th><th>Likes</th><th>Views</th><th>Against version 1</th></tr>` + r.versions.map(v =>
+      `<tr><td>Version ${v.version}</td><td>${num(v.likes_median)}</td><td>${num(v.views_median)}</td><td>${v.vs_version_1 ? statusTag(v.vs_version_1.status) + ` <span class="small">${pct(v.vs_version_1.p_better)} likely better</span>` : '<span class="small">baseline</span>'}</td></tr>`).join("") + `</table></div>`;
+  }
+  const rec = r.changes.filter(c => c.status.startsWith("recommended")), rest = r.changes.filter(c => !c.status.startsWith("recommended"));
+  h += `<div class="card"><h2>Changes to version 1</h2>` + (rec.length ? `<ul class="plain">` + rec.map(c =>
+    `<li>${statusTag(c.status)} <b>${esc(c.change)}</b><div class="small">${pct(c.p_better)} likely better, about ${c.predicted_ratio.toFixed(2)}x the likes.${c.evidence ? ` Measured on real posts: the version with this won ${pct(c.evidence.win_rate)} of ${c.evidence.pairs.toLocaleString()} pairs.` : ""}</div></li>`).join("") + `</ul>`
+    : `<p style="margin:0">No single change we can stand behind for this draft.</p>`) +
+    (rest.length ? `<details style="margin-top:10px"><summary>Also checked (${rest.length})</summary><ul class="plain">` + rest.map(c => `<li>${statusTag(c.status)} ${esc(c.change)} <span class="small">${pct(c.p_better)} likely better</span></li>`).join("") + `</ul></details>` : "") + `</div>`;
+  const cl = v1.checklist || [];
+  if (cl.length) h += `<div class="card"><h2>Measured checklist</h2><ul class="plain">` + cl.map(i => `<li><span class="tag ${i.ok ? "good" : "warn"}">${i.ok ? "yes" : "no"}</span> ${esc(i.text)}<div class="small">${esc(i.measured)}</div></li>`).join("") + `</ul></div>`;
+  if (r.rules.length) h += `<div class="card"><h2>Rules from X's ranking code</h2><ul class="plain">` + r.rules.map(g => `<li><span class="tag ${g.status === "fail" ? "bad" : "warn"}">${esc(g.status)}</span> ${esc(g.detail)}</li>`).join("") + `</ul></div>`;
+  if (r.record.length) h += `<div class="card"><h2>From your own posts</h2><ul class="plain">` + r.record.map(f => `<li>With ${esc(f.attribute)}: median ${num(f.median_with)} ${esc(f.outcome)} over ${f.n_with} posts. Without: ${num(f.median_without)} over ${f.n_without}.</li>`).join("") + `</ul></div>`;
+  h += `<p class="small">${esc(r.method.validation)} Comparisons use predicted ${esc(r.method.outcome_compared)}. Took ${r.seconds}s.</p>`;
+  $("#out").innerHTML = h;
+}
+$("#add").onclick = () => addVersion();
+$("#go").onclick = async () => {
+  const versions = [...document.querySelectorAll(".version")].map(el => ({ text: $("textarea", el).value, image: $(".img", el).checked, video: $(".vid", el).checked })).filter(v => v.text.trim());
+  const f = parseInt($("#followers").value, 10);
+  $("#err").textContent = "";
+  if (!versions.length) { $("#err").textContent = "Write at least one version."; return; }
+  $("#go").disabled = true; $("#go").textContent = "Analyzing";
+  try {
+    const res = await fetch("/api/analyze", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ handle: $("#handle").value || null, followers: Number.isFinite(f) ? f : null, versions, past_posts: pastPosts() }) });
+    const body = await res.json();
+    if (!res.ok) throw new Error(typeof body.detail === "string" ? body.detail : "The request could not be read. Check the fields and try again.");
+    render(body);
+  } catch (e) { $("#err").textContent = e.message; }
+  $("#go").disabled = false; $("#go").textContent = "Analyze";
+};
+addVersion();
+</script>
+</body>
+</html>

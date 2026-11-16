@@ -189,3 +189,52 @@ def test_operators_change_one_thing():
     ev = advise.load_evidence()
     assert ev["media"]["supported"] and ev["lines"]["supported"] and ev["longer"]["supported"] and ev["link_not_first"]["supported"]
     assert not ev["question_open"]["supported"] and not ev["no_hashtag"]["supported"]
+
+
+def test_product_service_and_http(trained):
+    """The launch advisor: versions compared for a known account, a pasted history, and a new account; then over HTTP."""
+    from fastapi.testclient import TestClient
+
+    from xviral.app import server, service
+    from xviral.text import post_type
+
+    tmp_path, posts, table, mcfg = trained
+    scorer = serve.DraftScorer(tmp_path / "run" / "best.pt", embed)
+    posts.write_parquet(tmp_path / "posts.parquet")
+    svc = service.Service(scorer, {"likes": 6.0, "views": 6.0}, posts=tmp_path / "posts.parquet")
+    plain, launch = {"text": "some thoughts on the week ahead"}, {"text": "launch day: we shipped the new agent today", "image": True}
+
+    r = svc.analyze({"handle": "@User23", "versions": [plain, launch]})          # found in the corpus, followers taken from it
+    assert r["account"]["history_posts"] == 40 and r["account"]["history_source"] == "our corpus of public posts" and r["account"]["followers"] == 46_000
+    assert r["pick"]["version"] == 2 and r["versions"][1]["vs_version_1"]["status"].startswith("recommended")
+    assert r["versions"][1]["likes_median"] > r["versions"][0]["likes_median"]
+    media = {i["key"]: i for i in r["versions"][0]["checklist"]}["media"]
+    assert media["ok"] is False and "2,247 pairs" in media["measured"]
+    assert {i["key"]: i for i in r["versions"][1]["checklist"]}["media"]["ok"] is True
+
+    r = svc.analyze({"handle": "user23", "versions": [launch, plain]})           # the better one first: the pick stays on it
+    assert r["pick"]["version"] == 1
+
+    past = [{"text": f"launch day: we shipped the new agent {i}" if i % 3 == 0 else f"some thoughts on the week {i}", "posted_at": f"2026-09-{1 + i:02d}T15:00:00Z",
+             "likes": 400 if i % 3 == 0 else 60, "views": 16_000 if i % 3 == 0 else 2_400} for i in range(24)]
+    r = svc.analyze({"handle": "newco", "followers": 9_000, "versions": [plain], "past_posts": past, "when": "2026-10-05T15:00:00Z"})
+    assert r["account"]["history_posts"] == 24 and r["account"]["history_source"] == "posts you supplied" and r["pick"] is None and not r["account"]["new_account"]
+
+    r = svc.analyze({"handle": "brandnew", "followers": 500, "versions": [plain]})  # no history at all
+    assert r["account"]["new_account"] and r["versions"][0]["likes_median"] >= 0
+    with pytest.raises(ValueError):
+        svc.analyze({"handle": "brandnew", "versions": [plain]})                  # unknown account and no follower count
+
+    assert post_type.classify("Introducing Acme Agents: build one in a minute")["type"] == "launch"
+    assert post_type.classify("We raised a $12M Series A led by Example Ventures")["type"] == "funding"
+    assert post_type.classify("We just crossed 10,000 users")["type"] == "milestone"
+    assert post_type.classify("We're hiring a founding engineer")["type"] == "hiring"
+    assert post_type.classify("Now supports SSO for every plan")["type"] == "feature"
+    assert post_type.classify("coffee was good today")["type"] == "other"
+
+    client = TestClient(server.create_app(svc))
+    assert "Launch advisor" in client.get("/").text and client.get("/api/health").json()["loaded"]
+    res = client.post("/api/analyze", json={"handle": "user23", "versions": [plain, launch]})
+    assert res.status_code == 200 and res.json()["pick"]["version"] == 2
+    assert client.post("/api/analyze", json={"handle": "nobody", "versions": [plain]}).status_code == 422
+    assert client.post("/api/analyze", json={"versions": []}).status_code == 422
