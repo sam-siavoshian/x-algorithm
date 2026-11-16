@@ -313,6 +313,8 @@ The shipped advice ensemble is the three 46-column models. Its confidence scale 
 
 **How often the advice layer speaks.** `research/15_advice_rates.json`: on 120 real posts from the test period, one per account, the advisor recommended a change for 35 (29%). 33 were "attach an image" at 60 to 70% and 2 at 70% and over. Moving the link, splitting lines and removing hashtags never reached 60%, on 28, 9 and 3 applicable posts. Single mechanical edits rarely move the prediction far enough; a user's own rewrite does more often (example: `research/15_example_advice_report.json`, where the second version of a launch post is rated 74% likely better at 2.2x predicted likes, and no single change to the first version is recommended).
 
+**A model trained on the pairs themselves does not beat the surrogate.** `scripts/evidence/pair_model.py`, `research/15_direct_pair_model.json`: logistic and tree models on the differences between the two versions (text structure, media, link, text embedding), trained on 5,970 pre-cutoff pairs. Held-out accounts before the cutoff: 66 to 68% correct. Test period: 56 to 58%, against the surrogate's 60.6% on the same 1,660 pairs, and a blend of the two is no better (58 to 59%). What such a model learns about wording does not carry over to the later period, so it is not shipped.
+
 The advisor now compares versions on likes, because this benchmark validates only likes: 13 of the 3,530 pairs have view counts on both sides.
 
 ## 10. Data now available for the full-scale run
