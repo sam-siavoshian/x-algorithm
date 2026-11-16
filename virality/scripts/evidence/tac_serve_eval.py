@@ -60,6 +60,7 @@ def main() -> None:
     ap.add_argument("--device", default="cpu")
     ap.add_argument("--sid-codebook", default=None, help="<work>/emb/sid_codebook.npz when the model was trained with semantic IDs")
     ap.add_argument("--out", required=True)
+    ap.add_argument("--shard", default=None, help="i/n: score only the i-th of n slices of the chosen pairs, so several machines can split the work")
     ap.add_argument("--feature-cache", default=None, help="pickle file of model-independent features and embeddings per pair; "
                     "built on the first run, after which scoring another model on the same pairs takes minutes")
     args = ap.parse_args()
@@ -75,9 +76,15 @@ def main() -> None:
     test = pairs.filter(pl.col("created_at_ms") >= cut)
     calib = pairs.filter((pl.col("created_at_ms_b") < cut) & ~pl.col("author_id").is_in(list(trained)))
     log.info("pairs: %d in the test period, %d for calibration (accounts not trained on)", test.height, calib.height)
+    # Sorted before sampling: the pair search does not return rows in a fixed order, and every model must be scored on the same pairs.
+    test, calib = test.sort("post_id", "post_id_b"), calib.sort("post_id", "post_id_b")
     test = test.sample(min(args.max_pairs, test.height), seed=0).with_columns(pl.lit("test").alias("part"))
     calib = calib.sample(min(args.max_calibration_pairs, calib.height), seed=0).with_columns(pl.lit("calibration").alias("part"))
-    todo = pl.concat([test, calib])
+    todo = pl.concat([test, calib]).sort("post_id", "post_id_b")
+    if args.shard:
+        i, n = (int(x) for x in args.shard.split("/"))
+        todo = todo.with_row_index("_r").filter(pl.col("_r") % n == i).drop("_r")
+        log.info("shard %d of %d: %d pairs", i, n, todo.height)
     by_author = {a: g.sort("created_at_ms") for (a,), g in d.filter(pl.col("author_id").is_in(todo["author_id"].unique().implode())).group_by("author_id")}
     by_id = {r["post_id"]: r for r in d.filter(pl.col("post_id").is_in(pl.concat([todo["post_id"], todo["post_id_b"]]).unique().implode())).iter_rows(named=True)}
 

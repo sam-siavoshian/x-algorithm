@@ -23,7 +23,18 @@ BANDS = ((0.5, 0.55), (0.55, 0.6), (0.6, 0.7), (0.7, 1.01))
 
 
 def load(path: str) -> pl.DataFrame:
-    return pl.read_parquet(path).select("post_id", "post_id_b", "author_id", "likes", "likes_b", "s_likes").unique(["post_id", "post_id_b"])
+    """One row per pair, oriented so post_id < post_id_b. Runs sample which post comes first independently, so the
+    same pair can appear in either order; flipping negates the score."""
+    R = pl.read_parquet(path).select("post_id", "post_id_b", "author_id", "likes", "likes_b", "s_likes")
+    flip = pl.col("post_id") > pl.col("post_id_b")
+    return R.select(
+        pl.when(flip).then("post_id_b").otherwise("post_id").alias("post_id"),
+        pl.when(flip).then("post_id").otherwise("post_id_b").alias("post_id_b"),
+        "author_id",
+        pl.when(flip).then("likes_b").otherwise("likes").alias("likes"),
+        pl.when(flip).then("likes").otherwise("likes_b").alias("likes_b"),
+        pl.when(flip).then(-pl.col("s_likes")).otherwise("s_likes").alias("s_likes"),
+    ).unique(["post_id", "post_id_b"])
 
 
 def analyse(R: pl.DataFrame, seed: int = 0) -> dict:
