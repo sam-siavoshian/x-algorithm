@@ -61,6 +61,9 @@ def main() -> None:
     ap.add_argument("--sid-codebook", default=None, help="<work>/emb/sid_codebook.npz when the model was trained with semantic IDs")
     ap.add_argument("--out", required=True)
     ap.add_argument("--shard", default=None, help="i/n: score only the i-th of n slices of the chosen pairs, so several machines can split the work")
+    ap.add_argument("--emb-seed", action="append", default=[], help="embeddings to reuse by rendered text: a training table directory "
+                    "(texts.parquet, emb.npy) or a feature cache pickle of an earlier run; saves most of the encoder time on a CPU")
+    ap.add_argument("--pairs", default=None, help="parquet of (part, post_id, post_id_b, author_id): score exactly these pairs instead of searching")
     ap.add_argument("--feature-cache", default=None, help="pickle file of model-independent features and embeddings per pair; "
                     "built on the first run, after which scoring another model on the same pairs takes minutes")
     args = ap.parse_args()
@@ -69,18 +72,29 @@ def main() -> None:
     from xviral.serve import DraftScorer
     from xviral.util.core import date_to_ms
 
-    d = pl.scan_parquet(args.posts).select(COLS).collect()
-    pairs = find_pairs(d, args.max_gap_hours)
+    d = pl.scan_parquet(args.posts).select(COLS)
+    if args.pairs:      # only the accounts of the given pairs are needed
+        d = d.filter(pl.col("author_id").is_in(pl.read_parquet(args.pairs)["author_id"].unique().to_list()))
+    d = d.collect()
     cut = date_to_ms(args.after)
+    if args.pairs:
+        fixed = pl.read_parquet(args.pairs).select("part", "post_id", "post_id_b", "author_id")
+        tms = d.select("post_id", "created_at_ms")
+        fixed = fixed.join(tms, on="post_id").join(tms.rename({"post_id": "post_id_b", "created_at_ms": "created_at_ms_b"}), on="post_id_b")
+        assert (fixed["created_at_ms"] <= fixed["created_at_ms_b"]).all()
+    pairs = find_pairs(d, args.max_gap_hours) if not args.pairs else fixed
     trained = set(pl.read_parquet(args.trained_accounts, columns=["author_id"])["author_id"].unique().to_list()) if args.trained_accounts else set()
     test = pairs.filter(pl.col("created_at_ms") >= cut)
     calib = pairs.filter((pl.col("created_at_ms_b") < cut) & ~pl.col("author_id").is_in(list(trained)))
     log.info("pairs: %d in the test period, %d for calibration (accounts not trained on)", test.height, calib.height)
     # Sorted before sampling: the pair search does not return rows in a fixed order, and every model must be scored on the same pairs.
     test, calib = test.sort("post_id", "post_id_b"), calib.sort("post_id", "post_id_b")
-    test = test.sample(min(args.max_pairs, test.height), seed=0).with_columns(pl.lit("test").alias("part"))
-    calib = calib.sample(min(args.max_calibration_pairs, calib.height), seed=0).with_columns(pl.lit("calibration").alias("part"))
-    todo = pl.concat([test, calib]).sort("post_id", "post_id_b")
+    if args.pairs:
+        todo = fixed.sort("post_id", "post_id_b")
+    else:
+        test = test.sample(min(args.max_pairs, test.height), seed=0).with_columns(pl.lit("test").alias("part"))
+        calib = calib.sample(min(args.max_calibration_pairs, calib.height), seed=0).with_columns(pl.lit("calibration").alias("part"))
+        todo = pl.concat([test, calib]).sort("post_id", "post_id_b")
     if args.shard:
         i, n = (int(x) for x in args.shard.split("/"))
         todo = todo.with_row_index("_r").filter(pl.col("_r") % n == i).drop("_r")
@@ -90,6 +104,36 @@ def main() -> None:
 
     enc = SentenceEmbedder(args.encoder, device=args.device)
     scorer = DraftScorer(args.checkpoint if len(args.checkpoint) > 1 else args.checkpoint[0], lambda t: enc.encode(t), device=args.device, sid_codebook=args.sid_codebook)
+    for seed in args.emb_seed:
+        n0 = len(scorer._emb_cache)
+        if os.path.isdir(seed):
+            from xviral.model import features as _f
+            want = set(pl.concat([g["post_id"] for g in by_author.values()]).to_list())
+            ids = np.load(os.path.join(seed, "post_id.npy"))
+            sel = np.flatnonzero(np.isin(ids, np.fromiter(want, np.int64, len(want))) & np.load(os.path.join(seed, "has_emb.npy")))
+            E = np.load(os.path.join(seed, "emb.npy"), mmap_mode="r")
+            for tt, r_ in zip(pl.read_parquet(os.path.join(seed, "texts.parquet"))["text"].gather(sel).to_list(), sel):
+                scorer._emb_cache.setdefault(tt, np.asarray(E[r_], np.float32))
+        else:
+            from xviral.model import features as _f
+            for posts_, emb_, _sid in pickle.load(open(seed, "rb")).values():
+                for tt, v in zip(_f.render_texts(posts_), emb_):
+                    scorer._emb_cache.setdefault(tt, np.asarray(v, np.float32))
+        log.info("embeddings seeded from %s: %d", seed, len(scorer._emb_cache) - n0)
+    scorer.emb_cache_limit = 10 ** 9
+    if not (args.feature_cache and os.path.exists(args.feature_cache)):
+        # Everything the pairs will need, encoded in one pass sorted by length.
+        need = []
+        for (a_,), g in todo.group_by("author_id"):
+            h = by_author[a_]
+            ts_ = h["created_at_ms"].to_numpy()
+            mark = np.zeros(h.height, bool)
+            for t_a in g["created_at_ms"].to_list():
+                hi = int(np.searchsorted(ts_, t_a, side="left"))
+                mark[max(0, hi - args.history):hi] = True
+            mark |= h["post_id"].is_in(pl.concat([g["post_id"], g["post_id_b"]]).implode()).to_numpy()
+            need.append(h.filter(pl.Series(mark)))
+        log.info("encoded ahead: %d texts", scorer.preencode(pl.concat(need), log=log))
     # Every scored pair is appended to a line file as it is produced, and a rerun picks up where it stopped.
     lines = args.out.replace(".json", ".scored.jsonl")
     if args.feature_cache:

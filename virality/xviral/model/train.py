@@ -18,7 +18,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from xviral.model import episodes, evaluate
+from xviral.model import episodes, evaluate, pairs
 from xviral.model.config import PRESETS, ModelCfg, TrainCfg
 from xviral.model.features import FeatureTable
 from xviral.model.model import Surrogate
@@ -69,8 +69,9 @@ def validate(model: Surrogate, table: FeatureTable, rows: torch.Tensor, tcfg: Tr
 
 
 def train(table: FeatureTable, out_dir: str | Path, mcfg: ModelCfg, tcfg: TrainCfg, log_every: int = 100,
-          init_from: str | Path | None = None) -> dict:
-    """init_from: a checkpoint to warm-start from (stage B starts from the stage-A weights)."""
+          init_from: str | Path | None = None, ctl: "pairs.PairSet | None" = None, ctl_dev: "pairs.PairSet | None" = None) -> dict:
+    """init_from: a checkpoint to warm-start from (stage B starts from the stage-A weights).
+    ctl: controlled pairs trained on with weight tcfg.w_ctl; ctl_dev: held-out controlled pairs, scored at every validation."""
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
     dev = table.device
@@ -116,6 +117,10 @@ def train(table: FeatureTable, out_dir: str | Path, mcfg: ModelCfg, tcfg: TrainC
         with torch.autocast(device_type=dev.type, dtype=torch.bfloat16, enabled=use_amp):
             o = model(table, ep)
         loss, parts = model.loss(ep, o, tcfg)
+        if ctl is not None and tcfg.w_ctl > 0:
+            lc = pairs.loss(model, ctl, ctl.sample(tcfg.ctl_batch, gen), tcfg)
+            loss = loss + tcfg.w_ctl * lc
+            parts["ctl"] = float(lc.detach())
         opt.zero_grad(set_to_none=True)
         loss.backward()
         torch.nn.utils.clip_grad_norm_([p for p in model.parameters() if p.requires_grad], tcfg.grad_clip)
@@ -133,12 +138,17 @@ def train(table: FeatureTable, out_dir: str | Path, mcfg: ModelCfg, tcfg: TrainC
         if (step + 1) % tcfg.eval_every == 0 or step + 1 == tcfg.steps:
             m = validate(ema, table, val_rows, tcfg) if len(val_rows) else {"val_nll": float("nan")}
             m["step"] = step + 1
+            if ctl_dev is not None:
+                m.update(pairs.accuracy(ema, ctl_dev, tcfg))
+                log.info("val @%d: controlled dev pairs %s", step + 1, {k: round(v, 4) for k, v in m.items() if k.startswith("ctl_")})
             history.append(m)
             log.info("val @%d: nll %.4f  pairwise_likes %s  pairwise_views %s", step + 1, m["val_nll"],
                      m.get("pairwise_likes"), m.get("pairwise_views"))
             if not (m["val_nll"] >= best["val_nll"]):
                 best = m
                 save(out / "best.pt", ema, mcfg, tcfg, table.meta, m)
+            if ctl_dev is not None:
+                save(out / f"step{step + 1}.pt", ema, mcfg, tcfg, table.meta, m)
     save(out / "last.pt", ema, mcfg, tcfg, table.meta, history[-1] if history else {})
     (out / "history.json").write_text(json.dumps(history, indent=2))
     return {"best": best, "history": history, "params": n_params}

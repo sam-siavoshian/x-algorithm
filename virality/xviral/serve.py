@@ -89,6 +89,7 @@ class DraftScorer:
         self.meta = ck["table_meta"]
         self._embed_raw, self.device, self.sid_codebook = embed_fn, device, sid_codebook
         self._emb_cache: dict[str, np.ndarray] = {}
+        self.emb_cache_limit = 200_000
         self.feature_cache: dict | None = None
 
     def embed_fn(self, texts: list[str]) -> np.ndarray:
@@ -97,9 +98,22 @@ class DraftScorer:
         if new:
             for t, v in zip(new, np.asarray(self._embed_raw(new))):
                 self._emb_cache[t] = v
-        if len(self._emb_cache) > 200_000:
+        if len(self._emb_cache) > self.emb_cache_limit:
             self._emb_cache = {t: self._emb_cache[t] for t in texts}
         return np.stack([self._emb_cache[t] for t in texts])
+
+    def preencode(self, posts: pl.DataFrame, chunk: int = 2048, log=None) -> int:
+        """Embed many posts ahead of scoring, sorted by length. Scoring pair by pair encodes each account's history as
+        one small batch padded to its longest post, which on a CPU costs several times more encoder time."""
+        texts = sorted({t for t in features.render_texts(conform(posts)) if t not in self._emb_cache}, key=len)
+        t0 = time.time()
+        for k in range(0, len(texts), chunk):
+            part = texts[k:k + chunk]
+            for t, v in zip(part, np.asarray(self._embed_raw(part))):
+                self._emb_cache[t] = v
+            if log is not None and (k // chunk) % 5 == 0:
+                log.info("encoded %d/%d texts ahead, %.0fs", k + len(part), len(texts), time.time() - t0)
+        return len(texts)
 
     def _draft_row(self, d: dict, i: int, account: dict, when_ms: int) -> pl.DataFrame:
         row = {

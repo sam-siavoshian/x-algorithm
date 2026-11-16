@@ -97,6 +97,15 @@ class TrainCfg(BaseModel):
     # Loss weights.
     w_rates: float = 1.0
     w_pair: float = 1.0
+    # Controlled pairs (two versions of one message by one account, scored as alternative drafts; model/pairs.py).
+    w_ctl: float = 0.0
+    """Weight of the loss on mined controlled pairs; 0 trains without them."""
+    ctl_batch: int = 64
+    ctl_loss: str = "ranknet"
+    """ranknet: logistic loss on the difference of predicted mean log likes. margin: hinge with the real gap as margin."""
+    ctl_weight: str = "gap"
+    """gap: a pair's weight grows with its real like ratio (capped at 5x). flat: every pair above ctl_min_ratio counts once."""
+    ctl_min_ratio: float = 1.25
     # Live-forecast conditioning (off by default; see MODEL.md section 6).
     live_lr: float = 1e-4
     """Learning rate of the stage-B encoder adapters."""
