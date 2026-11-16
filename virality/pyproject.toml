@@ -32,6 +32,14 @@ encoders = [
   "faster-whisper>=1.1",
   "httpx>=0.27",
 ]
+# Audio features of post videos on CPU (xviral/media/audio.py); needs ffmpeg on PATH.
+audio = [
+  "torch>=2.4",
+  "transformers>=4.57",
+  "faster-whisper>=1.1",
+  "librosa>=0.10",
+  "soundfile>=0.12",
+]
 # RQ-KMeans codebook training uses the repo's JAX trainer.
 codebook = ["jax>=0.4.30"]
 ann = ["faiss-cpu>=1.8"]
