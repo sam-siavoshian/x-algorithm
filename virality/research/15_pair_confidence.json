@@ -1,0 +1,26 @@
+{
+ "likes": 2.948512257899561,
+ "provenance": {
+  "likes": "same-account, same-topic pairs from accounts not trained on (combo/tac_ens_ts46.json)",
+  "generic_same_account_pairs": {
+   "likes": {
+    "scale": 1.9794149374038605,
+    "pairs": 71368,
+    "accuracy": 0.6193532115233719
+   },
+   "views": {
+    "scale": 2.295910007059988,
+    "pairs": 19559,
+    "accuracy": 0.5910833887213047
+   }
+  },
+  "same_topic_shrink": 1.4895877575657475,
+  "checkpoints": [
+   "hfruns/runs/ts46_s1/best.pt",
+   "hfruns/runs/ts46_s2/best.pt",
+   "combo/work/model/compare_v2/full/best.pt"
+  ],
+  "views": "validation-account pairs, shrunk by the same-topic ratio measured on likes"
+ },
+ "views": 2.295910007059988
+}

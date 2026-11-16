@@ -1,0 +1,23 @@
+{
+ "drafts": 120,
+ "drafts_with_a_recommendation": 35,
+ "by_change": {
+  "attach_image": {
+   "recommended": 33,
+   "no_confident_difference": 71,
+   "recommended_likely": 2
+  },
+  "wait_for_gap": {
+   "no_confident_difference": 56
+  },
+  "one_point_per_line": {
+   "no_confident_difference": 9
+  },
+  "link_out_of_first_line": {
+   "no_confident_difference": 28
+  },
+  "remove_hashtags": {
+   "no_confident_difference": 3
+  }
+ }
+}

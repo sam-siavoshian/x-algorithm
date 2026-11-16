@@ -1,0 +1,125 @@
+{
+  "draft": {
+    "text": "https://vercel.com/blog/ai-sdk-5 We shipped AI SDK 5 today. It has typed tool calls, a new agent loop, and streaming that works the same across every provider. #ai #typescript",
+    "views_24h": {
+      "q10": 10479.4521484375,
+      "q50": 38355.45703125,
+      "q90": 172962.9375
+    },
+    "likes": {
+      "q10": 49.390960693359375,
+      "q50": 258.40087890625,
+      "q90": 1242.6295166015625
+    },
+    "p_reach_1x": 0.015609088353812695,
+    "p_reach_10x": 0.0012442016741260886,
+    "p_reach_100x": 6.815759843448177e-05,
+    "p_own_top_10pct": {
+      "likes": 0.014151781797409058,
+      "views": null
+    },
+    "lift_vs_own_median": {
+      "likes": 0.17820397019386292,
+      "views": null
+    },
+    "own_median": {
+      "likes": 2626.292724609375,
+      "views": null
+    },
+    "history_posts_used": 48
+  },
+  "rules": [],
+  "record": [],
+  "changes": [
+    {
+      "change": "your version 2",
+      "operator": null,
+      "status": "recommended_likely",
+      "why": "all gates passed",
+      "p_better": 0.7356303368571495,
+      "predicted_ratio": 2.2237363836063038,
+      "members_agree": true,
+      "members": 3,
+      "outcome": "likes",
+      "text": "AI SDK 5 is out.\n\nTyped tool calls end to end.\nOne agent loop for every provider.\nStreaming you can resume after a dropped connection.\n\nWe rebuilt it after watching thousands of teams fight the same three bugs. https://vercel.com/blog/ai-sdk-5",
+      "adds_media": false,
+      "evidence": null,
+      "views_q50": 49247.42578125,
+      "likes_q50": 575.8391723632812
+    },
+    {
+      "change": "the link moves from the first line to the end",
+      "operator": "link_out_of_first_line",
+      "status": "no_confident_difference",
+      "why": "the models in the ensemble disagree on the direction",
+      "p_better": 0.5364528897649988,
+      "predicted_ratio": 1.1208319058904141,
+      "members_agree": false,
+      "members": 3,
+      "outcome": "likes",
+      "text": "We shipped AI SDK 5 today. It has typed tool calls, a new agent loop, and streaming that works the same across every provider. #ai #typescript\n\nhttps://vercel.com/blog/ai-sdk-5",
+      "adds_media": false,
+      "evidence": {
+        "win_rate": 0.6135,
+        "lo": 0.5414,
+        "hi": 0.6802,
+        "pairs": 309,
+        "design": "same account, same topic, posting order balanced",
+        "supported": true
+      },
+      "views_q50": 40993.6484375,
+      "likes_q50": 289.7447814941406
+    },
+    {
+      "change": "the hashtags are removed",
+      "operator": "remove_hashtags",
+      "status": "no_confident_difference",
+      "why": "the models in the ensemble disagree on the direction",
+      "p_better": 0.5302335565652492,
+      "predicted_ratio": 1.0991714399730448,
+      "members_agree": false,
+      "members": 3,
+      "outcome": "likes",
+      "text": "https://vercel.com/blog/ai-sdk-5 We shipped AI SDK 5 today. It has typed tool calls, a new agent loop, and streaming that works the same across every provider.",
+      "adds_media": false,
+      "evidence": {
+        "win_rate": 0.4661,
+        "lo": 0.3895,
+        "hi": 0.5437,
+        "pairs": 202,
+        "design": "same account, same topic, posting order balanced",
+        "supported": false
+      },
+      "views_q50": 41276.203125,
+      "likes_q50": 284.12603759765625
+    },
+    {
+      "change": "an image is attached",
+      "operator": "attach_image",
+      "status": "no_confident_difference",
+      "why": "the two versions are too close to call",
+      "p_better": 0.45512731947088014,
+      "predicted_ratio": 0.8688819169021167,
+      "members_agree": true,
+      "members": 3,
+      "outcome": "likes",
+      "text": "https://vercel.com/blog/ai-sdk-5 We shipped AI SDK 5 today. It has typed tool calls, a new agent loop, and streaming that works the same across every provider. #ai #typescript",
+      "adds_media": true,
+      "evidence": {
+        "win_rate": 0.6485,
+        "lo": 0.6149,
+        "hi": 0.6819,
+        "pairs": 2247,
+        "design": "same account, same topic, posting order balanced",
+        "supported": true
+      },
+      "views_q50": 34679.80078125,
+      "likes_q50": 224.38873291015625
+    }
+  ],
+  "outcome_compared": "likes",
+  "thresholds": {
+    "speak": 0.6,
+    "likely": 0.7
+  }
+}

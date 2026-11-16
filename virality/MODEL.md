@@ -153,7 +153,7 @@ A change is **recommended** only if all of these hold:
 
 Anything else is reported as "no confident difference", "predicted worse", or "untested kind of change". The user's own alternative versions are compared the same way and never given a reason, since more than one thing differs between them. A language model appears only as the optional `rewrite_fn` that carries out the `add_detail` instruction; it decides nothing.
 
-`scripts/advise_draft.py` prints the report.
+Versions are compared on predicted likes, the outcome the pair benchmark validates (9.4). `scripts/advise_draft.py` prints the report.
 
 ## 8. Training plan with the larger compute budget
 
@@ -287,6 +287,33 @@ What this supports:
 4. Overall accuracy matches people (61%) with a 33M text-only encoder and a 1.5M-parameter trunk. The gap to the best published figure is what the full-size encoder and stage B are for.
 
 Limits: likes, not views; one model, one seed; pairs within 48 hours only.
+
+### 9.4 The pair benchmark on every model, same pairs (2026-11-16)
+
+`scripts/evidence/compare_runs.py`, results in `research/15_pair_benchmark_all_models.json`. Section 9.3 used one model and 579 pairs. Here ten models are scored on the same 3,530 pairs (all 2,030 from the test period plus 1,500 from accounts not trained on), of which 2,852 have likes differing by at least 25%. Six models were trained on separate machines (`scripts/worker_job.sh`), two seeds each with 0, 20 and 46 text-structure columns; four are the models of 9.2. The benchmark was split over six machines (`scripts/worker_bench.sh`). Confidence is cross-fitted over accounts, and intervals resample accounts.
+
+| Model or ensemble | Correct, all pairs | Stated confidence 60% and over: share of pairs | Correct there |
+|---|---|---|---|
+| Single models (ten) | 58.2% to 60.9% | 22% to 29% | 65.5% to 67.8% |
+| No text-structure columns, 2 models | 61.9% (59.9 to 63.7) | 30% | 66.0% |
+| 20 columns, 3 models | 59.1% (56.6 to 61.7) | 26% | 67.5% |
+| 46 columns, 3 models | 60.0% (57.9 to 62.0) | 27% | 67.4% |
+| All ten | 61.0% (58.6 to 63.3) | 29% | 67.3% |
+
+For the 46-column ensemble, by stated confidence: 55.1% correct at 50 to 55% (1,412 pairs), 61.6% at 55 to 60% (662), 66.3% at 60 to 70% (564), 70.1% at 70% and over (214).
+
+What this settles:
+
+1. Every model's confidence means what it says, and none is better than another at it. An earlier reading on 820 pairs, that the 46-column ensemble's confidence was flat, was sampling noise: each run had drawn a different subset of pairs. The sampling is now deterministic.
+2. The text-structure columns do not help on this task. On ordinary same-account test pairs they add about one point on likes (9.2), but on two versions of one message the models without them are 1.9 to 2.8 points more accurate overall, and equal among confident calls. The columns stay in the model for ranking and views; they are not the source of edit judgments.
+3. More seeds do not help. Ensembles of 2, 3, 8 and 10 models are within a point of each other.
+4. The ceiling with this encoder, model size and data is about 60% overall and 67% on the confident 27%. The 70% and over band holds 8% of pairs at 70%. Section 9.3's higher top bands (74%, 79%) were small samples.
+
+The shipped advice ensemble is the three 46-column models. Its confidence scale is 2.95 per unit of log10 predicted likes (`research/15_pair_confidence.json`); the earlier 1.52, fitted on 300 pairs, was underconfident.
+
+**How often the advice layer speaks.** `research/15_advice_rates.json`: on 120 real posts from the test period, one per account, the advisor recommended a change for 35 (29%). 33 were "attach an image" at 60 to 70% and 2 at 70% and over. Moving the link, splitting lines and removing hashtags never reached 60%, on 28, 9 and 3 applicable posts. Single mechanical edits rarely move the prediction far enough; a user's own rewrite does more often (example: `research/15_example_advice_report.json`, where the second version of a launch post is rated 74% likely better at 2.2x predicted likes, and no single change to the first version is recommended).
+
+The advisor now compares versions on likes, because this benchmark validates only likes: 13 of the 3,530 pairs have view counts on both sides.
 
 ## 10. Data now available for the full-scale run
 

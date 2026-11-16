@@ -135,7 +135,7 @@ def test_advice_gates(trained):
     out = adv.advise(history, plain, account, when, alternatives=[{"text": "launch day: we shipped the new agent today", "label": "launch version"}])
     lv = {c["change"]: c for c in out["changes"]}["launch version"]
     assert lv["status"].startswith("recommended") and lv["p_better"] > 0.7 and lv["members_agree"] is True and lv["predicted_ratio"] > 1.5
-    assert out["changes"][0]["change"] == "launch version" and out["outcome_compared"] == "views"
+    assert out["changes"][0]["change"] == "launch version" and out["outcome_compared"] == "likes"
     # Every applicable operator is tried, each as one change, and each carries its measured evidence.
     draft = {"text": "https://foo.dev some thoughts on the week. It was long. It was good. #monday"}
     ops = {c["operator"]: c for c in adv.advise(history, draft, account, when)["changes"] if c["operator"]}

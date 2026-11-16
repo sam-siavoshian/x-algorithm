@@ -150,6 +150,10 @@ class Advisor:
         self.speak, self.strong, self.min_meaning_cos = speak, strong, min_meaning_cos
 
     def _target(self) -> str:
+        # Likes first: the pair benchmark that validates the stated confidence (2,852 same-account, same-topic pairs)
+        # has like counts on both sides for every pair and view counts for 13, so only the like comparison is tested.
+        if "likes" in self.scales:
+            return "likes"
         return "views" if self.scorer.meta.get("has_views") and "views" in self.scales else "likes"
 
     @staticmethod
