@@ -66,6 +66,7 @@ def main() -> None:
     ap.add_argument("--pairs", default=None, help="parquet of (part, post_id, post_id_b, author_id): score exactly these pairs instead of searching")
     ap.add_argument("--feature-cache", default=None, help="pickle file of model-independent features and embeddings per pair; "
                     "built on the first run, after which scoring another model on the same pairs takes minutes")
+    ap.add_argument("--emb-table", default=None, help="a feature table directory: its stored embeddings (same encoder) are reused for history posts")
     args = ap.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
     from xviral.embed.text_small import SentenceEmbedder
@@ -101,6 +102,10 @@ def main() -> None:
         log.info("shard %d of %d: %d pairs", i, n, todo.height)
     by_author = {a: g.sort("created_at_ms") for (a,), g in d.filter(pl.col("author_id").is_in(todo["author_id"].unique().implode())).group_by("author_id")}
     by_id = {r["post_id"]: r for r in d.filter(pl.col("post_id").is_in(pl.concat([todo["post_id"], todo["post_id_b"]]).unique().implode())).iter_rows(named=True)}
+    schema = {c: d.schema[c] for c in COLS}
+    del d, pairs, test, calib                  # the corpus is several GB; only the chosen accounts are needed from here on
+    import gc
+    gc.collect()
 
     enc = SentenceEmbedder(args.encoder, device=args.device)
     scorer = DraftScorer(args.checkpoint if len(args.checkpoint) > 1 else args.checkpoint[0], lambda t: enc.encode(t), device=args.device, sid_codebook=args.sid_codebook)
@@ -134,6 +139,8 @@ def main() -> None:
             mark |= h["post_id"].is_in(pl.concat([g["post_id"], g["post_id_b"]]).implode()).to_numpy()
             need.append(h.filter(pl.Series(mark)))
         log.info("encoded ahead: %d texts", scorer.preencode(pl.concat(need), log=log))
+    if args.emb_table:
+        log.info("stored embeddings reused for %d history posts", scorer.prefill_embeddings(args.emb_table, pl.concat([g["post_id"] for g in by_author.values()]).to_numpy()))
     # Every scored pair is appended to a line file as it is produced, and a rerun picks up where it stopped.
     lines = args.out.replace(".json", ".scored.jsonl")
     if args.feature_cache:
@@ -172,7 +179,7 @@ def main() -> None:
     R.write_parquet(args.out.replace(".json", ".parquet"))
 
     # What differs between the two versions.
-    posts = pl.DataFrame([by_id[x] for x in pl.concat([R["post_id"], R["post_id_b"]]).unique().to_list()], schema={c: d.schema[c] for c in COLS})
+    posts = pl.DataFrame([by_id[x] for x in pl.concat([R["post_id"], R["post_id_b"]]).unique().to_list()], schema=schema)
     f = ts.text_structure(posts).select("post_id", "ts_lines", "ts_words", "ts_url_first_line").join(posts.select("post_id", (pl.col("media").list.len() > 0).alias("m")), on="post_id")
     R = R.join(f, on="post_id").join(f.rename({c: c + "_b" for c in f.columns}), on="post_id_b")
     res: dict = {"scored_pairs": R.height, "accounts": R["author_id"].n_unique()}

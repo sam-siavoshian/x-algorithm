@@ -19,6 +19,7 @@ from pathlib import Path
 import numpy as np
 import polars as pl
 
+from xviral.features import post_type as post_type_features
 from xviral.features.content import ASPECT_CLASSES
 from xviral.labels import HEAD_INDEX
 from xviral.text.urls import DOMAIN_CLASS_NAMES
@@ -61,6 +62,8 @@ NUM_SPEC: list[tuple[str, str]] = [
     ("ts_len_vs_own", "id"), ("ts_media_vs_own", "id"), ("ts_link_vs_own", "id"), ("ts_gap_vs_own", "id"), ("ts_lines_vs_own", "id"),
     # media and speech scalars (present after the media stages)
     ("frame_motion", "id"), ("speech_ratio", "id"), ("speech_in_first_3s", "bool"), ("transcript_len", "log1p"),
+    # what kind of company post it is, the launch traits, and the account's trailing record by type (features/post_type.py)
+    *post_type_features.NUM_SPEC,
 ]
 
 CAT_SPEC: list[tuple[str, list[str] | int]] = [

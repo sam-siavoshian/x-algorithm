@@ -1,0 +1,29 @@
+{
+ "model": "baseline",
+ "checkpoints": [
+  "data/runs/ts46_s1/best.pt",
+  "data/runs/ts46_s2/best.pt",
+  "data/work/model/compare_v2/full/best.pt"
+ ],
+ "fitted_on": {
+  "posts": 3990,
+  "accounts": 1499,
+  "period": "before 2026-04-23 (train and val splits)",
+  "ridge": 20.0
+ },
+ "held_out_accounts_check": {
+  "mean_abs_log10_error_before": 0.3982,
+  "after": 0.3866,
+  "mean_error_before": 0.1053,
+  "mean_error_after": 0.0026
+ },
+ "weights_log10": {
+  "pt_funding": 0.3388,
+  "pt_hiring": 0.0171,
+  "pt_launch": 0.1334,
+  "pt_open_source": 0.2411,
+  "pt_feature": 0.0148,
+  "pt_milestone": 0.0521,
+  "pt_demo": 0.0442
+ }
+}

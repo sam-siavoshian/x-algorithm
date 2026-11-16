@@ -137,7 +137,8 @@ class Service:
                 "posts": e["posts"], "accounts": e["accounts"],
                 "statement": f"{post_type.LABELS[kind]} posts by company and founder accounts got {e['geo_mean_ratio']:.1f}x the account's usual likes ({e['geo_mean_lo']:.1f} to {e['geo_mean_hi']:.1f}); "
                              f"{100 * e['beat_own_median']:.0f}% beat the account's usual. Measured on {e['posts']:,} posts from {e['accounts']} accounts. "
-                             "The forecast above does not yet include this lift."}
+                             + ("The forecast above includes part of this lift; it still tends to come in low for this kind of post."
+                                if getattr(self.scorer, "type_correction", None) else "The forecast above does not yet include this lift.")}
 
     # --- the report ------------------------------------------------------------------------------------------
 
@@ -204,11 +205,14 @@ class Service:
 
 
 def load(checkpoints: list[str], scales_path: str, posts: str | None = None, sid_codebook: str | None = None, encoder: str = "BAAI/bge-small-en-v1.5",
-         device: str = "cpu") -> Service:
+         device: str = "cpu", type_correction: str | None = None) -> Service:
+    """type_correction: the post-type level correction for these checkpoints (research/tracks/posttype/type_correction.json
+    for the three 46-column small models); it is fitted per model set and must not be reused for other checkpoints."""
     from xviral.embed.text_small import SentenceEmbedder
     from xviral.serve import DraftScorer
 
     enc = SentenceEmbedder(encoder, device=device)
-    scorer = DraftScorer(checkpoints if len(checkpoints) > 1 else checkpoints[0], lambda texts: enc.encode(texts), device=device, sid_codebook=sid_codebook)
+    scorer = DraftScorer(checkpoints if len(checkpoints) > 1 else checkpoints[0], lambda texts: enc.encode(texts), device=device, sid_codebook=sid_codebook,
+                         type_correction=type_correction)
     scales = {k: v for k, v in json.load(open(scales_path)).items() if k in ("views", "likes")}
     return Service(scorer, scales, posts=posts)

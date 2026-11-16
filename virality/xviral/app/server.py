@@ -1,6 +1,6 @@
 """HTTP front for the service: one JSON endpoint and one page.
 
-    XVIRAL_CHECKPOINTS=a/best.pt,b/best.pt XVIRAL_SCALES=pair_confidence.json [XVIRAL_POSTS=posts.parquet] [XVIRAL_SID=sid_codebook.npz] \
+    XVIRAL_CHECKPOINTS=a/best.pt,b/best.pt XVIRAL_SCALES=pair_confidence.json [XVIRAL_POSTS=posts.parquet] [XVIRAL_SID=sid_codebook.npz] [XVIRAL_TYPE_CORRECTION=research/tracks/posttype/type_correction.json] \
         uvicorn xviral.app.server:app --port 8000
 """
 
@@ -54,7 +54,8 @@ def create_app(service=None) -> FastAPI:
             ck = [c for c in os.environ.get("XVIRAL_CHECKPOINTS", "").split(",") if c]
             if not ck or not os.environ.get("XVIRAL_SCALES"):
                 raise HTTPException(503, "the service is not configured: set XVIRAL_CHECKPOINTS and XVIRAL_SCALES")
-            state["service"] = S.load(ck, os.environ["XVIRAL_SCALES"], posts=os.environ.get("XVIRAL_POSTS"), sid_codebook=os.environ.get("XVIRAL_SID"))
+            state["service"] = S.load(ck, os.environ["XVIRAL_SCALES"], posts=os.environ.get("XVIRAL_POSTS"), sid_codebook=os.environ.get("XVIRAL_SID"),
+                                         type_correction=os.environ.get("XVIRAL_TYPE_CORRECTION"))
         return state["service"]
 
     @app.get("/", response_class=HTMLResponse)

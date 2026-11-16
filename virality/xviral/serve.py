@@ -26,7 +26,7 @@ import polars as pl
 import torch
 
 from xviral import authors, dedup
-from xviral.features import audience, content, derive, suppression, text_structure
+from xviral.features import audience, content, derive, post_type, suppression, text_structure
 from xviral.model import episodes, features
 from xviral.model import train as tr
 from xviral.model.predict import Predictor
@@ -60,7 +60,15 @@ def feature_frame(posts: pl.DataFrame, snapshots: pl.DataFrame | None = None, ac
     zones = audience.estimate_audience_zone(real) if real.height else pl.DataFrame(
         schema={"author_id": pl.Int64, "audience_zone": pl.String, "audience_utc_offset": pl.Float64})
     df = df.join(audience.audience_time_features(df, zones), on="post_id", how="left")
-    return df.join(suppression.url_features(df, set()), on="post_id", how="left")
+    df = df.join(suppression.url_features(df, set()), on="post_id", how="left")
+    return with_post_type(df)
+
+
+def with_post_type(df: pl.DataFrame) -> pl.DataFrame:
+    """Post type, launch traits and the account's trailing record by type (features/post_type.py). Drafts in the
+    frame never count as history, so this is also correct for a frame holding several alternative drafts."""
+    df = df.drop([c for c in post_type.COLUMNS if c in df.columns])
+    return df.join(post_type.post_type_features(df).drop("pt_type"), on="post_id", how="left")
 
 
 _KEEP = ("post_id", "author_id", "author_handle", "author_display_name", "created_at_ms", "source", "kind", "text", "text_note", "quoted_text",
@@ -76,8 +84,16 @@ def compact(posts: pl.DataFrame) -> pl.DataFrame:
 
 class DraftScorer:
     def __init__(self, checkpoint: str | Path | list, embed_fn: Callable[[list[str]], np.ndarray], device: str = "cpu",
-                 sid_codebook: str | Path | None = None):
-        """embed_fn: rendered post texts -> [n, emb_dim] array, from the same encoder the model was trained with."""
+                 sid_codebook: str | Path | None = None, type_correction: str | Path | dict | None = None):
+        """embed_fn: rendered post texts -> [n, emb_dim] array, from the same encoder the model was trained with.
+        type_correction: the JSON written by scripts/posttype/fit_correction.py (or its dict): per post-type column a
+        shift in log10 likes, fitted on the model's errors on own announcements before the test cutoff. It moves the
+        likes forecast of a draft the rules type as an own announcement and leaves every other draft unchanged."""
+        if isinstance(type_correction, (str, Path)):
+            import json
+
+            type_correction = json.loads(Path(type_correction).read_text())
+        self.type_correction = (type_correction or {}).get("weights_log10", type_correction) or {}
         if isinstance(checkpoint, (list, tuple)):       # several checkpoints: scored as an ensemble (model/ensemble.py)
             from xviral.model import ensemble
 
@@ -115,6 +131,17 @@ class DraftScorer:
                 log.info("encoded %d/%d texts ahead, %.0fs", k + len(part), len(texts), time.time() - t0)
         return len(texts)
 
+    def prefill_embeddings(self, table_dir: str | Path, post_ids) -> int:
+        """Seed the embedding cache with a feature table's stored embeddings for `post_ids` (same encoder, keyed by
+        the rendered text), so scoring many posts of known accounts does not embed their histories again."""
+        d = Path(table_dir)
+        ids = np.load(d / "post_id.npy")
+        idx = np.flatnonzero(np.isin(ids, np.asarray(list(post_ids), dtype=np.int64)) & np.load(d / "has_emb.npy"))
+        texts = pl.read_parquet(d / "texts.parquet")["text"].gather(idx).to_list()
+        emb = np.asarray(np.load(d / "emb.npy", mmap_mode="r")[idx], dtype=np.float32)
+        self._emb_cache.update(zip(texts, emb))
+        return len(idx)
+
     def _draft_row(self, d: dict, i: int, account: dict, when_ms: int) -> pl.DataFrame:
         row = {
             "post_id": -stable_hash64("draft", account.get("handle"), when_ms, i, d.get("text")),
@@ -145,6 +172,8 @@ class DraftScorer:
                                 *[(d.get("text"), len(d.get("media") or []), len(d.get("urls") or []), d.get("quoted_text"), d.get("kind")) for d in drafts])
         if key is not None and key in self.feature_cache:
             posts, emb, sid = self.feature_cache[key]
+            if post_type.COLUMNS[0] in self.meta["num_base"] or self.type_correction:
+                posts = with_post_type(posts)     # kept out of the cache (see below): 0.1 s, and never stale
         else:
             parts: list[pl.DataFrame] = []
             for i, d in enumerate(drafts):
@@ -160,7 +189,9 @@ class DraftScorer:
 
                 sid = sidmod.phoenix_codes(sidmod.assign(emb, self.sid_codebook))
             if key is not None:
-                self.feature_cache[key] = (compact(posts), emb, sid)
+                # The post-type columns are cheap and are recomputed from the cached frame on every read, so a cache
+                # written before they existed, or before their definition changed, still serves any model.
+                self.feature_cache[key] = (compact(posts.drop([c for c in post_type.COLUMNS if c in posts.columns])), emb, sid)
         return features.transform(posts, self.meta, emb=emb, sid=sid, device=self.device)
 
     @torch.no_grad()
@@ -184,6 +215,14 @@ class DraftScorer:
             pid = int(self._draft_row(d, i, acct, when_ms)["post_id"][0])
             r = by_id[pid]
             r["text"] = d.get("text")
+            if self.type_correction:
+                shift = sum(w * float(feat[pid].get(c) or 0.0) for c, w in self.type_correction.items())
+                if shift:
+                    k = 10.0 ** shift
+                    r["likes"] = {q: (v + 1.0) * k - 1.0 for q, v in r["likes"].items()}
+                    if r["lift_vs_own_median"]["likes"] is not None:
+                        r["lift_vs_own_median"]["likes"] *= k
+                    r["type_correction_log10"] = shift
             r["history_posts_used"] = int(min(first, self.model.cfg.max_history))
             r["gates"] = gates.check(feat[pid], recent)      # deterministic distribution gates from X's code
             reports.append(r)
