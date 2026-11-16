@@ -67,6 +67,8 @@ def main() -> None:
     ap.add_argument("--feature-cache", default=None, help="pickle file of model-independent features and embeddings per pair; "
                     "built on the first run, after which scoring another model on the same pairs takes minutes")
     ap.add_argument("--emb-table", default=None, help="a feature table directory: its stored embeddings (same encoder) are reused for history posts")
+    ap.add_argument("--aux", action="append", default=[], help="name=path.npz (post_id, vec): an auxiliary input the model was trained with, "
+                    "e.g. img=data/images/aux_img.npz; posts not in the file are scored without it")
     args = ap.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
     from xviral.embed.text_small import SentenceEmbedder
@@ -126,6 +128,11 @@ def main() -> None:
                     scorer._emb_cache.setdefault(tt, np.asarray(v, np.float32))
         log.info("embeddings seeded from %s: %d", seed, len(scorer._emb_cache) - n0)
     scorer.emb_cache_limit = 10 ** 9
+    for spec in args.aux:
+        name, path = spec.split("=", 1)
+        z = np.load(path)
+        scorer.aux_lookup[name] = dict(zip(z["post_id"].tolist(), z["vec"].astype(np.float32)))
+        log.info("aux %s: %d posts", name, len(scorer.aux_lookup[name]))
     if not (args.feature_cache and os.path.exists(args.feature_cache)):
         # Everything the pairs will need, encoded in one pass sorted by length.
         need = []
@@ -156,7 +163,8 @@ def main() -> None:
         hist = by_author[r["author_id"]].filter(pl.col("created_at_ms") < a["created_at_ms"]).tail(args.history)
         account = {"author_id": r["author_id"], "handle": a["author_handle"], "display_name": a["author_display_name"],
                    "followers": a["author_followers"], "following": a["author_following"]}
-        drafts = [{"text": x["text"], "kind": x["kind"], "media": x["media"], "urls": x["urls"], "quoted_text": x["quoted_text"]} for x in (a, b)]
+        drafts = [{"text": x["text"], "kind": x["kind"], "media": x["media"], "urls": x["urls"], "quoted_text": x["quoted_text"],
+                   "aux": {nm: lk.get(x["post_id"]) for nm, lk in scorer.aux_lookup.items()}} for x in (a, b)]
         try:
             ra, rb = scorer.score(hist, drafts, account, a["created_at_ms"])
         except Exception as e:  # noqa: BLE001

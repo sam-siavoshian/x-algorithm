@@ -9,6 +9,8 @@ import numpy as np, polars as pl
 ap = argparse.ArgumentParser()
 ap.add_argument("--checkpoint", action="append", required=True); ap.add_argument("--out", required=True); ap.add_argument("--history", type=int, default=56)
 ap.add_argument("--sid-codebook", default="data/work/emb/sid_codebook.npz"); ap.add_argument("--types", default="launch,open_source"); ap.add_argument("--limit", type=int, default=0)
+ap.add_argument("--aux", action="append", default=[], help="name=path.npz (post_id, vec), as in tac_serve_eval.py")
+ap.add_argument("--posts", default=None, help="parquet with post_id: score only these launch posts")
 args = ap.parse_args()
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s"); log = logging.getLogger("launch")
 from xviral.embed.text_small import SentenceEmbedder
@@ -16,6 +18,7 @@ from xviral.serve import DraftScorer
 CUT = int(dt.datetime(2026, 4, 23, tzinfo=dt.timezone.utc).timestamp() * 1000)
 T = pl.read_parquet("data/launch/table.parquet").filter(pl.col("ptype").is_in(args.types.split(",")) & (pl.col("created_at_ms") >= CUT))
 T = T.filter(pl.len().over("author_id") >= 2).select("post_id", "author_id", "ptype", "akind")
+if args.posts: T = T.filter(pl.col("post_id").is_in(pl.read_parquet(args.posts)["post_id"].implode()))
 if args.limit: T = T.head(args.limit)
 COLS = ["post_id", "author_id", "author_handle", "author_display_name", "created_at_ms", "snapshot_at_ms", "text", "kind", "media", "urls",
         "quoted_post_id", "quoted_text", "likes", "replies", "reposts", "quotes", "views", "author_followers", "author_following", "source"]
@@ -24,6 +27,8 @@ by_author = {a: g.sort("created_at_ms") for (a,), g in d.group_by("author_id")}
 log.info("%d posts to score, %d accounts", T.height, T["author_id"].n_unique())
 enc = SentenceEmbedder("BAAI/bge-small-en-v1.5", device="cpu")
 scorer = DraftScorer(args.checkpoint if len(args.checkpoint) > 1 else args.checkpoint[0], lambda t: enc.encode(t), device="cpu", sid_codebook=args.sid_codebook)
+for spec in args.aux:
+    nm, path = spec.split("=", 1); z = np.load(path); scorer.aux_lookup[nm] = dict(zip(z["post_id"].tolist(), z["vec"].astype(np.float32)))
 lines = args.out + ".jsonl"
 done = {json.loads(x)["post_id"] for x in open(lines)} if os.path.exists(lines) else set()
 sink = open(lines, "a")
@@ -33,7 +38,7 @@ for i, r in enumerate(T.iter_rows(named=True)):
     hist = g.filter(pl.col("created_at_ms") < x["created_at_ms"]).tail(args.history)
     account = {"author_id": r["author_id"], "handle": x["author_handle"], "display_name": x["author_display_name"], "followers": x["author_followers"], "following": x["author_following"]}
     try:
-        rep = scorer.score(hist, [{"text": x["text"], "kind": x["kind"], "media": x["media"], "urls": x["urls"], "quoted_text": x["quoted_text"]}], account, x["created_at_ms"])[0]
+        rep = scorer.score(hist, [{"text": x["text"], "kind": x["kind"], "media": x["media"], "urls": x["urls"], "quoted_text": x["quoted_text"], "aux": {nm: lk.get(x["post_id"]) for nm, lk in scorer.aux_lookup.items()}}], account, x["created_at_ms"])[0]
     except Exception as e:  # noqa: BLE001
         log.warning("post %d skipped: %s", i, e); continue
     rec = {"post_id": r["post_id"], "author_id": r["author_id"], "history": hist.height, "pred_likes": float(rep["likes"]["q50"]), "pred_views": float(rep["views_24h"]["q50"]),

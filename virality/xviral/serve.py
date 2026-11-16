@@ -113,6 +113,9 @@ class DraftScorer:
         self.fast = False
         self.timings: dict[str, float] = {}
 
+        # Auxiliary inputs of past posts (e.g. image embeddings), name -> {post_id: vector}. Drafts carry theirs
+        # in draft["aux"] = {name: vector}. Absent entries are scored as a post without that input.
+        self.aux_lookup: dict[str, dict[int, np.ndarray]] = {}
     def _tick(self, name: str, t0: float) -> float:
         now = time.perf_counter()
         self.timings[name] = self.timings.get(name, 0.0) + now - t0
@@ -251,7 +254,24 @@ class DraftScorer:
                 # The post-type columns are cheap and are recomputed from the cached frame on every read, so a cache
                 # written before they existed, or before their definition changed, still serves any model.
                 self.feature_cache[key] = (compact(posts.drop([c for c in post_type.COLUMNS if c in posts.columns])), emb, sid)
-        return features.transform(posts, self.meta, emb=emb, sid=sid, device=self.device)
+        return features.transform(posts, self.meta, emb=emb, sid=sid, device=self.device, aux=self._aux(posts, drafts, account, when_ms))
+
+    def _aux(self, posts: pl.DataFrame, drafts: list[dict], account: dict, when_ms: int) -> dict | None:
+        dims = self.meta.get("aux_dims") or {}
+        if not dims:
+            return None
+        ids = posts["post_id"].to_list()
+        draft_ids = {int(self._draft_row(d, i, account, when_ms)["post_id"][0]): d for i, d in enumerate(drafts)}
+        out = {}
+        for name, dim in dims.items():
+            look = self.aux_lookup.get(name, {})
+            v, f = np.zeros((len(ids), dim), np.float32), np.zeros(len(ids), bool)
+            for j, pid in enumerate(ids):
+                x = (draft_ids[pid].get("aux") or {}).get(name) if pid in draft_ids else look.get(pid)
+                if x is not None:
+                    v[j], f[j] = x, True
+            out[name] = (v, f)
+        return out
 
     @torch.no_grad()
     def score(self, history: pl.DataFrame, drafts: list[dict], account: dict, when_ms: int | None = None,

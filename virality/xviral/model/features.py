@@ -271,10 +271,12 @@ def render_texts(rows: pl.DataFrame) -> list[str]:
 
 
 def transform(rows: pl.DataFrame, meta: dict, emb: np.ndarray | None = None, sid: np.ndarray | None = None,
-              device: str = "cpu") -> tuple["FeatureTable", pl.DataFrame]:
+              device: str = "cpu", aux: dict | None = None) -> tuple["FeatureTable", pl.DataFrame]:
     """An in-memory table for new posts, using a trained model's stored transforms.
 
-    `emb` and `sid` are aligned with `rows` as passed in. Returns the table and the rows in table order.
+    `emb` and `sid` are aligned with `rows` as passed in. `aux`: name -> (vectors [n, dim], present [n]), aligned
+    with `rows` as passed in, for the auxiliary inputs the model was trained with (e.g. image embeddings); a model
+    with auxiliary inputs scores rows without them as absent. Returns the table and the rows in table order.
     """
     import torch
 
@@ -285,6 +287,10 @@ def transform(rows: pl.DataFrame, meta: dict, emb: np.ndarray | None = None, sid
     if meta["emb_dim"]:
         e = np.zeros((n, meta["emb_dim"]), np.float16) if emb is None else np.asarray(emb)[order].astype(np.float16)
         arrays["emb"], arrays["has_emb"] = e, np.full(n, emb is not None)
+    for name, dim in (meta.get("aux_dims") or {}).items():
+        v, f = (aux or {}).get(name, (None, None))
+        arrays[f"aux_{name}"] = np.zeros((n, dim), np.float16) if v is None else np.asarray(v)[order].astype(np.float16)
+        arrays[f"has_aux_{name}"] = np.zeros(n, bool) if f is None else np.asarray(f, bool)[order]
     if meta["sid_levels"]:
         arrays["sid"] = (np.zeros((n, meta["sid_levels"]), np.int16) if sid is None else np.asarray(sid)[order].astype(np.int16))
     t = {k: torch.from_numpy(v).to(device) for k, v in arrays.items()}
