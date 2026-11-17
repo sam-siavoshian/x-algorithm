@@ -76,12 +76,20 @@ CAT_SPEC: list[tuple[str, list[str] | int]] = [
     ("follower_tier_idx", 6),
     # How the source sampled the account's posts (expand track): the Community Archive holds posts that were already
     # travelling, so an account's likes there run about four times its full timeline. Only in tables built with the column.
-    ("src_regime", ["unknown", "stream_sample", "search_sample", "full_timeline"]),
+    # scrape track: the owner's home-timeline scrape is a sample of posts X chose to serve, read once at the moment of
+    # serving (median 4 hours after posting), so its counts are both success-biased and immature. The six `home_*`
+    # values carry the age of the post at capture; they are appended, so tables built with four values still load.
+    ("src_regime", ["unknown", "stream_sample", "search_sample", "full_timeline",
+                    "home_0_1h", "home_1_3h", "home_3_6h", "home_6_12h", "home_12_24h", "home_24h_plus"]),
 ]
 
 SRC_REGIME = {"community_archive": "stream_sample", "nitter_2026": "search_sample", "usc": "search_sample",
               "twitter100m": "full_timeline", "zenodo_brands": "full_timeline", "twitterapi_io": "full_timeline",
               "user_scrape": "full_timeline", "analytics": "full_timeline"}
+
+
+HOME_SOURCE = "home_scrape"
+SRC_REGIME[HOME_SOURCE] = "home_24h_plus"      # without a capture time; with one, `with_src_regime` picks the age bucket
 
 
 def with_src_regime(rows: pl.DataFrame) -> pl.DataFrame:
@@ -90,6 +98,12 @@ def with_src_regime(rows: pl.DataFrame) -> pl.DataFrame:
     if "source" not in rows.columns:
         return rows.with_columns(pl.lit("unknown").alias("src_regime"))
     r = pl.col("source").replace_strict(SRC_REGIME, default=None, return_dtype=pl.String)
+    if "snapshot_at_ms" in rows.columns and "created_at_ms" in rows.columns:
+        age_h = (pl.col("snapshot_at_ms") - pl.col("created_at_ms")) / 3.6e6
+        home = pl.lit("home_24h_plus")
+        for below, name in ((24, "home_12_24h"), (12, "home_6_12h"), (6, "home_3_6h"), (3, "home_1_3h"), (1, "home_0_1h")):
+            home = pl.when(age_h < below).then(pl.lit(name)).otherwise(home)
+        r = pl.when(pl.col("source") == HOME_SOURCE).then(pl.when(age_h.is_null()).then(pl.lit("home_24h_plus")).otherwise(home)).otherwise(r)
     return rows.with_columns(r.alias("_rg")).with_columns(
         pl.coalesce(pl.col("_rg"), pl.col("_rg").drop_nulls().mode().first().over("author_id"), pl.lit("unknown")).alias("src_regime")).drop("_rg")
 

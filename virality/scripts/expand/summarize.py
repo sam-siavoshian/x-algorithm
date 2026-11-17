@@ -18,7 +18,7 @@ from pathlib import Path
 
 import numpy as np
 
-E = Path("data/expand")
+E = Path(__import__("os").environ.get("XVIRAL_TRACK_DIR", "data/expand"))      # the scrape track reuses this file with its own folder
 
 
 def pct(x, d=1):
