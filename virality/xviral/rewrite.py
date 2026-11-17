@@ -66,7 +66,7 @@ def faithful(original: str, new: str) -> tuple[bool, str]:
 class OpenAIRewriter:
     """Calls an OpenAI chat model. The key comes from OPENAI_API_KEY, or is injected by a network proxy (any placeholder works then)."""
 
-    def __init__(self, model: str = "gpt-5.4-mini", api_key: str | None = None, base_url: str = "https://api.openai.com/v1", timeout: float = 60.0):
+    def __init__(self, model: str = "gpt-6-luna", api_key: str | None = None, base_url: str = "https://api.openai.com/v1", timeout: float = 60.0):
         self.model, self.base_url, self.timeout = model, base_url.rstrip("/"), timeout
         self.api_key = api_key or os.environ.get("OPENAI_API_KEY") or "proxy-injected"
 
