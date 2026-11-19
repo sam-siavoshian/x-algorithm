@@ -130,6 +130,9 @@
         <p style="margin:12px 0 0"><button class="link" id="add" type="button">+ Add a version (up to 6)</button></p>
       </div>
       <p style="margin:0 0 12px"><label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="suggest" checked> Propose rewrites of version 1 and judge them</label></p>
+      <p style="margin:0 0 6px"><label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="judge" checked> Ask a language model for a second opinion on which version does better</label></p>
+      <p class="small muted" style="margin:0 0 8px 26px">When the server has one, your versions, your handle and follower count, and up to 30 recent posts with their like counts are sent to the model's provider. The report names the provider and the model. Untick to keep everything on this server.</p>
+      <p style="margin:0 0 12px 26px"><label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="share"> Past posts I typed in or imported may be sent too (without this, a request with your own past posts gets no second opinion)</label></p>
       <button class="primary" id="go" type="button">Analyze</button>
       <p class="err" id="err" role="alert"></p>
     </section>
@@ -289,9 +292,9 @@ function render(r) {
         <td class="num"><b>${num(v.likes_median)}</b></td><td class="num">${num(v.likes_range[0])} to ${num(v.likes_range[1])}</td><td class="num">${num(v.views_median)}</td>
         ${usual ? `<td class="num">${x1(v.likes_median / usual)}</td>` : ""}${r.launch_plan ? `<td class="num">${v.plan_checks_met} of ${r.launch_plan.checks_on_the_text}</td>` : ""}</tr>`).join("") + `</tbody></table></div>`;
     const pairs = c.pairs.filter(p => p.status !== "no_confident_difference");
-    h += `<details style="margin-top:10px"><summary>Every pair (${c.pairs.length})</summary><div class="scroll"><table><thead><tr><th>Pair</th><th class="num">Chance the second does better</th><th class="num">Predicted ratio</th><th>Models agree</th><th></th></tr></thead><tbody>` +
-      c.pairs.map(p => `<tr><td>${p.a} vs ${p.b}</td><td class="num">${pct(p.p_b_better)}</td><td class="num">${p.predicted_ratio_b_over_a.toFixed(2)}x</td><td>${p.members_agree === false ? "no" : "yes"}</td><td>${statusTag(p.status)}</td></tr>`).join("") +
-      `</tbody></table></div><p class="small muted">A version is named best only when it clears ${pct(r.method.thresholds.speak)} confidence against every other version and every model agrees.</p></details>`;
+    h += `<details style="margin-top:10px"><summary>Every pair (${c.pairs.length})</summary><div class="scroll"><table><thead><tr><th>Pair</th><th class="num">Chance the second does better</th><th class="num">Predicted ratio</th><th>Models agree</th>${c.opinions ? "<th>Forecasting model prefers</th><th>Language model prefers</th>" : ""}<th></th></tr></thead><tbody>` +
+      c.pairs.map(p => `<tr><td>${p.a} vs ${p.b}</td><td class="num">${pct(p.p_b_better)}</td><td class="num">${p.predicted_ratio_b_over_a.toFixed(2)}x</td><td>${p.members_agree === false ? "no" : "yes"}</td>${c.opinions ? (p.opinions ? `<td>version ${p.opinions.forecast_model_prefers}</td><td>version ${p.opinions.language_model_prefers}${p.opinions.agree ? "" : " (they differ)"}</td>` : "<td></td><td>not asked</td>") : ""}<td>${statusTag(p.status)}</td></tr>`).join("") +
+      `</tbody></table></div><p class="small muted">${c.opinions ? esc(c.opinions.statement) + " A version is named best only when the two together clear " + pct(r.method.thresholds.speak) + " confidence against every other version." : "A version is named best only when it clears " + pct(r.method.thresholds.speak) + " confidence against every other version and every model agrees."}</p></details>`;
     h += `<div style="margin-top:14px">${chart(r)}</div>`;
   } else {
     h += `<div class="stats"><div class="stat"><b>${num(v1.likes_median)}</b><span>likes, typical</span></div><div class="stat"><b>${num(v1.views_median)}</b><span>views in 24h, typical</span></div>
@@ -324,7 +327,9 @@ function render(r) {
   }
   if (r.rules.length) h += `<div class="card"><h2>Rules from X's ranking code</h2><ul class="plain">` + r.rules.map(g => `<li><span class="tag ${g.status === "fail" ? "bad" : "warn"}">${esc(g.status)}</span> ${esc(g.detail)}</li>`).join("") + `</ul></div>`;
   if (r.record.length) h += `<div class="card"><h2>From your own posts</h2><ul class="plain">` + r.record.map(f => `<li>With ${esc(f.attribute)}: median ${num(f.median_with)} ${esc(f.outcome)} over ${f.n_with} posts. Without: ${num(f.median_without)} over ${f.n_without}.</li>`).join("") + `</ul></div>`;
-  h += `<div class="card small muted"><h2>How far to trust this</h2><p style="margin:0 0 6px">${esc(r.method.validation)}${r.method.launch_validation ? " " + esc(r.method.launch_validation) : ""} Comparisons use predicted ${esc(r.method.outcome_compared)}.</p>
+  h += `<div class="card small muted"><h2>How far to trust this</h2><p style="margin:0 0 6px">${r.judge && r.judge.used ? "Second opinion: " + esc(r.judge.provider) + ", model " + esc(r.judge.model) + ". Sent to it: " + r.judge.sent.versions + " version" + (r.judge.sent.versions === 1 ? "" : "s") + (r.judge.sent.rewrites ? ", " + r.judge.sent.rewrites + " proposed rewrites" : "") + ", your handle and follower count, and " + r.judge.sent.past_posts + " past posts with like counts." : r.judge && r.judge.configured ? "No language model was used for this report: " + esc(r.judge.why_not || "") + "." : ""}</p>
+    <p style="margin:0 0 6px">${esc(r.method.validation)} Comparisons use predicted ${esc(r.method.outcome_compared)}.</p>
+    <p style="margin:0 0 6px">${r.judge && r.judge.used ? "The forecasting model alone (single edits, and any pair the language model did not answer): " + esc(r.method.forecast_model_validation) + " " : ""}${r.method.launch_validation ? esc(r.method.launch_validation) : ""}</p>
     <p style="margin:0">Report generated ${esc(r.generated_at.replace("T", " ").replace("Z", " UTC"))} in ${r.seconds}s.</p></div>`;
   h += `<div class="actions no-print" id="export"><button type="button" id="xjson">Download JSON</button><button type="button" id="xhtml">Download page</button><button type="button" id="xprint">Print or save as PDF</button></div>`;
   $("#out").innerHTML = h;
@@ -354,6 +359,7 @@ $("#go").onclick = async () => {
   $("#err").textContent = "";
   if (!versions.length) { $("#err").textContent = "Write at least one version of the post."; return; }
   const req = { handle: $("#handle").value.trim() || null, followers: Number.isFinite(f) ? f : null, versions, past_posts: pastPosts(), suggest: $("#suggest").checked ? 6 : 0,
+                judge: $("#judge").checked, share_past_posts: $("#share").checked,
                 when: w ? new Date(w).toISOString() : null, launch: $("#launch").value === "" ? null : $("#launch").value === "1" };
   $("#go").disabled = true; $("#go").textContent = "Analyzing...";
   try {

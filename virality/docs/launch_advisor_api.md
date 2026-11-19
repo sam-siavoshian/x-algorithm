@@ -48,6 +48,10 @@ Scale out with more machines behind a load balancer, with sticky routing by hand
 | `XVIRAL_GATE` | none | `package.module:make_gate`, the accounts-and-billing plug-in (below) |
 | `XVIRAL_LOG_TEXT` | off | `1`: include draft text in request logs |
 | `XVIRAL_LOG_LEVEL` | `INFO` | |
+| `XVIRAL_JUDGE_MODEL` | none | a language model as second opinion on version comparisons (below): `gpt-6.1-sol`, `gpt-6-luna`, or a Publik `vendor/model` name. Unset: no model is called |
+| `XVIRAL_JUDGE_ENDPOINT` | by model name | `openai` (`api.openai.com`, key in `OPENAI_API_KEY`) or `publik` (`publikhq.com/api/v1`, key in `PUBLIK_API_KEY`) |
+| `XVIRAL_JUDGE_DEADLINE` | 40 | seconds a request waits for the judge; after that the forecasting model decides alone |
+| `XVIRAL_JUDGE_TIMEOUT`, `XVIRAL_JUDGE_HISTORY`, `XVIRAL_JUDGE_CONCURRENCY` | 45, 30, 16 | seconds per call; past posts sent; parallel calls |
 
 ## Endpoints
 
@@ -66,7 +70,9 @@ JSON body, or `multipart/form-data` with the JSON in the field `request` and med
   ],
   "past_posts": [],
   "when": "2026-11-18T16:00:00Z",
-  "launch": null
+  "launch": null,
+  "judge": true,
+  "share_past_posts": false
 }
 ```
 
@@ -78,6 +84,8 @@ JSON body, or `multipart/form-data` with the JSON in the field `request` and med
 | `past_posts` | up to 500 of `{text, posted_at, likes, views, replies, reposts, image, video}`; used instead of the corpus |
 | `when` | ISO 8601; enables the 2-hour spacing check and scores the drafts at that time |
 | `launch` | `true` / `false` forces the launch plan on or off; `null` shows it when a version reads as a launch |
+| `judge` | default `true`: allow the second opinion of a language model when the server has one (see "The second opinion"); `false` sends nothing |
+| `share_past_posts` | default `false`: allow `past_posts` to be sent to the language model's provider |
 
 The report (`report_version` 2):
 
@@ -93,7 +101,8 @@ The report (`report_version` 2):
 | `changes[]` | single edits of version 1 scored against it, each with `status` and its measured evidence |
 | `rules[]` | X's code: distribution checks that warn or fail |
 | `record[]` | differences in the account's own history that are large enough to state |
-| `method` | thresholds and the validation behind the probabilities |
+| `judge` | the second opinion: whether a language model was used, its provider and model, what was sent, calls, cost, added time, or why it was not used |
+| `method` | thresholds and the validation behind the probabilities: `validation` is the accuracy measured for the configuration that decided this report's comparisons; `comparisons_decided_by` |
 | `timing_ms` | where the time went |
 
 A version is named the winner only when it clears the gates against every other version: a calibrated probability of
@@ -130,7 +139,38 @@ Every error is JSON with a readable `detail` string, which the page shows as is;
 | 429 | rate limit; `Retry-After` gives the seconds |
 | 503 | not configured, or models failed to load |
 
+## The second opinion (`judge`)
+
+With `XVIRAL_JUDGE_MODEL` set, every comparison of two versions whose wording differs (the versions against each other,
+proposed rewrites against version 1) is decided by the forecasting model together with a language model that reads both
+versions and the account's 30 most recent posts with their like counts. The two are blended by a rule fitted on
+development pairs (`xviral/data/judge_rule.json`; `research/tracks/judge_product/REPORT.md`). Single defined edits (attach
+an image, move the link) and the spacing check stay with the forecasting model.
+
+- **What is sent** to the provider: the versions (text, kind of media, link domain), the handle and follower count, and
+  up to 30 past posts (text, kind of media, link domain, like count). Nothing else: no view counts, no files.
+- **Opt out per request**: `"judge": false`. Nothing is sent and the report is the one a server without a judge gives.
+- **Past posts that came with the request** (`past_posts`: typed in, or read from an X analytics export) are never sent
+  unless the request sets `"share_past_posts": true`. Without it such a request is decided by the forecasting model
+  alone. Posts from the server's own corpus of public posts are sent without that flag.
+- **The report says what happened**: `judge` = `{configured, used, provider, model, why_not, sent: {to, model, versions,
+  rewrites, account_line, past_posts, past_posts_source, past_posts_fields}, pairs, pairs_answered, calls, cost_usd,
+  added_ms, error}`. Each entry of `comparison.pairs` and each `versions[i].vs_version_1` carries `decided_by` and, when
+  both were asked, `opinions` = which version the forecasting model preferred, which the language model preferred, and
+  whether they agree; `comparison.opinions.statement` sums that up and the verdict sentence says it for the winner.
+  `method.validation` then states the accuracy measured for this model and each kind of pair that occurred (the same
+  text is in `method.judge_validation`); the forecasting model's own record is in `method.forecast_model_validation`.
+  Past posts sent are the 30 most recent from before `when`.
+- **Failure**: a call that errors or exceeds the deadline leaves that pair to the forecasting model; the request never
+  fails because of the judge. Calls of one request run in parallel while the forecasting model scores.
+- **Cost and time**, measured with `gpt-6.1-sol` (research report, end-to-end run): two versions, 2 calls, about 3 s
+  and 0.01 dollars; six versions, 30 calls, about 8 s and 0.13 dollars.
+
 ## Privacy and logging
+
+With a judge configured, drafts and past posts leave the server as described above unless the request opts out; the
+request log line then also carries `judge` = `{used, model, pairs, cost_usd, added_ms, why_not}`, never text.
+
 
 Draft text is never written to disk or to the logs unless `XVIRAL_LOG_TEXT=1`. Each API request logs one JSON line:
 request ID, path, status, milliseconds, number of versions, character counts, media kinds, whether a handle was given,

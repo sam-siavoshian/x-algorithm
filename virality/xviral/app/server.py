@@ -51,6 +51,9 @@ class Settings:
     media_analyzer: str | None = None                      # XVIRAL_MEDIA_ANALYZER package.module:function (xviral/app/media.py)
     log_text: bool = False                                 # XVIRAL_LOG_TEXT=1    include draft text in request logs (off by default)
     log_level: str = "INFO"                                # XVIRAL_LOG_LEVEL
+    judge_model: str | None = None                         # XVIRAL_JUDGE_MODEL   a language model as second opinion on version comparisons (xviral/judge.py); unset = none
+    judge_endpoint: str | None = None                      # XVIRAL_JUDGE_ENDPOINT openai | publik (default: by the model's name)
+    judge_deadline_s: int = 40                             # XVIRAL_JUDGE_DEADLINE seconds a request waits for the judge before the forecasting model decides alone
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -61,7 +64,8 @@ class Settings:
                    rate_per_minute=_env_int("XVIRAL_RATE_PER_MIN", 30), rate_burst=_env_int("XVIRAL_RATE_BURST", 10),
                    max_upload_mb=_env_int("XVIRAL_MAX_UPLOAD_MB", 64), max_body_mb=_env_int("XVIRAL_MAX_BODY_MB", 200),
                    media_analyzer=e("XVIRAL_MEDIA_ANALYZER") or None, log_text=e("XVIRAL_LOG_TEXT", "") in ("1", "true", "yes"),
-                   log_level=e("XVIRAL_LOG_LEVEL") or "INFO")
+                   log_level=e("XVIRAL_LOG_LEVEL") or "INFO", judge_model=e("XVIRAL_JUDGE_MODEL") or None, judge_endpoint=e("XVIRAL_JUDGE_ENDPOINT") or None,
+                   judge_deadline_s=_env_int("XVIRAL_JUDGE_DEADLINE", 40))
 
 
 # --- request bodies ----------------------------------------------------------------------------------------
@@ -95,6 +99,11 @@ class AnalyzeRequest(BaseModel):
     when: str | None = Field(default=None, description="planned posting time, ISO 8601; enables the 2-hour spacing check")
     suggest: int = Field(default=0, ge=0, le=8, description="how many rewrites of version 1 to propose and judge; needs XVIRAL_REWRITER_MODEL on the server")
     launch: bool | None = Field(default=None, description="force the launch plan on or off; by default it appears when a version reads as a launch")
+    judge: bool = Field(default=True, description="allow the second opinion of a language model on version comparisons when the server has one (XVIRAL_JUDGE_MODEL): "
+                                                  "the versions, the handle and follower count, and recent posts with like counts are sent to the provider named in the "
+                                                  "report's `judge` block. false = nothing is sent; the forecasting model decides alone")
+    share_past_posts: bool = Field(default=False, description="allow `past_posts` (posts you typed in or read from an X analytics export) to be sent to the language model's "
+                                                              "provider. Without it a request that carries past_posts is decided by the forecasting model alone")
 
     @field_validator("handle")
     @classmethod
@@ -203,8 +212,13 @@ def create_app(service=None, settings: Settings | None = None, gate: accounts.Ga
 
                         torch.set_num_threads(cfg.torch_threads)
                     try:
+                        judge = None
+                        if cfg.judge_model:
+                            from xviral.judge import Judge
+
+                            judge = Judge.from_env({**os.environ, "XVIRAL_JUDGE_MODEL": cfg.judge_model, "XVIRAL_JUDGE_ENDPOINT": cfg.judge_endpoint or ""})
                         state["service"] = S.load(cfg.checkpoints, cfg.scales, posts=cfg.posts, sid_codebook=cfg.sid, encoder=cfg.encoder, device=cfg.device,
-                                                  type_correction=os.environ.get("XVIRAL_TYPE_CORRECTION") or None)
+                                                  type_correction=os.environ.get("XVIRAL_TYPE_CORRECTION") or None, judge=judge, judge_deadline=cfg.judge_deadline_s)
                         if os.environ.get("XVIRAL_REWRITER_MODEL"):      # an OpenAI chat model; the key is OPENAI_API_KEY or proxy-injected
                             from xviral.rewrite import OpenAIRewriter
 
@@ -376,6 +390,9 @@ def create_app(service=None, settings: Settings | None = None, gate: accounts.Ga
         for v in payload["versions"]:
             v.pop("media_embedding", None)
         lg.update(history_source=out["account"]["history_source"], history_posts=out["account"]["history_posts"], timing_ms=out.get("timing_ms"))
+        jb = out.get("judge") or {}
+        if jb.get("configured"):          # what left the server for this request, without any text
+            lg.update(judge={"used": jb["used"], "sent": jb["sent"] is not None, "model": jb["model"], "pairs": jb["pairs"], "cost_usd": jb["cost_usd"], "added_ms": jb["added_ms"], "why_not": jb["why_not"]})
         gate.record_usage(caller, accounts.Usage("analyze", versions=len(payload["versions"]), media_files=sum(1 for v in payload["versions"] if v.get("media_info")),
                                                  history_posts=out["account"]["history_posts"], ms=out["timing_ms"]["total"]))
         return out

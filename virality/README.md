@@ -170,6 +170,19 @@ API, configuration, errors, privacy, the media-understanding interface and the s
 `tests/test_app.py`. Screenshot: `docs/launch_advisor.png`. Accuracy goal and the research tracks working toward it:
 `research/tracks/README.md`.
 
+### A second opinion on which version does better
+
+With `XVIRAL_JUDGE_MODEL` set (`gpt-6.1-sol` or `gpt-6-luna`; the key is `OPENAI_API_KEY`), every comparison of two versions is
+decided by the forecasting model together with a language model that reads both versions and the account's 30 most recent
+posts with their like counts (`xviral/judge.py`, rule in `xviral/data/judge_rule.json`). No sentence comes from that model
+either: it returns a probability, the fitted rule blends it with the forecast, and the report names the provider and the
+model, what was sent, which of the two preferred which version, and the accuracy measured for that configuration. Measured
+with `gpt-6.1-sol` on pairs after its knowledge cutoff whose wording differs: launch posts 64% to 77% right, a verdict on
+91% of pairs 2x apart at 85%; same-topic pairs 61% to 66%, a verdict on 58% at 76%. A request opts out with `judge: false`,
+and past posts that came with the request are sent only with `share_past_posts: true`. Without the variable, or when the
+model fails, the report is the forecasting model's own. Evaluation, costs (about 0.01 dollars and 3 seconds per pair) and
+limits: `research/tracks/judge_product/REPORT.md`; tests: `tests/test_judge.py`.
+
 ### Rewrites
 
 With `XVIRAL_REWRITER_MODEL` set to an OpenAI chat model (for example `gpt-6-luna`; the key is `OPENAI_API_KEY`), a request with `suggest: n` gets `n` rewrites of version 1 proposed by that model (`xviral/rewrite.py`). A rewrite is dropped before scoring if it adds a number, changes the links, adds a handle or hashtag, or drifts from the draft's meaning. The rest are judged by the forecasting model through the same gates as any other version, and only those that clear them are listed as better. The language model writes candidate text; it decides nothing.

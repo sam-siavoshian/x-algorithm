@@ -142,7 +142,8 @@ def own_record(history: pl.DataFrame, min_each: int = 8, seed: int = 0) -> list[
 
 class Advisor:
     def __init__(self, scorer, scales: dict, evidence: dict | None = None, speak: float = 0.60, strong: float = 0.70,
-                 min_meaning_cos: float = 0.75, selective=None, agreement_gate: bool = True):
+                 min_meaning_cos: float = 0.75, selective=None, agreement_gate: bool = True, judge=None, judge_rule=None,
+                 judge_deadline: float = 40.0):
         """scorer: serve.DraftScorer (an ensemble gives the agreement gate something to check).
         scales: {"views": k, "likes": k} from held-out pairs (evaluate.fit_pair_scale); a missing target cannot speak.
         speak / strong: calibrated probability at which a change is recommended / called likely."""
@@ -155,6 +156,54 @@ class Advisor:
         self.selective, self.agreement_gate = selective, agreement_gate
         if selective is not None:
             scorer.selective_inputs = True
+        # judge: xviral.judge.Judge (or None). With it, a comparison of two versions whose wording differs (the user's
+        # versions against each other, a rewrite against the draft) is decided by the forecasting model and a language model
+        # that read both versions, blended by the rule fitted in research/tracks/judge_product (xviral/data/judge_rule.json).
+        # Any failure of the judge leaves the forecasting model's own comparison in place.
+        self.judge, self.judge_rule, self.judge_deadline = judge, judge_rule, judge_deadline
+        if judge is not None and judge_rule is None:
+            from xviral.judge import JudgeRule
+
+            self.judge_rule = JudgeRule.load()
+
+    # --- the second opinion ----------------------------------------------------------------------------------
+
+    def judge_ready(self) -> bool:
+        return self.judge is not None and self.judge_rule is not None and bool(self.judge_rule.rule.get("models", {}).get(self.judge.model))
+
+    def start_judging(self, history: pl.DataFrame | None, account: dict, pairs: list[tuple[dict, dict]], share_history: bool = True,
+                      when_ms: int | None = None):
+        """Start the judge on pairs of drafts (first, second) in the background; returns a xviral.judge.JudgeBatch whose
+        results are the log-odds that the first does better, or None when no judge is configured. What is sent: the two
+        drafts of each pair, the account line, and, only with `share_history`, the account's most recent posts with likes
+        (those from before `when_ms`, the planned posting time, when it is given: the judge was measured with earlier posts only)."""
+        if not self.judge_ready() or not pairs or self._target() != "likes":      # the rule is fitted on likes only
+            return None
+        from xviral import judge as J
+
+        try:
+            if share_history and when_ms is not None and history is not None and history.height:
+                history = history.filter(pl.col("created_at_ms") < when_ms)
+            hist = J.history_posts(history, self.judge.history_n) if share_history else []
+            acct = {"name": account.get("name"), "handle": account.get("handle"), "followers": account.get("followers")}
+            r = lambda d: J.render_post(d.get("text"), d.get("media"))      # noqa: E731
+            return J.JudgeBatch(self.judge, acct, hist, [(r(a), r(b)) for a, b in pairs], deadline=self.judge_deadline)
+        except Exception:      # noqa: BLE001  the second opinion must never fail a request: the forecasting model decides alone
+            return None
+
+    @staticmethod
+    def _kind(base: dict, alt: dict) -> str:
+        """launch when both versions read as a launch (the text rules of xviral/text/launch_labels.py), else same_topic."""
+        from xviral import selective as sel
+
+        def launch(rep: dict) -> bool:
+            if rep.get("reads_as_launch") is not None:
+                return bool(rep["reads_as_launch"])
+            f = (rep.get("selective") or {}).get("features") or {}
+            if f.get("pt_launch") is not None:
+                return f["pt_launch"] > 0
+            return rep.get("text") is not None and sel.post_type_flags(rep["text"])["pt_launch"] > 0
+        return "launch" if launch(base) and launch(alt) else "same_topic"
 
     def _target(self) -> str:
         # Likes first: the pair benchmark that validates the stated confidence (2,852 same-account, same-topic pairs)
@@ -168,7 +217,8 @@ class Advisor:
         q = report["views_24h"]["q50"] if target == "views" else report["likes"]["q50"]
         return math.log10(q + 1)
 
-    def _compare(self, base: dict, alt: dict, target: str) -> dict:
+    def _compare(self, base: dict, alt: dict, target: str, judged: dict | None = None) -> dict:
+        """judged: the judge's result for (alt, base), log-odds that alt does better; None = the forecasting model alone."""
         k = self.scales.get(target)
         diff = self._score(alt, target) - self._score(base, target)
         p = None if k is None else 1.0 / (1.0 + math.exp(-k * diff))
@@ -183,12 +233,24 @@ class Advisor:
             launch = all(((v.get("features") or {}).get("pt_launch") or 0) > 0 for v in (va, vb))
             d = self.selective.decide(va, vb, kind="launch" if launch else "same_topic", speak=self.speak)
             out.update({"p_better": d["p_a_better"], "p_scale_only": p, "confidence_method": d["method"], "comparison_kind": d["kind"]})
+        if judged is not None and judged.get("ok") and target == "likes" and self.judge_ready():
+            ma, mb = alt.get("members") or [], base.get("members") or []
+            gap = float(np.mean([math.log10(a["likes_q50"] + 1) - math.log10(b["likes_q50"] + 1) for a, b in zip(ma, mb)])) if ma and mb else diff
+            kind = self._kind(base, alt)
+            d = self.judge_rule.decide(gap, judged["logodds"], kind, self.judge.model, speak=self.speak)
+            if d is not None:
+                side = lambda first: "neither" if first is None else "this version" if first else "the other version"      # noqa: E731
+                out.update({"p_better": d["p_first_better"], "p_forecast_model_only": out["p_better"], "confidence_method": "forecast model + language model",
+                            "comparison_kind": kind, "speak": d["speak"], "why_silent": d["why_silent"],
+                            "opinions": {"forecast_model": {"prefers": side(d["surrogate"]["pick_first"]), "p_better": d["surrogate"]["p_first_better"]},
+                                         "language_model": {"prefers": side(d["judge"]["pick_first"]), "p_better": d["judge"]["p_first_better"]},
+                                         "agree": d["agree"]}})
         return out
 
-    def compare(self, base: dict, alt: dict) -> dict:
+    def compare(self, base: dict, alt: dict, judged: dict | None = None) -> dict:
         """One version against another on the validated outcome, both taken from the same scoring pass. The pair is
-        treated like any user's alternative: compared, never explained."""
-        cmp = self._compare(base, alt, self._target())
+        treated like any user's alternative: compared, never explained. judged: the judge's result for (alt, base)."""
+        cmp = self._compare(base, alt, self._target(), judged)
         status, why = self._status(cmp, {"supported": True}, True)
         return {**cmp, "status": status, "why": why}
 
@@ -196,6 +258,16 @@ class Advisor:
         p = cmp["p_better"]
         if p is None:
             return "uncalibrated", "no confidence scale for this outcome"
+        if "opinions" in cmp:               # forecasting model + language model: the fitted rule decides whether to speak
+            if not cmp["speak"]:
+                return "no_confident_difference", cmp["why_silent"]
+            if p < 0.5:
+                return "predicted_worse", "the forecasting model and the language model together expect this version to do worse"
+            if not meaning_ok:
+                return "no_confident_difference", "the rewrite drifts from what the draft says"
+            if ev is None or not ev.get("supported"):
+                return "untested", "the models prefer it, but this kind of change has no measured effect in controlled pairs"
+            return ("recommended_likely" if p >= self.strong else "recommended"), "all gates passed"
         if cmp["members_agree"] is False and self.agreement_gate:
             return "no_confident_difference", "the models in the ensemble disagree on the direction"
         if p >= self.speak:
@@ -210,10 +282,15 @@ class Advisor:
 
     def advise(self, history: pl.DataFrame, draft: dict, account: dict, when_ms: int | None = None,
                rewrite_fn: Callable[[str, str], str] | None = None, alternatives: list[dict] | None = None,
-               record: list[dict] | None = None) -> dict:
+               record: list[dict] | None = None, judged: list | None = None, use_judge: bool = True, share_history: bool = True) -> dict:
         """alternatives: the user's own other versions ({"text": ..., "label": ...}); they are compared with the
         draft like any change, with no reason attached, since more than one thing differs.
-        record: own_record(history) when the caller already holds it (the product caches it per account)."""
+        record: own_record(history) when the caller already holds it (the product caches it per account).
+        judged: the judge's results for (alternative, draft), one per alternative (None where it has none), when the caller
+        already ran it. Otherwise, with a judge configured and `use_judge`, the alternatives are judged here, in the
+        background while the forecasting model scores; `share_history` says whether the account's posts may be sent.
+        Single defined edits (the operators) and the spacing check are never sent: they are near-identical texts, which is
+        not what the judge was validated on."""
         ctx = {"rewrite_fn": rewrite_fn}
         variants: list[tuple[Operator | None, str, dict]] = []
         for op in OPERATORS:
@@ -224,12 +301,19 @@ class Advisor:
                 variants.append((op, op.change, new))
         for i, alt in enumerate(alternatives or []):
             variants.append((None, alt.get("label") or f"your version {i + 2}", {**draft, **{k: v for k, v in alt.items() if k != "label"}}))
+        batch = None
+        n_alt = len(alternatives or [])
+        if judged is None and use_judge and n_alt:
+            batch = self.start_judging(history, account, [(v, draft) for op, _, v in variants if op is None], share_history, when_ms)
         reports = self.scorer.score(history, [draft] + [v for _, _, v in variants], account, when_ms)
         base, target = reports[0], self._target()
+        if batch is not None:
+            judged = batch.results()
+        judged_of = dict(zip([i for i, (op, _, _) in enumerate(variants) if op is None], judged or []))
 
         changes = []
-        for (op, label, new), rep in zip(variants, reports[1:]):
-            cmp = self._compare(base, rep, target)
+        for i, ((op, label, new), rep) in enumerate(zip(variants, reports[1:])):
+            cmp = self._compare(base, rep, target, judged_of.get(i))
             ev = self.evidence.get(op.evidence) if op and op.evidence else None
             meaning_ok = True
             if op is not None and op.needs_rewriter:
@@ -243,7 +327,7 @@ class Advisor:
                             "text": new.get("text"), "adds_media": bool(new.get("media")) and not draft.get("media"),
                             "evidence": None if ev is None else {k: ev[k] for k in ("win_rate", "lo", "hi", "pairs", "design", "supported") if k in ev},
                             "views_q50": rep["views_24h"]["q50"], "likes_q50": rep["likes"]["q50"],
-                            **({"report": {k: rep.get(k) for k in ("views_24h", "likes", "members")}} if op is None else {})})
+                            **({"report": {**{k: rep.get(k) for k in ("views_24h", "likes", "members")}, "reads_as_launch": self._kind(rep, rep) == "launch"}} if op is None else {})})
 
         # Spacing: a post close behind the previous one competes with it; compared at a later time, same draft.
         gap = next((g for g in base["gates"] if g["gate"] == "author_diversity"), None)
@@ -261,12 +345,13 @@ class Advisor:
         changes.sort(key=lambda c: (order[c["status"]], -(c["p_better"] or 0)))
         return {
             "draft": {k: base[k] for k in ("text", "views_24h", "likes", "p_reach_1x", "p_reach_10x", "p_reach_100x", "p_own_top_10pct",
-                                           "lift_vs_own_median", "own_median", "history_posts_used")} | {"members": base.get("members")},
+                                           "lift_vs_own_median", "own_median", "history_posts_used")} | {"members": base.get("members"), "reads_as_launch": self._kind(base, base) == "launch"},
             "rules": [g for g in base["gates"] if g["status"] in ("warn", "fail")],
             "record": own_record(history) if record is None else record,
             "changes": changes,
             "outcome_compared": target,
             "thresholds": {"speak": self.speak, "likely": self.strong},
+            "judge": None if batch is None else batch.summary(),
         }
 
 
