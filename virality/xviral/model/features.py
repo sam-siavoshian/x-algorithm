@@ -81,6 +81,9 @@ CAT_SPEC: list[tuple[str, list[str] | int]] = [
     # values carry the age of the post at capture; they are appended, so tables built with four values still load.
     ("src_regime", ["unknown", "stream_sample", "search_sample", "full_timeline",
                     "home_0_1h", "home_1_3h", "home_3_6h", "home_6_12h", "home_12_24h", "home_24h_plus"]),
+    # The data source of the row (general track). "unknown" is trained on a random 15% of accounts of every source, so a
+    # source never seen in training (a customer's export) has a fitted answer. Only in tables built with the column.
+    ("src_name", ["unknown", "community_archive", "nitter_2026", "twitter100m", "zenodo_brands"]),
 ]
 
 SRC_REGIME = {"community_archive": "stream_sample", "nitter_2026": "search_sample", "usc": "search_sample",
@@ -157,6 +160,9 @@ def _arrays(rows: pl.DataFrame, meta: dict | None = None) -> tuple[dict, dict, p
     # categorical
     if meta and "src_regime" in meta["cat_names"] and "src_regime" not in rows.columns:
         rows = with_src_regime(rows)
+    if meta and "src_name" in meta["cat_names"] and "src_name" not in rows.columns:
+        # At serving the source is named when it is one the model was trained on; anything else (a draft, a customer export) is "unknown".
+        rows = rows.with_columns((pl.col("source").cast(pl.String).str.split("+").list.first() if "source" in rows.columns else pl.lit(None, dtype=pl.String)).alias("src_name"))
     cats, cards, cat_names = [], [], []
     spec_of = dict(CAT_SPEC)
     for col in (meta["cat_names"] if meta else [c for c, _ in CAT_SPEC if c in rows.columns]):
