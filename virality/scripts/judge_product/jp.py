@@ -4,7 +4,7 @@ import numpy as np, polars as pl
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "llm_judge"))
 from lib import ci, load_judge  # noqa: E402,F401
 
-D = "data/llm/"
+D = os.environ.get("JP_DIR", "data/llm/")      # JP_DIR: another working folder with the same files (the combine track refits the rule for another model set there)
 L125, L2 = np.log(1.25), np.log(2)
 # 2026-04-23 (test cutoff), 2026-04-30 and 2026-05-18 (knowledge cutoffs on OpenAI's model pages), 2026-02-16 (the day the
 # Qwen3.5-397B weights were published on Hugging Face: no knowledge cutoff is stated, and it cannot be later than that)

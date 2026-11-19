@@ -131,8 +131,10 @@
       </div>
       <p style="margin:0 0 12px"><label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="suggest" checked> Propose rewrites of version 1 and judge them</label></p>
       <p style="margin:0 0 6px"><label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="judge" checked> Ask a language model for a second opinion on which version does better</label></p>
-      <p class="small muted" style="margin:0 0 8px 26px">When the server has one, your versions, your handle and follower count, and up to 30 recent posts with their like counts are sent to the model's provider. The report names the provider and the model. Untick to keep everything on this server.</p>
-      <p style="margin:0 0 12px 26px"><label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="share"> Past posts I typed in or imported may be sent too (without this, a request with your own past posts gets no second opinion)</label></p>
+      <p class="small muted" style="margin:0 0 8px 26px">When the server has one, your versions, your handle and follower count, and up to 30 recent posts with their like counts are sent to the model's provider. The report names the provider and the model. Untick to send nothing to the language model.</p>
+      <p style="margin:0 0 12px 26px"><label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="share"> Past posts I typed in or imported may be sent too (without this, a request with your own past posts gets no second opinion and is forecast by models that run on this server only)</label></p>
+      <p style="margin:0 0 6px"><label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="embed" checked> Let the forecasting model use its provider's text embedding</label></p>
+      <p class="small muted" style="margin:0 0 12px 26px">When the server's models were trained with one, the text of your versions and of your recent posts (author line and text, no counts) is sent to the embedding provider named in the report. Untick to keep the text on this server: its local models answer instead, or the request is refused if it has none.</p>
       <button class="primary" id="go" type="button">Analyze</button>
       <p class="err" id="err" role="alert"></p>
     </section>
@@ -328,6 +330,7 @@ function render(r) {
   if (r.rules.length) h += `<div class="card"><h2>Rules from X's ranking code</h2><ul class="plain">` + r.rules.map(g => `<li><span class="tag ${g.status === "fail" ? "bad" : "warn"}">${esc(g.status)}</span> ${esc(g.detail)}</li>`).join("") + `</ul></div>`;
   if (r.record.length) h += `<div class="card"><h2>From your own posts</h2><ul class="plain">` + r.record.map(f => `<li>With ${esc(f.attribute)}: median ${num(f.median_with)} ${esc(f.outcome)} over ${f.n_with} posts. Without: ${num(f.median_without)} over ${f.n_without}.</li>`).join("") + `</ul></div>`;
   h += `<div class="card small muted"><h2>How far to trust this</h2><p style="margin:0 0 6px">${r.judge && r.judge.used ? "Second opinion: " + esc(r.judge.provider) + ", model " + esc(r.judge.model) + ". Sent to it: " + r.judge.sent.versions + " version" + (r.judge.sent.versions === 1 ? "" : "s") + (r.judge.sent.rewrites ? ", " + r.judge.sent.rewrites + " proposed rewrites" : "") + ", your handle and follower count, and " + r.judge.sent.past_posts + " past posts with like counts." : r.judge && r.judge.configured ? "No language model was used for this report: " + esc(r.judge.why_not || "") + "." : ""}</p>
+    <p style="margin:0 0 6px">${r.embedding && r.embedding.sent ? "Text embedding: " + esc(r.embedding.sent.to) + ", model " + esc(r.embedding.sent.model) + ". Sent to it: the text of " + r.embedding.texts_sent + " post" + (r.embedding.texts_sent === 1 ? "" : "s") + " (your versions and recent posts; author line and text, no counts)." : r.embedding && r.embedding.fallback_used ? "This report was made by models that run on this server only: " + esc(r.embedding.fallback_reason || "") + "." : ""}</p>
     <p style="margin:0 0 6px">${esc(r.method.validation)} Comparisons use predicted ${esc(r.method.outcome_compared)}.</p>
     <p style="margin:0 0 6px">${r.judge && r.judge.used ? "The forecasting model alone (single edits, and any pair the language model did not answer): " + esc(r.method.forecast_model_validation) + " " : ""}${r.method.launch_validation ? esc(r.method.launch_validation) : ""}</p>
     <p style="margin:0">Report generated ${esc(r.generated_at.replace("T", " ").replace("Z", " UTC"))} in ${r.seconds}s.</p></div>`;
@@ -359,7 +362,7 @@ $("#go").onclick = async () => {
   $("#err").textContent = "";
   if (!versions.length) { $("#err").textContent = "Write at least one version of the post."; return; }
   const req = { handle: $("#handle").value.trim() || null, followers: Number.isFinite(f) ? f : null, versions, past_posts: pastPosts(), suggest: $("#suggest").checked ? 6 : 0,
-                judge: $("#judge").checked, share_past_posts: $("#share").checked,
+                judge: $("#judge").checked, share_past_posts: $("#share").checked, external_embedding: $("#embed").checked,
                 when: w ? new Date(w).toISOString() : null, launch: $("#launch").value === "" ? null : $("#launch").value === "1" };
   $("#go").disabled = true; $("#go").textContent = "Analyzing...";
   try {

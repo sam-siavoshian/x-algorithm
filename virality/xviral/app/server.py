@@ -40,7 +40,13 @@ class Settings:
     scales: str | None = None                              # XVIRAL_SCALES        pair confidence scales (research/15_pair_confidence.json)
     posts: str | None = None                               # XVIRAL_POSTS         corpus parquet for accounts we know (optional)
     sid: str | None = None                                 # XVIRAL_SID           semantic-ID codebook (optional)
-    encoder: str = "BAAI/bge-small-en-v1.5"                # XVIRAL_ENCODER       must be the encoder the checkpoints were trained with
+    encoder: str | None = None                             # XVIRAL_ENCODER       optional: read from the checkpoints when unset; when set it must match them
+    bundle: str | None = None                              # XVIRAL_BUNDLE        a bundle.json (or its folder): checkpoints, encoder, rules and fallback in one config;
+                                                           #                      replaces XVIRAL_CHECKPOINTS, XVIRAL_SCALES, XVIRAL_SID, XVIRAL_TYPE_CORRECTION
+    fallback_checkpoints: list[str] = field(default_factory=list)   # XVIRAL_FALLBACK_CHECKPOINTS  a model set with a local encoder, used when the embedding
+    fallback_scales: str | None = None                     # XVIRAL_FALLBACK_SCALES        provider fails or a request does not allow its text to be sent
+    fallback_sid: str | None = None                        # XVIRAL_FALLBACK_SID
+    fallback_type_correction: str | None = None            # XVIRAL_FALLBACK_TYPE_CORRECTION
     device: str = "cpu"                                    # XVIRAL_DEVICE
     torch_threads: int = 0                                 # XVIRAL_TORCH_THREADS 0 = torch's default
     preload: bool = False                                  # XVIRAL_PRELOAD=1     load models at start-up instead of on the first request
@@ -59,7 +65,10 @@ class Settings:
     def from_env(cls) -> "Settings":
         e = os.environ.get
         return cls(checkpoints=[c.strip() for c in e("XVIRAL_CHECKPOINTS", "").split(",") if c.strip()], scales=e("XVIRAL_SCALES") or None,
-                   posts=e("XVIRAL_POSTS") or None, sid=e("XVIRAL_SID") or None, encoder=e("XVIRAL_ENCODER") or cls.encoder, device=e("XVIRAL_DEVICE") or "cpu",
+                   posts=e("XVIRAL_POSTS") or None, sid=e("XVIRAL_SID") or None, encoder=e("XVIRAL_ENCODER") or None, device=e("XVIRAL_DEVICE") or "cpu",
+                   bundle=e("XVIRAL_BUNDLE") or None, fallback_checkpoints=[c.strip() for c in e("XVIRAL_FALLBACK_CHECKPOINTS", "").split(",") if c.strip()],
+                   fallback_scales=e("XVIRAL_FALLBACK_SCALES") or None, fallback_sid=e("XVIRAL_FALLBACK_SID") or None,
+                   fallback_type_correction=e("XVIRAL_FALLBACK_TYPE_CORRECTION") or None,
                    torch_threads=_env_int("XVIRAL_TORCH_THREADS", 0), preload=e("XVIRAL_PRELOAD", "") in ("1", "true", "yes"),
                    rate_per_minute=_env_int("XVIRAL_RATE_PER_MIN", 30), rate_burst=_env_int("XVIRAL_RATE_BURST", 10),
                    max_upload_mb=_env_int("XVIRAL_MAX_UPLOAD_MB", 64), max_body_mb=_env_int("XVIRAL_MAX_BODY_MB", 200),
@@ -101,7 +110,11 @@ class AnalyzeRequest(BaseModel):
     launch: bool | None = Field(default=None, description="force the launch plan on or off; by default it appears when a version reads as a launch")
     judge: bool = Field(default=True, description="allow the second opinion of a language model on version comparisons when the server has one (XVIRAL_JUDGE_MODEL): "
                                                   "the versions, the handle and follower count, and recent posts with like counts are sent to the provider named in the "
-                                                  "report's `judge` block. false = nothing is sent; the forecasting model decides alone")
+                                                  "report's `judge` block. false = nothing is sent to the language model; the forecasting model decides alone "
+                                                  "(see external_embedding for the forecasting model's own text embedding)")
+    external_embedding: bool = Field(default=True, description="allow the text of the versions and of the account's recent posts to be sent to the embedding provider "
+                                                               "named in the report's `embedding` block, when the server's models use one. false = nothing is sent to it: "
+                                                               "the request is answered by the server's local fallback models, or refused when it has none")
     share_past_posts: bool = Field(default=False, description="allow `past_posts` (posts you typed in or read from an X analytics export) to be sent to the language model's "
                                                               "provider. Without it a request that carries past_posts is decided by the forecasting model alone")
 
@@ -203,8 +216,8 @@ def create_app(service=None, settings: Settings | None = None, gate: accounts.Ga
         if state["service"] is None:
             with load_lock:
                 if state["service"] is None:
-                    if not cfg.checkpoints or not cfg.scales:
-                        raise HTTPException(503, "the service is not configured: set XVIRAL_CHECKPOINTS and XVIRAL_SCALES")
+                    if not cfg.bundle and (not cfg.checkpoints or not cfg.scales):
+                        raise HTTPException(503, "the service is not configured: set XVIRAL_BUNDLE, or XVIRAL_CHECKPOINTS and XVIRAL_SCALES")
                     from xviral.app import service as S
 
                     if cfg.torch_threads:
@@ -217,8 +230,17 @@ def create_app(service=None, settings: Settings | None = None, gate: accounts.Ga
                             from xviral.judge import Judge
 
                             judge = Judge.from_env({**os.environ, "XVIRAL_JUDGE_MODEL": cfg.judge_model, "XVIRAL_JUDGE_ENDPOINT": cfg.judge_endpoint or ""})
-                        state["service"] = S.load(cfg.checkpoints, cfg.scales, posts=cfg.posts, sid_codebook=cfg.sid, encoder=cfg.encoder, device=cfg.device,
-                                                  type_correction=os.environ.get("XVIRAL_TYPE_CORRECTION") or None, judge=judge, judge_deadline=cfg.judge_deadline_s)
+                        if cfg.bundle:
+                            state["service"] = S.load_bundle(cfg.bundle, posts=cfg.posts, judge=judge, judge_deadline=cfg.judge_deadline_s, device=cfg.device)
+                        else:
+                            fb = None
+                            if cfg.fallback_checkpoints and cfg.fallback_scales:
+                                fb = S.load(cfg.fallback_checkpoints, cfg.fallback_scales, posts=cfg.posts, sid_codebook=cfg.fallback_sid, device=cfg.device,
+                                            type_correction=cfg.fallback_type_correction, judge=judge, judge_deadline=cfg.judge_deadline_s, model_set="fallback")
+                            state["service"] = S.load(cfg.checkpoints, cfg.scales, posts=cfg.posts, sid_codebook=cfg.sid, encoder=cfg.encoder, device=cfg.device,
+                                                      type_correction=os.environ.get("XVIRAL_TYPE_CORRECTION") or None, judge=judge, judge_deadline=cfg.judge_deadline_s,
+                                                      judge_rule=os.environ.get("XVIRAL_JUDGE_RULE") or None, selective_rule=os.environ.get("XVIRAL_SELECTIVE_RULE") or None,
+                                                      selective_ensemble=os.environ.get("XVIRAL_SELECTIVE_ENSEMBLE") or None, fallback=fb)
                         if os.environ.get("XVIRAL_REWRITER_MODEL"):      # an OpenAI chat model; the key is OPENAI_API_KEY or proxy-injected
                             from xviral.rewrite import OpenAIRewriter
 
@@ -289,7 +311,8 @@ def create_app(service=None, settings: Settings | None = None, gate: accounts.Ga
     def health() -> dict:
         s = state["service"]
         return {"ok": True, "loaded": s is not None, "load_error": state["error"], "uptime_s": round(time.time() - state["started"]),
-                "corpus": bool(s and s.posts), "media_analyzer": analyzer is not None}
+                "corpus": bool(s and s.posts), "media_analyzer": analyzer is not None,
+                "model_set": s.model_set if s else None, "embedding": s.embedding_info() if s else None, "fallback_model_set": bool(s and s.fallback)}
 
     @app.get("/api/ready", tags=["operations"], summary="Readiness: models loaded (503 until then)")
     def ready():
@@ -383,13 +406,22 @@ def create_app(service=None, settings: Settings | None = None, gate: accounts.Ga
         def work():
             with lock:
                 return svc().analyze(payload)
+        from xviral.app.service import EmbeddingUnavailable
+
         try:
             out = await run_in_threadpool(work)
+        except EmbeddingUnavailable as e:      # the embedding provider failed and there is no fallback model set: say so, score nothing
+            lg.update(embedding={"error": "provider failed, no fallback"})
+            raise HTTPException(503, str(e), headers={"Retry-After": "5"}) from e
         except ValueError as e:
             raise HTTPException(422, str(e)) from e
         for v in payload["versions"]:
             v.pop("media_embedding", None)
         lg.update(history_source=out["account"]["history_source"], history_posts=out["account"]["history_posts"], timing_ms=out.get("timing_ms"))
+        eb = out.get("embedding") or {}
+        if eb.get("external") or eb.get("fallback_used"):      # what the embedding cost and whether text left the server for it; never the text
+            lg.update(embedding={"encoder": eb.get("encoder"), "sent": eb.get("sent") is not None, "texts_sent": eb.get("texts_sent"), "cost_usd": eb.get("cost_usd"),
+                                 "ms": eb.get("ms"), "fallback_used": eb.get("fallback_used"), "fallback_reason": eb.get("fallback_reason")})
         jb = out.get("judge") or {}
         if jb.get("configured"):          # what left the server for this request, without any text
             lg.update(judge={"used": jb["used"], "sent": jb["sent"] is not None, "model": jb["model"], "pairs": jb["pairs"], "cost_usd": jb["cost_usd"], "added_ms": jb["added_ms"], "why_not": jb["why_not"]})

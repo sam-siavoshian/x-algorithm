@@ -51,7 +51,7 @@ def lines(lab, B):
 
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument("--debug", action="store_true"); a_ = ap.parse_args()
-    rule = json.load(open("data/llm/judge_rule_fitted.json"))
+    rule = json.load(open(D + "judge_rule_fitted.json"))
     R = {}
     sets = {"same_topic": "dev", "launch": "launchpre"} if a_.debug else {"same_topic": "bench", "launch": "launch"}
     for kind, name in sets.items():
@@ -146,13 +146,14 @@ def main():
                                  "forecast_model_alone_spoken_share_2x": b2["surrogate"]["spoken_share"][1] if b2 else None, "forecast_model_alone_correct_when_spoken_2x": b2["surrogate"]["spoken_acc"][1] if b2 else None}
             say("Product statement: " + st)
     tag = "_debug" if a_.debug else ""
-    json.dump(R, open(f"data/llm/jp_test{tag}.json", "w"), indent=1, default=float)
-    open(f"data/llm/jp_test{tag}.md", "w").write("\n".join(md) + "\n")
+    json.dump(R, open(f"{D}jp_test{tag}.json", "w"), indent=1, default=float)
+    open(f"{D}jp_test{tag}.md", "w").write("\n".join(md) + "\n")
     if not a_.debug:
         # only what was scored on the test sets ships: a model or kind without validated numbers is left out of the product file
         rule["models"] = {m: v for m, v in rule["models"].items() if all("validated" in v["kinds"].get(k, {}) for k in ("same_topic", "launch"))}
-        json.dump(rule, open("xviral/data/judge_rule.json", "w"), indent=1)
-        print("wrote xviral/data/judge_rule.json")
+        out = os.environ.get("JP_RULE_OUT") or "xviral/data/judge_rule.json"      # JP_RULE_OUT: the rule file of another model set
+        json.dump(rule, open(out, "w"), indent=1)
+        print("wrote", out)
 
 
 if __name__ == "__main__":

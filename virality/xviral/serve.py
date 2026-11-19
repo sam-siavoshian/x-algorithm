@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import re
 import time
+from collections import OrderedDict
 from pathlib import Path
 from typing import Callable
 
@@ -83,12 +84,17 @@ def compact(posts: pl.DataFrame) -> pl.DataFrame:
 
 
 class DraftScorer:
-    def __init__(self, checkpoint: str | Path | list, embed_fn: Callable[[list[str]], np.ndarray], device: str = "cpu",
-                 sid_codebook: str | Path | None = None, type_correction: str | Path | dict | None = None):
+    def __init__(self, checkpoint: str | Path | list, embed_fn: Callable[[list[str]], np.ndarray] | None = None, device: str = "cpu",
+                 sid_codebook: str | Path | None = None, type_correction: str | Path | dict | None = None, encoder=None):
         """embed_fn: rendered post texts -> [n, emb_dim] array, from the same encoder the model was trained with.
+        encoder: instead of embed_fn, an encoder object (xviral.embed.api: OpenAIEmbedder, StubEmbedder, LocalEncoder).
+        With neither, the encoder is built from the name stored in the checkpoints (`encoder_spec`), so a model set
+        trained with the OpenAI embedding is served with it and a bge-small set with bge-small.
         type_correction: the JSON written by scripts/posttype/fit_correction.py (or its dict): per post-type column a
         shift in log10 likes, fitted on the model's errors on own announcements before the test cutoff. It moves the
         likes forecast of a draft the rules type as an own announcement and leaves every other draft unchanged."""
+        from xviral.embed import api as embed_api
+
         if isinstance(type_correction, (str, Path)):
             import json
 
@@ -99,13 +105,38 @@ class DraftScorer:
 
             self.model, self.tcfg, ck = ensemble.load(list(checkpoint), device)
             self.temperature = {}
+            metas = getattr(self.model, "metas", None) or [ck["table_meta"]]
         else:
             self.model, self.tcfg, ck = tr.load(checkpoint, device)
             self.temperature = ck.get("temperature") or {}
+            metas = [ck["table_meta"]]
         self.meta = ck["table_meta"]
+        # The encoder the checkpoints were trained with (all members must agree). A model scored with another encoder's
+        # vectors gives numbers that look plausible and are wrong, so a mismatch is an error here, not at the first request.
+        self.encoder_spec = None
+        if self.meta.get("emb_dim"):
+            try:
+                self.encoder_spec = embed_api.common_encoder(metas)
+            except ValueError:
+                if embed_fn is None and encoder is None:      # nothing recorded that this build can serve, and the caller brought no encoder
+                    raise
+        if embed_fn is None and encoder is None and self.encoder_spec is not None:
+            encoder = embed_api.make_encoder(self.encoder_spec, device=device)
+        self.encoder = encoder
+        if encoder is not None:
+            if self.meta.get("emb_dim") and getattr(encoder, "dim", None) and int(encoder.dim) != int(self.meta["emb_dim"]):
+                raise ValueError(f"the encoder returns {encoder.dim} dimensions and the checkpoints were trained with {self.meta['emb_dim']} "
+                                 f"({self.encoder_spec['name']}): serve a model with the encoder it was trained with")
+            embed_fn = embed_fn or encoder.encode
         self._embed_raw, self.device, self.sid_codebook = embed_fn, device, sid_codebook
+        # Vectors by rendered text (the author line is part of it, so a text belongs to one account). `scope` groups the
+        # texts of one account: when more than `emb_accounts_limit` accounts are held, the least recently used account's
+        # vectors are dropped. An account's history is therefore embedded (and, with an API encoder, sent and paid for) once.
         self._emb_cache: dict[str, np.ndarray] = {}
+        self._emb_scopes: OrderedDict[str, set] = OrderedDict()
         self.emb_cache_limit = 200_000
+        self.emb_accounts_limit = 512
+        self.embed_counts = {"texts": 0, "sent": 0}      # distinct texts needed / not in the cache, since the caller last reset it
         self.feature_cache: dict | None = None
         # fast=True is the product's request path (research/tracks/product/REPORT.md). Same numbers up to floating-point
         # noise, less work: only the history rows the model can read are embedded, all drafts are featurised in one pass,
@@ -115,6 +146,11 @@ class DraftScorer:
         # 10th and 90th percentile, lift and top-10% odds, the draft's feature row, history statistics and novelty.
         self.selective_inputs = False
         self.timings: dict[str, float] = {}
+        # Other model sets that decide one kind of comparison (research/tracks/combine): {"launch": DraftScorer}. They are
+        # scored on the same drafts from the same features and vectors (same encoder, so nothing more is embedded), and
+        # every report then carries report["kind_reports"][kind] = {"likes", "members"}. The forecast itself (ranges, odds,
+        # "x times your usual") is always this scorer's.
+        self.kind_scorers: dict[str, "DraftScorer"] = {}
 
         # Auxiliary inputs of past posts (e.g. image embeddings), name -> {post_id: vector}. Drafts carry theirs
         # in draft["aux"] = {name: vector}. Absent entries are scored as a post without that input.
@@ -124,14 +160,27 @@ class DraftScorer:
         self.timings[name] = self.timings.get(name, 0.0) + now - t0
         return now
 
-    def embed_fn(self, texts: list[str]) -> np.ndarray:
-        """The encoder with a cache by rendered text: an account's history is embedded once across calls."""
-        new = [t for t in dict.fromkeys(texts) if t not in self._emb_cache]
+    def embed_fn(self, texts: list[str], scope: str | None = None) -> np.ndarray:
+        """The encoder with a cache by rendered text: an account's history is embedded once across calls. Only texts not
+        in the cache go to the encoder, in one call; if that call fails (xviral.embed.api.EmbeddingError) nothing is cached."""
+        uniq = list(dict.fromkeys(texts))
+        new = [t for t in uniq if t not in self._emb_cache]
+        self.embed_counts["texts"] += len(uniq)
+        self.embed_counts["sent"] += len(new)
         if new:
             for t, v in zip(new, np.asarray(self._embed_raw(new))):
                 self._emb_cache[t] = v
+        key = scope if scope is not None else "_shared"
+        self._emb_scopes.setdefault(key, set()).update(uniq)
+        self._emb_scopes.move_to_end(key)
+        while len(self._emb_scopes) > self.emb_accounts_limit:
+            _, gone = self._emb_scopes.popitem(last=False)
+            for t in gone:
+                if t not in uniq:
+                    self._emb_cache.pop(t, None)
         if len(self._emb_cache) > self.emb_cache_limit:
-            self._emb_cache = {t: self._emb_cache[t] for t in texts}
+            self._emb_cache = {t: self._emb_cache[t] for t in uniq}
+            self._emb_scopes = OrderedDict({key: set(uniq)})
         return np.stack([self._emb_cache[t] for t in texts])
 
     def preencode(self, posts: pl.DataFrame, chunk: int = 2048, log=None) -> int:
@@ -240,7 +289,7 @@ class DraftScorer:
             if self.meta["emb_dim"]:
                 texts = features.render_texts(posts)
                 use = self._rows_the_model_reads(posts, len(drafts)) if self.fast else np.arange(posts.height)
-                vec = np.asarray(self.embed_fn([texts[i] for i in use]))
+                vec = np.asarray(self.embed_fn([texts[i] for i in use], scope=str(account.get("handle") or account["author_id"])))
                 emb = vec if len(use) == posts.height else np.zeros((posts.height, vec.shape[1]), vec.dtype)
                 if emb is not vec:
                     emb[use] = vec               # rows the model never reads stay zero
@@ -281,7 +330,23 @@ class DraftScorer:
               mutual_share: float = 0.0) -> list[dict]:
         """One report per draft, in the order given. account: handle, followers, following, created_at_ms, verified."""
         when_ms = when_ms or int(time.time() * 1000)
-        table, rows = self.featurize(history, drafts, account, when_ms)
+        own_cache = self.feature_cache
+        if self.kind_scorers and own_cache is None:
+            self.feature_cache = {}                # for this call only: the kind scorers read the features and vectors computed here
+        try:
+            table, rows = self.featurize(history, drafts, account, when_ms)
+            kind_reports = {}
+            for kind, ks in self.kind_scorers.items():
+                t1 = time.perf_counter()
+                prev = (ks.feature_cache, ks.fast, ks.selective_inputs)
+                ks.feature_cache, ks.fast, ks.selective_inputs = self.feature_cache, self.fast, self.selective_inputs
+                try:
+                    kind_reports[kind] = ks.score(history, drafts, account, when_ms, mutual_share)
+                finally:
+                    ks.feature_cache, ks.fast, ks.selective_inputs = prev
+                self._tick("model_" + kind, t1)
+        finally:
+            self.feature_cache = own_cache
         t0 = time.perf_counter()
         n = len(drafts)
         first = table.n - n                        # drafts are the newest rows of the single author
@@ -319,6 +384,9 @@ class DraftScorer:
             r["gates"] = gates.check(feat[pid], recent)      # deterministic distribution gates from X's code
             if self.selective_inputs:
                 r["selective"] = self._selective(rows, first, feat[pid], d, table, when_ms)
+            if kind_reports:
+                r["kind_reports"] = {k: {"likes": v[i]["likes"], "views_24h": v[i]["views_24h"],
+                                         "members": v[i].get("members") or [self._member(v[i])]} for k, v in kind_reports.items()}
             reports.append(r)
         return reports
 

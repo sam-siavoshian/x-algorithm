@@ -34,7 +34,18 @@ from xviral.schema import conform
 from xviral.text import post_type
 from xviral.util.core import stable_hash64
 
+from xviral.embed.api import SENT as EMBED_SENT
+from xviral.embed.api import EmbeddingError
+
 VIDEO = {**advise.PHOTO, "type": "video"}
+
+
+class EmbeddingUnavailable(RuntimeError):
+    """The text embedding provider did not answer and no fallback model set is configured: nothing could be scored."""
+
+
+class EmbeddingNotAllowed(ValueError):
+    """The request does not allow sending its text to the embedding provider and no local fallback model set is configured."""
 MIN_HISTORY = 10          # fewer past posts than this and the account is treated as new: wider ranges, no own-record facts
 REPORT_VERSION = 2
 CORPUS = "our corpus of public posts"
@@ -85,14 +96,23 @@ def history_frame(handle: str, followers: int | None, past: list[dict], now_ms: 
 
 class Service:
     def __init__(self, scorer, scales: dict, posts: str | Path | None = None, evidence: dict | None = None, max_history: int = 300,
-                 fast: bool = True, account_cache: int = 256, judge=None, judge_rule=None, judge_deadline: float = 40.0):
+                 fast: bool = True, account_cache: int = 256, judge=None, judge_rule=None, judge_deadline: float = 40.0,
+                 selective="auto", fallback: "Service | None" = None, forecast_validation: str | None = None, model_set: str | None = None):
         """judge: xviral.judge.Judge (or None): the second opinion on version comparisons. Posts supplied with a request
-        (typed in or read from an X analytics export) are sent to it only when the request says so (`share_past_posts`)."""
+        (typed in or read from an X analytics export) are sent to it only when the request says so (`share_past_posts`).
+        selective: a xviral.selective.SelectiveRule for these checkpoints, None for none, "auto" for the shipped file's default
+        (fitted for the three bge-small models; do not use it with another model set).
+        fallback: a Service on a model set with a local encoder. It answers a request when this set's embedding provider
+        fails, or when the request does not allow its text to be sent to that provider; the report then says so.
+        forecast_validation: the sentence stating what was measured for this model set's version comparisons."""
         self.scorer, self.posts, self.max_history = scorer, posts, max_history
         self.scorer.fast = fast
+        self.fallback, self.model_set = fallback, model_set
+        if forecast_validation:
+            self.FORECAST_VALIDATION = forecast_validation
         # Per-kind confidence scales (launch pairs need their own; research/tracks/selective/REPORT.md). Ensembles only.
-        rule = None
-        if hasattr(scorer.model, "models") and len(scorer.model.models) > 1 and Path(advise.EVIDENCE_PATH).with_name("selective_rule.json").exists():
+        rule = None if isinstance(selective, str) else selective
+        if selective == "auto" and hasattr(scorer.model, "models") and len(scorer.model.models) > 1 and Path(advise.EVIDENCE_PATH).with_name("selective_rule.json").exists():
             from xviral.selective import SelectiveRule
 
             rule = SelectiveRule.load()
@@ -162,7 +182,10 @@ class Service:
 
             n = self.scorer.model.cfg.max_history
             tail = h if h.height <= n else h.filter(pl.col("created_at_ms") >= int(h["created_at_ms"].sort()[-n]))
-            self.scorer.embed_fn(features.render_texts(conform(tail)))
+            try:
+                self.scorer.embed_fn(features.render_texts(conform(tail)), scope=handle)
+            except EmbeddingError:      # warming is best effort: the first report embeds what is missing, or falls back
+                pass
         return {"handle": handle, "known": True, "history_posts": h.height, "followers": acct["followers"], "last_post_at": _iso(int(h["created_at_ms"].max()))}
 
     @staticmethod
@@ -398,7 +421,8 @@ class Service:
                 beats[i][j] = c["status"].startswith("recommended")
                 beats[j][i] = c["status"] == "predicted_worse" and (c["members_agree"] is not False or "opinions" in c)
                 pairs.append({"a": i + 1, "b": j + 1, "p_b_better": c["p_better"], "predicted_ratio_b_over_a": c["predicted_ratio"],
-                              "members_agree": c["members_agree"], "status": c["status"], **self._opinions(c, i + 1, j + 1)})
+                              "members_agree": c["members_agree"], "status": c["status"], "decided_by_members": c.get("decided_by_members") or "forecast",
+                              **self._opinions(c, i + 1, j + 1)})
 
         def p_of(w, i):          # P(version w+1 does better than version i+1)
             return cmp[(i, w)]["p_better"] if i < w else 1 - cmp[(w, i)]["p_better"]
@@ -547,7 +571,65 @@ class Service:
                 "proposed": len(proposals), "dropped": [{"why": s["why"]} for s in screened if not s["ok"]],
                 "better": [r for r in rows if r["status"].startswith("recommended")], "not_better": [r for r in rows if not r["status"].startswith("recommended")]}
 
+    # --- the text embedding: who may see the text, what it cost, and what happens when the provider fails ---------
+
+    def embedding_info(self) -> dict:
+        enc, spec = getattr(self.scorer, "encoder", None), getattr(self.scorer, "encoder_spec", None) or {}
+        external = enc is not None and not getattr(enc, "local", True)
+        d = enc.describe() if enc is not None and hasattr(enc, "describe") else {}
+        return {"encoder": spec.get("name"), "provider": d.get("provider") or ("local" if not external else None), "model": d.get("model") or spec.get("model"),
+                "dimensions": spec.get("dimensions"), "external": external}
+
+    def _embedding_refusal(self, req: dict) -> str | None:
+        """Why this request's text may not go to the embedding provider, or None when it may (or when the encoder is local)."""
+        if not self.embedding_info()["external"]:
+            return None
+        if req.get("external_embedding") is False:
+            return "the request opted out of the embedding provider (external_embedding: false)"
+        if (req.get("past_posts") or []) and not req.get("share_past_posts"):
+            return ("the account's past posts came with the request (typed in or from an X analytics export) and the request does not allow "
+                    "sending them to a provider (share_past_posts: true)")
+        return None
+
+    def _embedding_block(self, usage: dict | None, counts: dict | None, **extra) -> dict:
+        info, usage, counts = self.embedding_info(), usage or {}, counts or {}
+        sent = int(counts.get("sent", 0)) if info["external"] else 0
+        return {**info, "texts": int(counts.get("texts", 0)), "texts_sent": sent, "texts_from_cache": int(counts.get("texts", 0)) - int(counts.get("sent", 0)),
+                "calls": int(usage.get("calls", 0)), "tokens": int(usage.get("tokens", 0)), "cost_usd": round(float(usage.get("usd", 0.0)), 6),
+                "ms": round(1000 * float(usage.get("seconds", 0.0))), "sent": {"to": info["provider"], "model": info["model"], "what": EMBED_SENT} if sent else None,
+                "fallback_used": False, "fallback_reason": None, "primary_encoder": None, "error": None, **extra}
+
     def analyze(self, req: dict) -> dict:
+        """The report. With an API encoder, text leaves the server only when the request allows it; when it may not, or when
+        the provider fails, the fallback model set (local encoder) answers and the report's `embedding` block says so.
+        Without a fallback the first case is refused (EmbeddingNotAllowed) and the second raises EmbeddingUnavailable:
+        a request is never scored with missing or substitute vectors."""
+        why = self._embedding_refusal(req)
+        primary = self.embedding_info()
+        if why is not None:
+            if self.fallback is None:
+                raise EmbeddingNotAllowed(f"this server scores posts with an embedding from {primary['provider']} ({primary['model']}): {why}. "
+                                          "Set share_past_posts: true (and leave external_embedding on), or ask the operator to configure the local fallback models.")
+            out = self.fallback.analyze(req)
+            out["embedding"].update(fallback_used=True, fallback_reason=why, primary_encoder=primary["encoder"])
+            return out
+        enc = getattr(self.scorer, "encoder", None)
+        if enc is not None and hasattr(enc, "take_usage"):
+            enc.take_usage()
+        self.scorer.embed_counts = {"texts": 0, "sent": 0}
+        try:
+            return self._analyze(req)
+        except EmbeddingError as e:
+            usage = enc.take_usage() if enc is not None and hasattr(enc, "take_usage") else {}
+            if self.fallback is None:
+                raise EmbeddingUnavailable(f"{e}. Nothing was scored. The texts of this request were sent to {primary['provider']} all the same.") from e
+            out = self.fallback.analyze(req)
+            out["embedding"].update(fallback_used=True, fallback_reason="the embedding provider failed", primary_encoder=primary["encoder"], error=str(e),
+                                    primary_attempt={"to": primary["provider"], "model": primary["model"], "what": EMBED_SENT, "calls": int(usage.get("calls", 0)),
+                                                     "note": "the texts were sent before the failure"})
+            return out
+
+    def _analyze(self, req: dict) -> dict:
         t0 = time.time()
         clock = time.perf_counter()
         self.scorer.timings = {}
@@ -579,7 +661,8 @@ class Service:
         judged = dict(zip(order, batch.results())) if batch is not None else {}
         judge_wait = time.perf_counter() - t_scored
         if judged:           # version 1 against each other version: the same comparisons, with the second opinion
-            base_rep = {"likes": out["draft"]["likes"], "views_24h": out["draft"]["views_24h"], "members": out["draft"].get("members") or [], "reads_as_launch": out["draft"].get("reads_as_launch")}
+            base_rep = {"likes": out["draft"]["likes"], "views_24h": out["draft"]["views_24h"], "members": out["draft"].get("members") or [], "reads_as_launch": out["draft"].get("reads_as_launch"),
+                        "kind_reports": out["draft"].get("kind_reports")}
             target = self.advisor._target()
             for c in out["changes"]:
                 if c["operator"] is None and c["change"].startswith("Version "):
@@ -602,11 +685,12 @@ class Service:
         table = [{"version": 1, "text": drafts[0]["text"], "likes_median": d["likes"]["q50"], "views_median": d["views_24h"]["q50"],
                   "likes_range": [d["likes"]["q10"], d["likes"]["q90"]], "views_range": [d["views_24h"]["q10"], d["views_24h"]["q90"]],
                   "type": (ty := post_type.classify(drafts[0]["text"])), "checklist": self.checklist(drafts[0], ty["type"], ctx)}]
-        reports = [{"likes": d["likes"], "views_24h": d["views_24h"], "members": d.get("members") or [], "reads_as_launch": d.get("reads_as_launch")}]
+        reports = [{"likes": d["likes"], "views_24h": d["views_24h"], "members": d.get("members") or [], "reads_as_launch": d.get("reads_as_launch"), "kind_reports": d.get("kind_reports")}]
         for i, dr in enumerate(drafts[1:]):
             c = alts[f"Version {i + 2}"]
             rep = c.pop("report")
-            reports.append({"likes": rep["likes"], "views_24h": rep["views_24h"], "members": rep.get("members") or [], "reads_as_launch": rep.get("reads_as_launch")})
+            reports.append({"likes": rep["likes"], "views_24h": rep["views_24h"], "members": rep.get("members") or [], "reads_as_launch": rep.get("reads_as_launch"),
+                            "kind_reports": rep.get("kind_reports")})
             table.append({"version": i + 2, "text": dr["text"], "likes_median": c["likes_q50"], "views_median": c["views_q50"],
                           "likes_range": [rep["likes"]["q10"], rep["likes"]["q90"]], "views_range": [rep["views_24h"]["q10"], rep["views_24h"]["q90"]],
                           "vs_version_1": {**{k: c[k] for k in ("p_better", "predicted_ratio", "status", "why", "members_agree")}, **self._opinions(c, 1, i + 2)},
@@ -638,8 +722,13 @@ class Service:
                       "launch_type": self.type_expectation("launch") if is_launch else None}
         tm = self.scorer.timings
         total = time.perf_counter() - clock
+        enc = getattr(self.scorer, "encoder", None)
+        embedding = self._embedding_block(enc.take_usage() if enc is not None and hasattr(enc, "take_usage") else None, getattr(self.scorer, "embed_counts", None))
         return {
             "report_version": REPORT_VERSION,
+            "model_set": self.model_set,
+            "embedding": embedding,
+            "cost_usd": {"embedding": embedding["cost_usd"], "judge": judge_block["cost_usd"], "total": round(embedding["cost_usd"] + judge_block["cost_usd"], 6)},
             "generated_at": _iso(int(t0 * 1000)),
             "account": {"handle": handle or None, "followers": int(followers), "history_posts": history.height, "history_source": source,
                         "new_account": history.height < MIN_HISTORY},
@@ -691,6 +780,8 @@ class Service:
         return g
 
     def _launch_validation(self) -> str | None:
+        if getattr(self, "launch_validation_text", None):
+            return self.launch_validation_text
         m = self.launch_evidence.get("_model_check") or {}
         a, c = m.get("model_all"), m.get("model_confident_0.6_plus")
         if not a or not c:
@@ -699,18 +790,80 @@ class Service:
                 f"({100 * a['lo']:.1f} to {100 * a['hi']:.1f}); at 60% confidence or more, {100 * c['accuracy']:.1f}% ({100 * c['lo']:.1f} to {100 * c['hi']:.1f}) on {c['pairs']} pairs.")
 
 
-def load(checkpoints: list[str], scales_path: str, posts: str | None = None, sid_codebook: str | None = None, encoder: str = "BAAI/bge-small-en-v1.5",
-         device: str = "cpu", fast: bool = True, embed_batch: int = 16, type_correction: str | None = None, judge=None, judge_deadline: float = 40.0) -> Service:
+def load(checkpoints: list[str], scales_path: str | dict, posts: str | None = None, sid_codebook: str | None = None, encoder: str | None = None,
+         device: str = "cpu", fast: bool = True, embed_batch: int = 16, type_correction: str | None = None, judge=None, judge_deadline: float = 40.0,
+         judge_rule: str | None = None, selective_rule: str | None = None, selective_ensemble: str | None = None, fallback: Service | None = None,
+         forecast_validation: str | None = None, launch_validation: str | None = None, model_set: str | None = None, embedder=None,
+         kind_checkpoints: dict | None = None) -> Service:
     """type_correction: the post-type level correction for these checkpoints (research/tracks/posttype/type_correction.json
     for the three 46-column small models); it is fitted per model set and must not be reused for other checkpoints.
-    embed_batch: texts per encoder batch. The encoder sorts by length, so small batches pad each post only to its
-    neighbours; one batch of 256 pads a whole history to its longest post, which was most of a 25-second request."""
-    from xviral.embed.text_small import SentenceEmbedder
+    encoder: None reads the encoder from the checkpoints (the name each was trained with is stored in it); a name must
+    match it, and a mismatch is refused. embedder: an encoder object to use instead (tests pass the stub).
+    embed_batch: texts per batch of a local encoder. It sorts by length, so small batches pad each post only to its
+    neighbours; one batch of 256 pads a whole history to its longest post, which was most of a 25-second request.
+    judge_rule, selective_rule (+ selective_ensemble): the rule files fitted for THIS model set; without selective_rule the
+    shipped default is used, which belongs to the three bge-small models."""
     from xviral.serve import DraftScorer
 
-    enc = SentenceEmbedder(encoder, device=device)
-    batch = embed_batch if fast else 256
-    scorer = DraftScorer(checkpoints if len(checkpoints) > 1 else checkpoints[0], lambda texts: enc.encode(texts, batch_size=batch), device=device, sid_codebook=sid_codebook,
-                         type_correction=type_correction)
-    scales = {k: v for k, v in json.load(open(scales_path)).items() if k in ("views", "likes")}
-    return Service(scorer, scales, posts=posts, fast=fast, judge=judge, judge_deadline=judge_deadline)
+    scorer = DraftScorer(checkpoints if len(checkpoints) > 1 else checkpoints[0], None, device=device, sid_codebook=sid_codebook, type_correction=type_correction,
+                         encoder=embedder if embedder is not None else _encoder_for(checkpoints, encoder, device, embed_batch if fast else 256))
+    # kind_checkpoints: {"launch": [checkpoints]}: members that decide that kind of comparison instead of `checkpoints`
+    # (same encoder and codebook; they read the features and vectors the main scorer computed, so nothing more is embedded).
+    for kind, cks in (kind_checkpoints or {}).items():
+        ks = DraftScorer(cks if len(cks) > 1 else cks[0], None, device=device, sid_codebook=sid_codebook, encoder=scorer.encoder)
+        if (ks.encoder_spec or {}).get("name") != (scorer.encoder_spec or {}).get("name"):
+            raise ValueError(f"the {kind} comparison members were trained with {(ks.encoder_spec or {}).get('name')!r}, the forecast members with "
+                             f"{(scorer.encoder_spec or {}).get('name')!r}; one bundle, one encoder")
+        scorer.kind_scorers[kind] = ks
+    raw = scales_path if isinstance(scales_path, dict) else json.load(open(scales_path))
+    scales = {k: v for k, v in raw.items() if k in ("views", "likes")}
+    selective = "auto"
+    if selective_rule:
+        from xviral.selective import SelectiveRule
+
+        selective = SelectiveRule.load(selective_rule, selective_ensemble)
+    rule = None
+    if judge_rule:
+        from xviral.judge import JudgeRule
+
+        rule = JudgeRule.load(judge_rule)
+    svc = Service(scorer, scales, posts=posts, fast=fast, judge=judge, judge_rule=rule, judge_deadline=judge_deadline, selective=selective, fallback=fallback,
+                  forecast_validation=forecast_validation, model_set=model_set)
+    svc.launch_validation_text = launch_validation
+    return svc
+
+
+def _encoder_for(checkpoints: list[str], name: str | None, device: str, batch: int):
+    """The encoder the checkpoints were trained with. `name`, when given, must be that encoder."""
+    import torch
+
+    from xviral.embed import api as embed_api
+
+    spec = embed_api.common_encoder([torch.load(c, map_location="cpu", weights_only=False)["table_meta"] for c in checkpoints])
+    if name and name not in (spec["name"], spec["model"]):
+        raise ValueError(f"XVIRAL_ENCODER is {name!r} but the checkpoints were trained with {spec['name']!r}; unset it or use the matching checkpoints")
+    return embed_api.make_encoder(spec, device=device, batch=batch)
+
+
+def load_bundle(path: str | Path, posts: str | None = None, judge=None, judge_deadline: float = 40.0, device: str = "cpu", embedder=None,
+                fallback_embedder=None) -> Service:
+    """One config for a whole model set: `bundle.json` (research/tracks/combine/REPORT.md) names the checkpoints, the
+    semantic-ID codebook, the encoder, the confidence scales, the selective rule, the post-type correction, the judge rule
+    and, optionally, a fallback model set with a local encoder. Paths in it are relative to the file."""
+    path = Path(path)
+    if path.is_dir():
+        path = path / "bundle.json"
+    cfg, root = json.loads(path.read_text()), path.parent
+    rel = lambda v: None if not v else str(v if Path(v).is_absolute() else root / v)      # noqa: E731
+
+    def one(c: dict, fb: Service | None, emb) -> Service:
+        return load([rel(x) for x in c["checkpoints"]], c.get("scales") if isinstance(c.get("scales"), dict) else rel(c.get("scales")), posts=posts,
+                    sid_codebook=rel(c.get("sid_codebook")), encoder=(c.get("encoder") or {}).get("name") if isinstance(c.get("encoder"), dict) else c.get("encoder"),
+                    device=device, type_correction=rel(c.get("type_correction")), judge=judge, judge_deadline=judge_deadline, judge_rule=rel(c.get("judge_rule")),
+                    selective_rule=rel(c.get("selective_rule")), selective_ensemble=c.get("selective_ensemble"), fallback=fb,
+                    forecast_validation=(c.get("validation") or {}).get("statement"), launch_validation=(c.get("validation") or {}).get("launch_statement"),
+                    model_set=c.get("name"), embedder=emb,
+                    kind_checkpoints={k: [rel(x) for x in v["checkpoints"]] for k, v in (c.get("comparison_members") or {}).items()})
+
+    fb = one(cfg["fallback"], None, fallback_embedder) if cfg.get("fallback") and (cfg["fallback"].get("checkpoints")) and all(Path(rel(x)).exists() for x in cfg["fallback"]["checkpoints"]) else None
+    return one(cfg, fb, embedder)

@@ -223,18 +223,34 @@ class Advisor:
         diff = self._score(alt, target) - self._score(base, target)
         p = None if k is None else 1.0 / (1.0 + math.exp(-k * diff))
         key = "views_q50" if target == "views" else "likes_q50"
-        signs = [np.sign(math.log10(a[key] + 1) - math.log10(b[key] + 1)) for a, b in zip(alt.get("members", []), base.get("members", []))]
-        agree = all(s == np.sign(diff) for s in signs) if signs else None
+        # Which members decide this comparison: the scorer's own, or, when the model set names other members for this kind
+        # of comparison (serve.DraftScorer.kind_scorers; the reports then carry `kind_reports`), those. The forecast and the
+        # predicted ratio stay the scorer's own either way.
+        kind_members = None
+        if target == "likes" and (alt.get("kind_reports") or base.get("kind_reports")):
+            kd = self._kind(base, alt)
+            ka, kb = (alt.get("kind_reports") or {}).get(kd), (base.get("kind_reports") or {}).get(kd)
+            if ka and kb and ka.get("members") and kb.get("members"):
+                kind_members = (ka["members"], kb["members"], kd)
+        m_alt, m_base = (kind_members[0], kind_members[1]) if kind_members else (alt.get("members", []), base.get("members", []))
+        signs = [np.sign(math.log10(a[key] + 1) - math.log10(b[key] + 1)) for a, b in zip(m_alt, m_base)]
+        side = float(np.mean([math.log10(a[key] + 1) - math.log10(b[key] + 1) for a, b in zip(m_alt, m_base)])) if kind_members else diff
+        agree = all(s == np.sign(side) for s in signs) if signs else None
         out = {"p_better": p, "predicted_ratio": float(10 ** diff), "members_agree": agree, "members": len(signs)}
+        if kind_members:
+            out["decided_by_members"] = kind_members[2]
         if self.selective is not None and target == "likes":
             from xviral import selective as sel
 
-            va, vb = sel.version_from_report(alt), sel.version_from_report(base)
-            launch = all(((v.get("features") or {}).get("pt_launch") or 0) > 0 for v in (va, vb))
+            va, vb = sel.version_from_report({**alt, "members": m_alt} if kind_members else alt), sel.version_from_report({**base, "members": m_base} if kind_members else base)
+            if kind_members or (base.get("reads_as_launch") is not None and alt.get("reads_as_launch") is not None):
+                launch = (kind_members[2] if kind_members else self._kind(base, alt)) == "launch"
+            else:
+                launch = all(((v.get("features") or {}).get("pt_launch") or 0) > 0 for v in (va, vb))
             d = self.selective.decide(va, vb, kind="launch" if launch else "same_topic", speak=self.speak)
             out.update({"p_better": d["p_a_better"], "p_scale_only": p, "confidence_method": d["method"], "comparison_kind": d["kind"]})
         if judged is not None and judged.get("ok") and target == "likes" and self.judge_ready():
-            ma, mb = alt.get("members") or [], base.get("members") or []
+            ma, mb = m_alt or [], m_base or []
             gap = float(np.mean([math.log10(a["likes_q50"] + 1) - math.log10(b["likes_q50"] + 1) for a, b in zip(ma, mb)])) if ma and mb else diff
             kind = self._kind(base, alt)
             d = self.judge_rule.decide(gap, judged["logodds"], kind, self.judge.model, speak=self.speak)
@@ -327,7 +343,8 @@ class Advisor:
                             "text": new.get("text"), "adds_media": bool(new.get("media")) and not draft.get("media"),
                             "evidence": None if ev is None else {k: ev[k] for k in ("win_rate", "lo", "hi", "pairs", "design", "supported") if k in ev},
                             "views_q50": rep["views_24h"]["q50"], "likes_q50": rep["likes"]["q50"],
-                            **({"report": {**{k: rep.get(k) for k in ("views_24h", "likes", "members")}, "reads_as_launch": self._kind(rep, rep) == "launch"}} if op is None else {})})
+                            **({"report": {**{k: rep.get(k) for k in ("views_24h", "likes", "members")}, "reads_as_launch": self._kind(rep, rep) == "launch",
+                                           **({"kind_reports": rep["kind_reports"]} if rep.get("kind_reports") else {})}} if op is None else {})})
 
         # Spacing: a post close behind the previous one competes with it; compared at a later time, same draft.
         gap = next((g for g in base["gates"] if g["gate"] == "author_diversity"), None)
@@ -345,7 +362,8 @@ class Advisor:
         changes.sort(key=lambda c: (order[c["status"]], -(c["p_better"] or 0)))
         return {
             "draft": {k: base[k] for k in ("text", "views_24h", "likes", "p_reach_1x", "p_reach_10x", "p_reach_100x", "p_own_top_10pct",
-                                           "lift_vs_own_median", "own_median", "history_posts_used")} | {"members": base.get("members"), "reads_as_launch": self._kind(base, base) == "launch"},
+                                           "lift_vs_own_median", "own_median", "history_posts_used")} | {"members": base.get("members"), "reads_as_launch": self._kind(base, base) == "launch"}
+                     | ({"kind_reports": base["kind_reports"]} if base.get("kind_reports") else {}),
             "rules": [g for g in base["gates"] if g["status"] in ("warn", "fail")],
             "record": own_record(history) if record is None else record,
             "changes": changes,

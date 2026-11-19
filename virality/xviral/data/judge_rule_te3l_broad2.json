@@ -1,0 +1,179 @@
+{
+ "version": 1,
+ "fitted": "2026-11-19, research/tracks/judge_product/REPORT.md, scripts/judge_product/fit_rule.py",
+ "surrogate": "te3l_broad2: same-topic comparisons te3l_broad_s1,_s2 (OpenAI text-embedding-3-large 1024, broad table); launch comparisons te3l1024_s1,_s2 (same embedding, original table)",
+ "inputs": {
+  "gap": "forecasting model, first version minus second, log10 of predicted likes (mean over members of log10(median + 1))",
+  "judge": "order-averaged log-odds that the first version does better, clipped at +-clip",
+  "history_posts": 30,
+  "prompt": "xviral/judge.py SYSTEM, both orders"
+ },
+ "min_history_posts": 0,
+ "models": {
+  "gpt-6-luna": {
+   "kinds": {
+    "same_topic": {
+     "w_surrogate": 2.7046184823031654,
+     "w_judge": 0.037020466745075836,
+     "clip": 14.0,
+     "surrogate_scale": 3.433,
+     "judge_scale": 0.049197594864796704,
+     "speak": {
+      "p": 0.6,
+      "require_agreement": true
+     },
+     "speak_rule": "p>=0.60 and the two agree",
+     "fitted_on": {
+      "pairs": 2413,
+      "accounts": 355,
+      "set": "dev: pre-cutoff same-topic pairs, text similarity under 0.9"
+     },
+     "development_validation": {
+      "pairs_2x": 340,
+      "spoken_share_2x": 0.49117647058823527,
+      "correct_when_spoken_2x": 0.7005988023952096
+     },
+     "validated": {
+      "statement": "With gpt-6-luna as second opinion, checked on 1,383 real pairs of posts by the same account about the same topic that differ in wording and were posted after the language model's knowledge cutoff (2026-05-18): the two models together picked the better post 63% of the time (61 to 66), the forecasting model alone 62%. Where the real gap was 2x or more (890 pairs) a verdict was given on 48% of pairs and was right 73% of the time (68 to 77); the forecasting model alone: 41% of pairs, 72%.",
+      "slice": "wording differs and after the cutoff",
+      "set": "bench",
+      "pairs": 1383,
+      "accounts": 531,
+      "accuracy": 0.6319595083152567,
+      "accuracy_lo": 0.6066140025832168,
+      "accuracy_hi": 0.6577571495719129,
+      "forecast_model_alone": 0.6240057845263919,
+      "pairs_2x": 890,
+      "spoken_share_2x": 0.4786516853932584,
+      "correct_when_spoken_2x": 0.7276995305164319,
+      "correct_when_spoken_2x_lo": 0.6815268521201584,
+      "correct_when_spoken_2x_hi": 0.7715662055335968,
+      "forecast_model_alone_spoken_share_2x": 0.40786516853932586,
+      "forecast_model_alone_correct_when_spoken_2x": 0.71900826446281
+     }
+    },
+    "launch": {
+     "w_surrogate": 1.8760118869871754,
+     "w_judge": 0.12046284392341966,
+     "clip": 14.0,
+     "surrogate_scale": 2.3222,
+     "judge_scale": 0.14503532987085757,
+     "speak": {
+      "p": 0.6
+     },
+     "speak_rule": "p>=0.60",
+     "fitted_on": {
+      "pairs": 3567,
+      "accounts": 616,
+      "set": "launchpre: pre-cutoff launch pairs, text similarity under 0.9"
+     },
+     "development_validation": {
+      "pairs_2x": 642,
+      "spoken_share_2x": 0.8161993769470405,
+      "correct_when_spoken_2x": 0.7748091603053435
+     },
+     "validated": {
+      "statement": "With gpt-6-luna as second opinion, checked on 659 real pairs of launch posts by the same account that differ in wording and were posted after the language model's knowledge cutoff (2026-05-18): the two models together picked the better post 71% of the time (67 to 75), the forecasting model alone 68%. Where the real gap was 2x or more (442 pairs) a verdict was given on 83% of pairs and was right 83% of the time (79 to 87); the forecasting model alone: 51% of pairs, 84%. These are two different launch posts weeks or months apart, not two drafts of one launch; no set of same-day launch drafts with outcomes exists.",
+      "slice": "wording differs and after the cutoff",
+      "set": "launch",
+      "pairs": 659,
+      "accounts": 134,
+      "accuracy": 0.7116843702579666,
+      "accuracy_lo": 0.6696882962739221,
+      "accuracy_hi": 0.7546651590604726,
+      "forecast_model_alone": 0.6843702579666161,
+      "pairs_2x": 442,
+      "spoken_share_2x": 0.830316742081448,
+      "correct_when_spoken_2x": 0.8310626702997275,
+      "correct_when_spoken_2x_lo": 0.7860732695139911,
+      "correct_when_spoken_2x_hi": 0.8699226621028159,
+      "forecast_model_alone_spoken_share_2x": 0.5113122171945701,
+      "forecast_model_alone_correct_when_spoken_2x": 0.8362831858407079
+     }
+    }
+   }
+  },
+  "gpt-6.1-sol": {
+   "kinds": {
+    "same_topic": {
+     "w_surrogate": 1.7831042938382196,
+     "w_judge": 0.4579926361393781,
+     "clip": 1.5,
+     "surrogate_scale": 3.433,
+     "judge_scale": 0.577115685329009,
+     "speak": {
+      "p": 0.7
+     },
+     "speak_rule": "p>=0.70",
+     "fitted_on": {
+      "pairs": 809,
+      "accounts": 263,
+      "set": "dev: pre-cutoff same-topic pairs, text similarity under 0.9"
+     },
+     "development_validation": {
+      "pairs_2x": 206,
+      "spoken_share_2x": 0.17475728155339806,
+      "correct_when_spoken_2x": 0.7777777777777778
+     },
+     "validated": {
+      "statement": "With gpt-6.1-sol as second opinion, checked on 1,478 real pairs of posts by the same account about the same topic that differ in wording and were posted after the language model's knowledge cutoff (2026-04-30): the two models together picked the better post 66% of the time (64 to 69), the forecasting model alone 63%. Where the real gap was 2x or more (953 pairs) a verdict was given on 26% of pairs and was right 82% of the time (76 to 87); the forecasting model alone: 40% of pairs, 73%.",
+      "slice": "wording differs and after the cutoff",
+      "set": "bench",
+      "pairs": 1478,
+      "accounts": 549,
+      "accuracy": 0.6644113667117727,
+      "accuracy_lo": 0.6388083935796587,
+      "accuracy_hi": 0.6888255961908578,
+      "forecast_model_alone": 0.628552097428958,
+      "pairs_2x": 953,
+      "spoken_share_2x": 0.2602308499475341,
+      "correct_when_spoken_2x": 0.8185483870967742,
+      "correct_when_spoken_2x_lo": 0.7649764661861437,
+      "correct_when_spoken_2x_hi": 0.8697495456610631,
+      "forecast_model_alone_spoken_share_2x": 0.4018887722980063,
+      "forecast_model_alone_correct_when_spoken_2x": 0.7310704960835509
+     }
+    },
+    "launch": {
+     "w_surrogate": 1.662389566660209,
+     "w_judge": 0.8049729287478211,
+     "clip": 4.0,
+     "surrogate_scale": 2.3222,
+     "judge_scale": 0.9033255339252337,
+     "speak": {
+      "p": 0.6
+     },
+     "speak_rule": "p>=0.60",
+     "fitted_on": {
+      "pairs": 596,
+      "accounts": 221,
+      "set": "launchpre: pre-cutoff launch pairs, text similarity under 0.9"
+     },
+     "development_validation": {
+      "pairs_2x": 218,
+      "spoken_share_2x": 0.9036697247706422,
+      "correct_when_spoken_2x": 0.8375634517766497
+     },
+     "validated": {
+      "statement": "With gpt-6.1-sol as second opinion, checked on 772 real pairs of launch posts by the same account that differ in wording and were posted after the language model's knowledge cutoff (2026-04-30): the two models together picked the better post 77% of the time (73 to 81), the forecasting model alone 69%. Where the real gap was 2x or more (511 pairs) a verdict was given on 88% of pairs and was right 88% of the time (84 to 91); the forecasting model alone: 52% of pairs, 84%. These are two different launch posts weeks or months apart, not two drafts of one launch; no set of same-day launch drafts with outcomes exists.",
+      "slice": "wording differs and after the cutoff",
+      "set": "launch",
+      "pairs": 772,
+      "accounts": 139,
+      "accuracy": 0.7733160621761658,
+      "accuracy_lo": 0.7278478551882985,
+      "accuracy_hi": 0.8121871613528774,
+      "forecast_model_alone": 0.6852331606217616,
+      "pairs_2x": 511,
+      "spoken_share_2x": 0.8786692759295499,
+      "correct_when_spoken_2x": 0.8797327394209354,
+      "correct_when_spoken_2x_lo": 0.8410095002836938,
+      "correct_when_spoken_2x_hi": 0.9119913978773646,
+      "forecast_model_alone_spoken_share_2x": 0.5205479452054794,
+      "forecast_model_alone_correct_when_spoken_2x": 0.8383458646616542
+     }
+    }
+   }
+  }
+ }
+}

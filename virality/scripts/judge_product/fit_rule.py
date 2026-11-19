@@ -17,7 +17,9 @@ from sklearn.linear_model import LogisticRegression
 sys.path.insert(0, os.path.dirname(__file__))
 from jp import *
 
-SURR_SCALE = {"same_topic": 2.77, "launch": 1.84}          # xviral/data/selective_rule.json, base3 (fitted on pre-cutoff pairs)
+# xviral/data/selective_rule.json, base3 (fitted on pre-cutoff pairs). JP_SURR_SCALE='{"same_topic": k, "launch": k}' gives another
+# model set's scales, JP_SURROGATE its description for the rule file (research/tracks/combine).
+SURR_SCALE = json.loads(os.environ.get("JP_SURR_SCALE") or '{"same_topic": 2.77, "launch": 1.84}')
 SETS = {"same_topic": "dev", "launch": "launchpre"}
 CLIPS = (1.0, 1.5, 2.0, 3.0, 4.0, 6.0, 14.0)
 # Candidates start at 60%: the product never recommends below a stated 60% (its documented threshold), whatever a looser
@@ -83,6 +85,7 @@ def row(lab, e, g="2x"):
 def main():
     R = {"kinds": {}}
     rule_file = {"version": 1, "fitted": "2026-11-19, research/tracks/judge_product/REPORT.md, scripts/judge_product/fit_rule.py",
+                 "surrogate": os.environ.get("JP_SURROGATE") or "base3: ts46_s1, ts46_s2, compare_v2/full (bge-small); a rule belongs to the forecasting models it was fitted with",
                  "inputs": {"gap": "forecasting model, first version minus second, log10 of predicted likes (mean over members of log10(median + 1))",
                             "judge": "order-averaged log-odds that the first version does better, clipped at +-clip",
                             "history_posts": 30, "prompt": "xviral/judge.py SYSTEM, both orders"},
@@ -175,10 +178,10 @@ def main():
                 "fitted_on": {"pairs": Q.height, "accounts": int(len(set(a))), "set": f"{name}: pre-cutoff {kind.replace('_', '-')} pairs, text similarity under 0.9"},
                 "development_validation": {"pairs_2x": v2.get("pairs"), "spoken_share_2x": v2.get("spoken_share", [None, None])[1], "correct_when_spoken_2x": v2.get("spoken_acc", [None, None])[1]}}
             R["kinds"][kind][jn] = res
-    json.dump(R, open("data/llm/jp_fit.json", "w"), indent=1, default=float)
-    open("data/llm/jp_fit.md", "w").write("\n".join(md) + "\n")
-    json.dump(rule_file, open("data/llm/judge_rule_fitted.json", "w"), indent=1)
-    print("\nwrote data/llm/judge_rule_fitted.json")
+    json.dump(R, open(D + "jp_fit.json", "w"), indent=1, default=float)
+    open(D + "jp_fit.md", "w").write("\n".join(md) + "\n")
+    json.dump(rule_file, open(D + "judge_rule_fitted.json", "w"), indent=1)
+    print("\nwrote " + D + "judge_rule_fitted.json")
 
 
 if __name__ == "__main__":

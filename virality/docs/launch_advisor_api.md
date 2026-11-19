@@ -35,7 +35,13 @@ Scale out with more machines behind a load balancer, with sticky routing by hand
 | `XVIRAL_SCALES` | (required) | pair-confidence scales, `research/15_pair_confidence.json` |
 | `XVIRAL_POSTS` | none | corpus parquet; accounts found there need no follower count or past posts |
 | `XVIRAL_SID` | none | semantic-ID codebook the checkpoints were trained with |
-| `XVIRAL_ENCODER` | `BAAI/bge-small-en-v1.5` | text encoder; must match the checkpoints |
+| `XVIRAL_BUNDLE` | none | a `bundle.json` or its folder: one config for a whole model set (checkpoints, encoder, codebook, confidence scales, selective rule, post-type correction, judge rule, fallback set). Replaces `XVIRAL_CHECKPOINTS`, `XVIRAL_SCALES`, `XVIRAL_SID`, `XVIRAL_TYPE_CORRECTION` |
+| `XVIRAL_ENCODER` | from the checkpoints | optional. The text encoder is read from the checkpoints (each stores the name of the encoder it was trained with: `BAAI/bge-small-en-v1.5`, or `openai:text-embedding-3-large@1024`). When set it must be that encoder; a mismatch is refused at start-up |
+| `OPENAI_API_KEY` | none | key for the OpenAI embedding (and an OpenAI judge) when the checkpoints use it; not needed behind a proxy that injects the key |
+| `XVIRAL_EMBED_TIMEOUT`, `XVIRAL_EMBED_RETRIES`, `XVIRAL_EMBED_BATCH`, `XVIRAL_EMBED_CONCURRENCY` | 20, 2, 256, 4 | API embedding: seconds per call, retries on 408/409/429/5xx and connection errors, texts per call, parallel calls |
+| `XVIRAL_EMBED_STUB` | off | `1`: replace an API encoder with the built-in stub (dry runs and tests; nothing is sent, the numbers mean nothing) |
+| `XVIRAL_FALLBACK_CHECKPOINTS`, `XVIRAL_FALLBACK_SCALES`, `XVIRAL_FALLBACK_SID`, `XVIRAL_FALLBACK_TYPE_CORRECTION` | none | a second model set with a local encoder (the bge-small models). It answers when the embedding provider fails and when a request does not allow its text to be sent. A bundle names its own fallback |
+| `XVIRAL_SELECTIVE_RULE`, `XVIRAL_SELECTIVE_ENSEMBLE`, `XVIRAL_JUDGE_RULE` | shipped files | the confidence scales and the judge blend rule fitted for the checkpoints in use, when no bundle is given. The shipped defaults belong to the three bge-small models |
 | `XVIRAL_DEVICE` | `cpu` | torch device |
 | `XVIRAL_TORCH_THREADS` | torch default | intra-op threads |
 | `XVIRAL_PRELOAD` | off | `1`: load models at start-up; `/api/ready` turns 200 when done |
@@ -137,7 +143,7 @@ Every error is JSON with a readable `detail` string, which the page shows as is;
 | 413 | body over `XVIRAL_MAX_BODY_MB`, CSV over 20 MB |
 | 422 | invalid input, for example `version 2, text: is too long (at most 4000 characters)`, `follower count is required for an account we have no posts for`, `version 1: the attached file is not an image (JPEG, PNG, WebP, GIF) or a video (MP4, MOV, WebM) we can read` |
 | 429 | rate limit; `Retry-After` gives the seconds |
-| 503 | not configured, or models failed to load |
+| 503 | not configured, or models failed to load; or the embedding provider did not answer and no fallback model set is configured (`Retry-After: 5`; nothing was scored, and the detail says the texts had been sent) |
 
 ## The second opinion (`judge`)
 
@@ -165,6 +171,48 @@ an image, move the link) and the spacing check stay with the forecasting model.
   fails because of the judge. Calls of one request run in parallel while the forecasting model scores.
 - **Cost and time**, measured with `gpt-6.1-sol` (research report, end-to-end run): two versions, 2 calls, about 3 s
   and 0.01 dollars; six versions, 30 calls, about 8 s and 0.13 dollars.
+
+## The text embedding (`embedding`, `cost_usd`)
+
+A model set is served with the encoder it was trained with, named in its checkpoints. With the production bundle
+(`research/tracks/combine/REPORT.md`) that is OpenAI `text-embedding-3-large`, first 1,024 dimensions.
+
+**What is sent to the provider, and when.** The rendered text of every post the model reads: the author line (display
+name and handle) followed by the post text with link wrappers removed, for each version in the request and for the
+account's most recent posts (at most the model's history length, 48 in the bundle). No like or view counts, no follower
+numbers, no media files, no posting times. A text is sent once: vectors are cached in memory per account (512 accounts),
+so a repeat request for an account sends only versions it has not seen. `GET /api/account` (the page calls it when the
+handle field loses focus) embeds a corpus account's recent posts ahead of the first report.
+
+**When it is not sent.** Posts that came with the request (`past_posts`, typed in or from an X analytics export) are
+sent only with `share_past_posts: true`, the same switch that governs the judge. `external_embedding: false` keeps every
+text of the request on the server. In both cases the request is answered by the fallback model set (local bge-small
+encoder) when the server has one, and the report says so; a server without a fallback refuses the request with 422 and
+the reason. Posts from the server's corpus of public posts are sent.
+
+**When the provider fails.** Each call has a timeout and retries. If vectors still do not arrive, nothing is scored with
+partial or substitute vectors: the fallback model set answers the whole request (`embedding.fallback_used: true`,
+`fallback_reason`, `error`, and `primary_attempt` stating that the texts had been sent), or, without a fallback, the
+request fails with 503 and a message that says nothing was scored.
+
+Report fields:
+- `model_set`: the name of the model set that produced the report (the bundle's, or the fallback's).
+- `embedding`: `{encoder, provider, model, dimensions, external, texts, texts_sent, texts_from_cache, calls, tokens,
+  cost_usd, ms, sent: {to, model, what} | null, fallback_used, fallback_reason, primary_encoder, error}`. `sent` is null
+  when no text left the server for the embedding.
+- `cost_usd`: `{embedding, judge, total}` for this request, in US dollars, from the token counts the providers returned.
+- `method.validation`, `method.launch_validation`: the numbers measured for the model set that answered.
+
+**Members by kind of comparison.** A bundle may name other checkpoints for one kind of comparison
+(`comparison_members.launch` in `bundle.json`). They share the encoder and read the features and vectors the main
+members computed, so they add no embedding call and a few milliseconds of model time (`timing_ms.model_launch`). A
+comparison of two versions that both read as a launch is then decided from their predicted gap (with the launch
+confidence scale and the launch judge rule); every entry of `comparison.pairs` says which members decided it
+(`decided_by_members`: `forecast` or `launch`). Forecasts, ranges, odds and `predicted_ratio` always come from the main
+members.
+
+The request log line carries `embedding` = `{encoder, sent, texts_sent, cost_usd, ms, fallback_used, fallback_reason}`,
+never text. `GET /api/health` reports `model_set`, `embedding` and whether a fallback set is loaded.
 
 ## Privacy and logging
 

@@ -1,0 +1,11 @@
+2026-11-19, with the combine patch applied, CPU only.
+
+pytest tests --deselect tests/test_audio.py
+165 passed, 1 skipped, 5 deselected, 4 warnings in 120.14s (0:02:00)
+
+pytest tests/test_audio.py        (run separately)
+5 passed in 0.09s
+
+Whole suite: 170 passed, 1 skipped. Of these, tests/test_embed_api.py: 11 passed (new).
+One earlier run of the whole suite, made while four model jobs held every core, failed one timing assertion in
+tests/test_judge.py (twelve stub calls of 0.1 s must finish within 0.6 s); it passes on an idle machine.

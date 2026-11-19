@@ -67,8 +67,8 @@ def main() -> None:
 
     def embed(texts):
         if "m" not in enc:
-            from xviral.embed.text_small import SentenceEmbedder
-            enc["m"] = SentenceEmbedder("BAAI/bge-small-en-v1.5", device="cpu")
+            from xviral.embed import api as embed_api
+            enc["m"] = embed_api.make_encoder(embed_api.common_encoder([sc.meta for sc in scorers]))      # the checkpoints' own encoder
             log.info("encoder loaded (cache miss)")
         return enc["m"].encode(texts)
 
@@ -107,7 +107,7 @@ def main() -> None:
     Q = np.full((M, U.height, nc, len(QN)), np.nan, np.float32)
     H = np.zeros((M, U.height, nc, 70), np.float16)
     E = np.full((U.height, 8), np.nan, np.float32)
-    DV = np.zeros((U.height, nc, 384), np.float16)      # the versions' own embeddings (for pairs built from two units)
+    DV = np.zeros((U.height, nc, int(scorers[0].meta.get("emb_dim") or 384)), np.float16)      # the versions' own embeddings (for pairs built from two units)
     rows_out = []
     for u, r in enumerate(U.iter_rows(named=True)):
         g = by_author[r["author_id"]]

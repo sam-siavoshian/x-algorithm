@@ -57,4 +57,5 @@ def load(checkpoints: list[str | Path], device: str = "cpu") -> tuple[Ensemble, 
     """Returns (ensemble, train config of the first member, checkpoint dict of the first member)."""
     loaded = [tr.load(p, device) for p in checkpoints]
     ens = Ensemble([m for m, _, _ in loaded], [ck.get("temperature") or {} for _, _, ck in loaded]).eval()
+    ens.metas = [ck["table_meta"] for _, _, ck in loaded]      # each member's table metadata (the encoder it was trained with is in it)
     return ens, loaded[0][1], loaded[0][2]

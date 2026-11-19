@@ -129,6 +129,8 @@ def test_fast_service_reports_match_and_skip_the_encoder(trained, ensemble):  # 
     for req in reqs:
         before = calls["n"]
         a, b = orig.analyze(copy.deepcopy(req)), fast.analyze(copy.deepcopy(req))
+        assert b["embedding"]["texts"] <= a["embedding"]["texts"] and not b["embedding"]["external"] and b["cost_usd"]["total"] == 0.0
+        a.pop("embedding"), b.pop("embedding")          # how many texts were embedded is where the two paths are meant to differ
         worst, other = _diff(a, b)
         assert worst[0] < 1e-6 and not other, (req["handle"], worst, other)
         assert calls["n"] - before <= 16 + len(req["versions"]) + 2       # max_history of the nano model, the drafts, the spacing variant
@@ -418,7 +420,7 @@ def test_settings_from_env(monkeypatch):
     monkeypatch.setenv("XVIRAL_RATE_PER_MIN", "5")
     monkeypatch.setenv("XVIRAL_LOG_TEXT", "1")
     s = server.Settings.from_env()
-    assert s.checkpoints == ["a.pt", "b.pt"] and s.rate_per_minute == 5 and s.log_text and s.encoder == "BAAI/bge-small-en-v1.5" and s.max_upload_mb == 64
+    assert s.checkpoints == ["a.pt", "b.pt"] and s.rate_per_minute == 5 and s.log_text and s.encoder is None and s.bundle is None and s.max_upload_mb == 64      # the encoder is read from the checkpoints
 
 
 def test_rewrite_screening_and_suggestions(trained):
