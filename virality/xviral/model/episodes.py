@@ -53,6 +53,8 @@ class Episode:
     rates: torch.Tensor           # [B, C, A], NaN where undefined
     w: torch.Tensor               # [B, C]
     own_p90_thr: dict             # 'rel_like' / 'rel_view' -> [B], log10(p90) - log10(median); NaN if undefined
+    hist_aux: torch.Tensor | None = None   # [B, H] bool: history outcomes hidden for the masked-history task (training only)
+    hist_counts_likes: torch.Tensor | None = None   # [B, H] like counts of the history rows (targets of that task)
 
 
 def _nan_stats(x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
@@ -82,6 +84,18 @@ def build(table: FeatureTable, anchors: torch.Tensor, mcfg: ModelCfg, tcfg: Trai
     hist_mask = hist_idx >= a_start[:, None]
     hist_rows = hist_idx.clamp(min=0)
     hist_visible = hist_mask & ((cutoff[:, None] - created[hist_rows]) >= mask_s)
+    hist_aux = None
+    if train:
+        rnd = lambda *shape: torch.rand(shape, device=dev, generator=generator)  # noqa: E731
+        if tcfg.hist_drop_all > 0:           # the account scored cold: no history at all
+            keep = rnd(B) >= tcfg.hist_drop_all
+            hist_mask = hist_mask & keep[:, None]
+            hist_visible = hist_visible & keep[:, None]
+        if tcfg.mask_hist_p > 0:             # outcomes hidden here are predicted at their own positions (model.mask_loss)
+            hist_aux = hist_visible & (rnd(B, H) < tcfg.mask_hist_p)
+            hist_visible = hist_visible & ~hist_aux
+        if tcfg.hist_outcome_drop > 0:
+            hist_visible = hist_visible & (rnd(B, H) >= tcfg.hist_outcome_drop)
 
     cand_idx = anchors[:, None] + torch.arange(C, device=dev)[None]
     cand_rows = cand_idx.clamp(max=table.n - 1)
@@ -163,7 +177,8 @@ def build(table: FeatureTable, anchors: torch.Tensor, mcfg: ModelCfg, tcfg: Trai
     return Episode(anchor=anchors, cutoff_s=cutoff, hist_rows=hist_rows, hist_mask=hist_mask, hist_visible=hist_visible,
                    cand_rows=cand_rows, cand_mask=cand_mask, cand_obs_counts=obs, cand_obs_age_s=obs_age,
                    nbr_rows=nbr_rows, nbr_mask=nbr_mask, nbr_visible=nbr_visible, nbr_cos=nbr_cos, ctx=ctx, y=y,
-                   rates=rates, w=w, own_p90_thr=own_p90_thr)
+                   rates=rates, w=w, own_p90_thr=own_p90_thr, hist_aux=hist_aux,
+                   hist_counts_likes=counts_h[..., I_LIKES] if hist_aux is not None else None)
 
 
 def thin_counts(final_counts: torch.Tensor, tcfg: TrainCfg, generator: torch.Generator | None = None) -> tuple[torch.Tensor, torch.Tensor]:

@@ -60,6 +60,11 @@ class ModelCfg(BaseModel):
     use_content: bool = True
     use_neighbors: bool = True
     use_hist_knn: bool = True
+    use_hist_ridge: bool = False
+    """Per-account adaptation layer: a ridge regression from a learned low-dimensional projection of each history post to
+    its outcome (relative to the account's median), solved in closed form inside the forward pass on the account's visible
+    history and applied to the candidates (meta-learning with a differentiable closed-form solver, Bertinetto et al. 2019)."""
+    ridge_dim: int = 16
     # Stage B: a LoRA-tuned content encoder on candidates. None = stage A (frozen embeddings only).
     live: dict | None = None
     """Keyword arguments for xviral.model.live.LiveEncoder, e.g. {"model_id": "Qwen/Qwen3-VL-Embedding-8B", "r": 16}."""
@@ -97,6 +102,29 @@ class TrainCfg(BaseModel):
     # Loss weights.
     w_rates: float = 1.0
     w_pair: float = 1.0
+    pair_loss: str = "ranknet"
+    """Same-author objective over an episode's candidates (research/tracks/sota):
+    ranknet    logistic loss on the difference of predicted means, hard labels, pairs under pair_margin dropped (the baseline);
+    soft       the same logit against a soft label Phi(dy / pair_noise_sd): the probability that the observed order is the
+               real one given the repost noise, so near-ties count as near-coin-flips instead of being dropped or trusted;
+    thurstone  heteroscedastic: P(i beats j) = Phi(k * (mu_i - mu_j) / sqrt(var_i + var_j)) with the variances of the two
+               predicted like distributions, so pairs the model itself calls noisy pull less on the means;
+    listnet    listwise: cross-entropy between softmax(y / list_temp) and softmax(k * mu) over the episode's candidates."""
+    pair_noise_sd: float = 0.34
+    """SD (log10) of the difference between two outcomes of the same content by one account: an account reposting identical
+    text lands within 2x 62% of the time (tracks/pairs), which is |N(0, sd)| < 0.301 at sd = 0.34."""
+    list_temp: float = 0.3
+    # Regularisation of the in-context pathway (training only).
+    hist_outcome_drop: float = 0.0
+    """Each visible history outcome is hidden with this probability."""
+    hist_drop_all: float = 0.0
+    """The whole history of an episode is removed with this probability (the account is scored cold)."""
+    # Masked-history auxiliary task: hidden history outcomes are predicted at their own positions.
+    mask_hist_p: float = 0.0
+    w_mask: float = 0.5
+    # Snapshot ensembling / stochastic weight averaging: the cosine schedule restarts lr_cycles times; a snapshot is saved at the end of each.
+    lr_cycles: int = 1
+    save_snapshots: bool = False
     # Controlled pairs (two versions of one message by one account, scored as alternative drafts; model/pairs.py).
     w_ctl: float = 0.0
     """Weight of the loss on mined controlled pairs; 0 trains without them."""

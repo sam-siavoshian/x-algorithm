@@ -173,7 +173,12 @@ def main() -> None:
         recs.append({"part": r["part"], "post_id": r["post_id"], "post_id_b": r["post_id_b"], "author_id": r["author_id"], "history": hist.height,
                      "likes": a["likes"], "likes_b": b["likes"], "views": a["views"], "views_b": b["views"],
                      "s_likes": float(np.log10(ra["likes"]["q50"] + 1) - np.log10(rb["likes"]["q50"] + 1)),
-                     "s_views": float(np.log10(ra["views_24h"]["q50"] + 1) - np.log10(rb["views_24h"]["q50"] + 1))})
+                     "s_views": float(np.log10(ra["views_24h"]["q50"] + 1) - np.log10(rb["views_24h"]["q50"] + 1)),
+                     # spread of each version's predicted like distribution (log10, from its 10% and 90% points): lets a pair's
+                     # confidence depend on how sure the model is of each side, not only on the gap (tracks/sota)
+                     "sd_a": float((np.log10(ra["likes"]["q90"] + 1) - np.log10(ra["likes"]["q10"] + 1)) / 2.563),
+                     "sd_b": float((np.log10(rb["likes"]["q90"] + 1) - np.log10(rb["likes"]["q10"] + 1)) / 2.563),
+                     "m_a": float(np.log10(ra["likes"]["q50"] + 1)), "m_b": float(np.log10(rb["likes"]["q50"] + 1))})
         sink.write(json.dumps(recs[-1]) + "\n")
         sink.flush()
         if (i + 1) % 100 == 0:
@@ -183,7 +188,7 @@ def main() -> None:
         with open(args.feature_cache, "wb") as fc:
             pickle.dump(scorer.feature_cache, fc)
     R = pl.DataFrame(recs, schema={"part": pl.String, "post_id": pl.Int64, "post_id_b": pl.Int64, "author_id": pl.Int64, "history": pl.Int64,
-                                   "likes": pl.Int64, "likes_b": pl.Int64, "views": pl.Int64, "views_b": pl.Int64, "s_likes": pl.Float64, "s_views": pl.Float64})
+                                   "likes": pl.Int64, "likes_b": pl.Int64, "views": pl.Int64, "views_b": pl.Int64, "s_likes": pl.Float64, "s_views": pl.Float64, "sd_a": pl.Float64, "sd_b": pl.Float64, "m_a": pl.Float64, "m_b": pl.Float64})
     R.write_parquet(args.out.replace(".json", ".parquet"))
 
     # What differs between the two versions.

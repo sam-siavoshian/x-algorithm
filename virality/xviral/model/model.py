@@ -229,6 +229,46 @@ class HistoryKNN(nn.Module):
         return self.mlp(torch.stack(feats, dim=-1))
 
 
+class HistoryRidge(nn.Module):
+    """Per-account adaptation in closed form (research/tracks/sota).
+
+    Every post's content token is projected to a few dimensions; a ridge regression from that projection to the outcome
+    (log10 likes over the account's visible median) is solved on the account's visible history inside the forward pass,
+    and its prediction for each candidate enters the candidate token. The projection and the ridge strength are trained
+    end to end through the solve, so the model learns which directions of content an account's own record can be trusted
+    on (R2D2, Bertinetto et al. 2019). Unlike HistoryKNN's kernel means, this extrapolates along learned directions.
+    """
+
+    def __init__(self, d: int, r: int):
+        super().__init__()
+        self.proj = nn.Linear(d, r)
+        self.log_lam = nn.Parameter(torch.tensor(math.log(3.0)))
+        self.mlp = nn.Sequential(nn.Linear(4, 64), nn.GELU(approximate="tanh"), nn.Linear(64, d))
+
+    def forward(self, tok_c: torch.Tensor, tok_h: torch.Tensor, counts_h: torch.Tensor, visible: torch.Tensor, med_like: torch.Tensor) -> torch.Tensor:
+        ok = (visible & (counts_h[..., I_LIKES] >= 0)).float()                              # [B, H]
+        rel = (torch.log10(counts_h[..., I_LIKES].clamp(min=0).float() + 1.0) - med_like[:, None]) * ok
+        one = lambda x: torch.cat([torch.tanh(self.proj(x)), torch.ones_like(x[..., :1])], dim=-1)  # noqa: E731
+        ph, pc = one(tok_h.float()) * ok[..., None], one(tok_c.float())                     # [B, H, r+1], [B, C, r+1]
+        lam = self.log_lam.exp()
+        A = ph.transpose(1, 2) @ ph + lam * torch.eye(ph.shape[-1], device=ph.device)[None]
+        w = torch.linalg.solve(A, ph.transpose(1, 2) @ rel[..., None])                      # [B, r+1, 1]
+        pred = (pc @ w).squeeze(-1)                                                         # [B, C]
+        # Leverage of the candidate under the history's design: how far the account's record reaches this draft.
+        lev = (pc * torch.linalg.solve(A, pc.transpose(1, 2)).transpose(1, 2)).sum(-1)
+        n = ok.sum(-1, keepdim=True).expand_as(pred) / ok.shape[1]
+        resid = ((ph @ w).squeeze(-1) - rel).pow(2).sum(-1, keepdim=True) / ok.sum(-1, keepdim=True).clamp(min=1)
+        return self.mlp(torch.stack([pred, lev, n, (resid + 1e-6).sqrt().expand_as(pred)], dim=-1))
+
+
+def hist_var(logits: torch.Tensor, spec: HistHead) -> torch.Tensor:
+    e = hist_edges(spec, logits.device)
+    c = 0.5 * (e[:-1] + e[1:])
+    p = logits.softmax(-1)
+    mu = (p * c).sum(-1)
+    return ((p * c ** 2).sum(-1) - mu ** 2).clamp_min(1e-4)
+
+
 class Surrogate(nn.Module):
     def __init__(self, cfg: ModelCfg, action_index: list[int]):
         super().__init__()
@@ -239,6 +279,7 @@ class Surrogate(nn.Module):
         self.outcome = OutcomeEncoder(d)
         self.nbr_pool = NeighborPool(d)
         self.hist_knn = HistoryKNN(d)
+        self.hist_ridge = HistoryRidge(d, cfg.ridge_dim) if cfg.use_hist_ridge else None
         self.ctx = nn.Sequential(nn.Linear(cfg.n_ctx, d), nn.GELU(approximate="tanh"), nn.Linear(d, d))
         self.age_emb = nn.Embedding(POST_AGE_NUM_BUCKETS, d)
         self.gap_emb = nn.Embedding(TIME_GAP_CARDINALITY, d)
@@ -277,7 +318,8 @@ class Surrogate(nn.Module):
 
         hist_age = ep.cutoff_s[:, None] - created[ep.hist_rows]
         vis = ep.hist_visible if cfg.use_history_outcomes else torch.zeros_like(ep.hist_visible)
-        hist = (self.post(t, ep.hist_rows) + self.outcome(counts[ep.hist_rows], vis, followers[ep.hist_rows])
+        hist_content = self.post(t, ep.hist_rows)
+        hist = (hist_content + self.outcome(counts[ep.hist_rows], vis, followers[ep.hist_rows])
                 + self.age_emb(post_age_bucket(hist_age)) + self.gap_emb(time_gap_bucket(hist_age)) + self.role[0])
 
         cand_content = self.post(t, ep.cand_rows)
@@ -301,11 +343,18 @@ class Surrogate(nn.Module):
             cand = cand + self.hist_knn(e_c, e_h, counts[ep.hist_rows], ep.hist_visible, has_h, ep.ctx[:, 3], ep.ctx[:, 5],
                                         hour(ep.cand_rows), hour(ep.hist_rows), t["fmt"][ep.cand_rows], t["fmt"][ep.hist_rows])
 
+        if self.hist_ridge is not None and cfg.use_history_outcomes:
+            cand = cand + self.hist_ridge(cand_content, hist_content, counts[ep.hist_rows], ep.hist_visible, ep.ctx[:, 3])
+
         ctx = ep.ctx if cfg.use_history_outcomes else torch.cat([ep.ctx[:, :1], torch.zeros_like(ep.ctx[:, 1:])], dim=1)
         x = torch.cat([self.ctx(ctx)[:, None], hist, cand], dim=1)
         valid = torch.cat([torch.ones_like(ep.hist_mask[:, :1]), ep.hist_mask, ep.cand_mask], dim=1)
-        x = self.trunk(self.drop(self.in_norm(x)), valid, 1, H)[:, 1 + H:]
-        return {"actions": self.actions(x), "hist": {k: head(x) for k, head in self.hist.items()}}
+        full = self.trunk(self.drop(self.in_norm(x)), valid, 1, H)
+        x = full[:, 1 + H:]
+        out = {"actions": self.actions(x), "hist": {k: head(x) for k, head in self.hist.items()}}
+        if ep.hist_aux is not None:      # masked-history task: the like heads read the history positions whose outcome was hidden
+            out["hist_tokens"] = full[:, 1:1 + H]
+        return out
 
     # --- loss ---
 
@@ -330,11 +379,55 @@ class Surrogate(nn.Module):
             w = ep.w[..., None].expand_as(r)[m]
             parts["rates"] = (bce * w).sum() / w.sum().clamp_min(1e-8)
             total = total + tcfg.w_rates * parts["rates"]
-        pair = self.pair_loss(ep, out, tcfg)
+        pair = self.pair_loss(ep, out, tcfg) if tcfg.pair_loss != "listnet" else self.list_loss(ep, out, tcfg)
         if pair is not None:
             parts["pair"] = pair
             total = total + tcfg.w_pair * pair
+        if ep.hist_aux is not None and ep.hist_aux.any() and tcfg.w_mask > 0:
+            parts["mask"] = self.mask_loss(ep, out)
+            total = total + tcfg.w_mask * parts["mask"]
         return total, {k: float(v.detach()) for k, v in parts.items()}
+
+    def mask_loss(self, ep: Episode, out: dict) -> torch.Tensor:
+        """Masked-history task: the likes of history posts whose outcome was hidden, predicted at their own positions
+        from the rest of the account's history (absolute, and relative to the visible median where that exists)."""
+        cfg = self.cfg
+        m = ep.hist_aux
+        tok = out["hist_tokens"][m]
+        likes = ep.hist_counts_likes[m]
+        ok = likes >= 0
+        y = torch.log10(likes.clamp(min=0).float() + 1.0)
+        tot, n = tok.new_zeros(()), 0
+        if ok.any():
+            tgt = hist_targets(y[ok], cfg.hist_heads["likes"], cfg.hl_gauss_sigma_bins)
+            tot = tot + -(tgt * F.log_softmax(self.hist["likes"](tok[ok]).float(), dim=-1)).sum(-1).mean()
+            n += 1
+        has = (ep.ctx[:, 7] > 0.5)[:, None].expand_as(m)[m] & ok
+        if has.any():
+            rel = y[has] - ep.ctx[:, 3][:, None].expand_as(m)[m][has]
+            tgt = hist_targets(rel, cfg.hist_heads["rel_like"], cfg.hl_gauss_sigma_bins)
+            tot = tot + -(tgt * F.log_softmax(self.hist["rel_like"](tok[has]).float(), dim=-1)).sum(-1).mean()
+            n += 1
+        return tot / max(n, 1)
+
+    def list_loss(self, ep: Episode, out: dict, tcfg: TrainCfg) -> torch.Tensor | None:
+        """ListNet (top-one) over the same-author candidates of an episode, on views and on likes where present."""
+        cfg = self.cfg
+        losses = []
+        for name in ("views", "likes"):
+            y = ep.y[name]
+            ok = ~torch.isnan(y)
+            rows = ok.sum(1) >= 2
+            if not rows.any():
+                continue
+            s = hist_mean(out["hist"][name].float(), cfg.hist_heads[name])[rows] * self.pair_log_scale.exp()
+            okr, yr = ok[rows], torch.nan_to_num(y[rows])
+            neg = torch.finfo(s.dtype).min
+            tgt = (yr / tcfg.list_temp).masked_fill(~okr, neg).softmax(-1)
+            logp = s.masked_fill(~okr, neg).log_softmax(-1)
+            # Scaled by 1/log(n) so that lists of different length weigh alike.
+            losses.append(-(tgt * logp.masked_fill(~okr, 0.0)).sum(-1) / okr.sum(1).float().log())
+        return torch.cat(losses).mean() if losses else None
 
     def pair_loss(self, ep: Episode, out: dict, tcfg: TrainCfg) -> torch.Tensor | None:
         """RankNet over same-author candidates in an episode: the confound control for content effects.
@@ -356,11 +449,23 @@ class Surrogate(nn.Module):
                 both &= ~used
             used = both if used is None else (used | both)
             dy = torch.nan_to_num(y)[:, :, None] - torch.nan_to_num(y)[:, None, :]
-            m = both & (dy.abs() >= tcfg.pair_margin)
+            soft = tcfg.pair_loss == "soft"
+            m = both if soft else both & (dy.abs() >= tcfg.pair_margin)
             if m.any():
                 s = hist_mean(out["hist"][name].float(), cfg.hist_heads[name])
-                ds = (s[:, :, None] - s[:, None, :])[m] * self.pair_log_scale.exp()
-                losses.append(F.binary_cross_entropy_with_logits(ds, (dy[m] > 0).float(), reduction="none"))
+                ds = (s[:, :, None] - s[:, None, :])[m]
+                if soft:
+                    tgt = torch.special.ndtr(dy[m] / tcfg.pair_noise_sd)
+                    # Minus the target's own entropy, so the value is a divergence and comparable across batches.
+                    ent = F.binary_cross_entropy(tgt, tgt, reduction="none")
+                    losses.append(F.binary_cross_entropy_with_logits(ds * self.pair_log_scale.exp(), tgt, reduction="none") - ent)
+                elif tcfg.pair_loss == "thurstone":
+                    v = hist_var(out["hist"][name].float(), cfg.hist_heads[name])
+                    z = ds / (v[:, :, None] + v[:, None, :])[m].sqrt() * (self.pair_log_scale.exp() / 4.0)
+                    sign = torch.where(dy[m] > 0, 1.0, -1.0)
+                    losses.append(-torch.special.log_ndtr(sign * z))
+                else:
+                    losses.append(F.binary_cross_entropy_with_logits(ds * self.pair_log_scale.exp(), (dy[m] > 0).float(), reduction="none"))
         return torch.cat(losses).mean() if losses else None
 
     # --- predictions ---

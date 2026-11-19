@@ -57,6 +57,9 @@ def lr_at(step: int, tcfg: TrainCfg) -> float:
     if step < tcfg.warmup_steps:
         return tcfg.lr * (step + 1) / tcfg.warmup_steps
     p = (step - tcfg.warmup_steps) / max(1, tcfg.steps - tcfg.warmup_steps)
+    if tcfg.lr_cycles > 1:      # cosine with warm restarts (snapshot ensembling): equal cycles over all steps, each annealing from the peak
+        length = tcfg.steps / tcfg.lr_cycles
+        p = (step % length) / length
     return tcfg.lr * (0.05 + 0.95 * 0.5 * (1 + math.cos(math.pi * min(p, 1.0))))
 
 
@@ -69,7 +72,8 @@ def validate(model: Surrogate, table: FeatureTable, rows: torch.Tensor, tcfg: Tr
 
 
 def train(table: FeatureTable, out_dir: str | Path, mcfg: ModelCfg, tcfg: TrainCfg, log_every: int = 100,
-          init_from: str | Path | None = None, ctl: "pairs.PairSet | None" = None, ctl_dev: "pairs.PairSet | None" = None) -> dict:
+          init_from: str | Path | None = None, ctl: "pairs.PairSet | None" = None, ctl_dev: "pairs.PairSet | None" = None,
+          eval_hook=None) -> dict:
     """init_from: a checkpoint to warm-start from (stage B starts from the stage-A weights).
     ctl: controlled pairs trained on with weight tcfg.w_ctl; ctl_dev: held-out controlled pairs, scored at every validation."""
     out = Path(out_dir)
@@ -141,13 +145,15 @@ def train(table: FeatureTable, out_dir: str | Path, mcfg: ModelCfg, tcfg: TrainC
             if ctl_dev is not None:
                 m.update(pairs.accuracy(ema, ctl_dev, tcfg))
                 log.info("val @%d: controlled dev pairs %s", step + 1, {k: round(v, 4) for k, v in m.items() if k.startswith("ctl_")})
+            if eval_hook is not None:      # extra curves (train sample, test sample, development pairs); never used for selection
+                m.update(eval_hook(ema, step + 1))
             history.append(m)
             log.info("val @%d: nll %.4f  pairwise_likes %s  pairwise_views %s", step + 1, m["val_nll"],
                      m.get("pairwise_likes"), m.get("pairwise_views"))
             if not (m["val_nll"] >= best["val_nll"]):
                 best = m
                 save(out / "best.pt", ema, mcfg, tcfg, table.meta, m)
-            if ctl_dev is not None:
+            if ctl_dev is not None or tcfg.save_snapshots:
                 save(out / f"step{step + 1}.pt", ema, mcfg, tcfg, table.meta, m)
     save(out / "last.pt", ema, mcfg, tcfg, table.meta, history[-1] if history else {})
     (out / "history.json").write_text(json.dumps(history, indent=2))
