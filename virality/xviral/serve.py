@@ -111,6 +111,9 @@ class DraftScorer:
         # noise, less work: only the history rows the model can read are embedded, all drafts are featurised in one pass,
         # and each ensemble member runs once. False keeps the original path, which the equality test compares against.
         self.fast = False
+        # True: every report also carries what the speak / stay-silent rule reads (xviral/selective.py): each member's
+        # 10th and 90th percentile, lift and top-10% odds, the draft's feature row, history statistics and novelty.
+        self.selective_inputs = False
         self.timings: dict[str, float] = {}
 
         # Auxiliary inputs of past posts (e.g. image embeddings), name -> {post_id: vector}. Drafts carry theirs
@@ -289,12 +292,12 @@ class DraftScorer:
             by_id = {r["post_id"]: r for r in Predictor(self.model, table, self.tcfg, self.temperature).reports_from(ep, self.model.combine(outs), first, n, mutual_share)}
             for m, T, o in zip(members, self.model.temperatures, outs):
                 for r in Predictor(m, table, self.tcfg, T).reports_from(ep, o, first, n, mutual_share):
-                    by_id[r["post_id"]].setdefault("members", []).append({"views_q50": r["views_24h"]["q50"], "likes_q50": r["likes"]["q50"]})
+                    by_id[r["post_id"]].setdefault("members", []).append(self._member(r))
         else:
             by_id = {r["post_id"]: r for r in Predictor(self.model, table, self.tcfg, self.temperature).report_joint(first, n, mutual_share=mutual_share)}
             for m, T in zip(members, self.model.temperatures if members else []):      # ensemble: each member's medians, for agreement checks
                 for r in Predictor(m, table, self.tcfg, T).report_joint(first, n, mutual_share=mutual_share):
-                    by_id[r["post_id"]].setdefault("members", []).append({"views_q50": r["views_24h"]["q50"], "likes_q50": r["likes"]["q50"]})
+                    by_id[r["post_id"]].setdefault("members", []).append(self._member(r))
         self._tick("model", t0)
         acct = {"author_id": int(rows["author_id"][0]), **account}
         feat = {r["post_id"]: r for r in rows.tail(n).iter_rows(named=True)}
@@ -314,8 +317,38 @@ class DraftScorer:
                     r["type_correction_log10"] = shift
             r["history_posts_used"] = int(min(first, self.model.cfg.max_history))
             r["gates"] = gates.check(feat[pid], recent)      # deterministic distribution gates from X's code
+            if self.selective_inputs:
+                r["selective"] = self._selective(rows, first, feat[pid], d, table, when_ms)
             reports.append(r)
         return reports
+
+    def _member(self, r: dict) -> dict:
+        m = {"views_q50": r["views_24h"]["q50"], "likes_q50": r["likes"]["q50"]}
+        if self.selective_inputs:
+            import math
+
+            lift, top = r["lift_vs_own_median"]["likes"], r["p_own_top_10pct"]["likes"]
+            m.update({"likes_q10": r["likes"]["q10"], "likes_q90": r["likes"]["q90"],
+                      "rel_like_q50": math.log10(lift) if lift else None, "p_own_top10": top})
+        return m
+
+    def _selective(self, rows: pl.DataFrame, first: int, frow: dict, draft: dict, table, when_ms: int) -> dict:
+        """Inputs of the speak / stay-silent rule for one draft (xviral/selective.py pair_features)."""
+        from xviral import selective
+
+        hist = rows.head(first)
+        feats = {k: v for k, v in frow.items() if isinstance(v, (int, float, bool, str)) or v is None}
+        feats.update(selective.post_type_flags(draft.get("text")))
+        out = {"features": feats, "history": {**selective.history_stats(hist, when_ms), **{k: frow.get(k) for k in selective.HISTORY_KEYS if k in frow}},
+               "novelty": None, "embedding": None}
+        emb = table.t.get("emb") if hasattr(table, "t") else None
+        if emb is not None and self.meta["emb_dim"]:
+            ids = table.t["post_id"].tolist()
+            e = emb.float().cpu().numpy()
+            j = ids.index(frow["post_id"])
+            out["novelty"] = selective.novelty(e[:first], e[j])
+            out["embedding"] = e[j] / (float(np.linalg.norm(e[j])) + 1e-9)
+        return out
 
     def timing(self, history: pl.DataFrame, draft: dict, account: dict, start_ms: int | None = None, hours_ahead: int = 48,
                step_hours: int = 2) -> list[dict]:

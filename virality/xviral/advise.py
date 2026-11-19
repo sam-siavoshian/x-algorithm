@@ -142,12 +142,19 @@ def own_record(history: pl.DataFrame, min_each: int = 8, seed: int = 0) -> list[
 
 class Advisor:
     def __init__(self, scorer, scales: dict, evidence: dict | None = None, speak: float = 0.60, strong: float = 0.70,
-                 min_meaning_cos: float = 0.75):
+                 min_meaning_cos: float = 0.75, selective=None, agreement_gate: bool = True):
         """scorer: serve.DraftScorer (an ensemble gives the agreement gate something to check).
         scales: {"views": k, "likes": k} from held-out pairs (evaluate.fit_pair_scale); a missing target cannot speak.
         speak / strong: calibrated probability at which a change is recommended / called likely."""
         self.scorer, self.scales, self.evidence = scorer, scales, evidence or load_evidence()
         self.speak, self.strong, self.min_meaning_cos = speak, strong, min_meaning_cos
+        # selective: xviral.selective.SelectiveRule (or None). With it, the like comparison's probability comes from the
+        # fitted speak / stay-silent rule for the kind of comparison instead of the single scale in `scales`
+        # (research/tracks/selective/REPORT.md). agreement_gate=False drops the "every member agrees" requirement, which
+        # with ten members removes more than half of the calls the probability alone would make.
+        self.selective, self.agreement_gate = selective, agreement_gate
+        if selective is not None:
+            scorer.selective_inputs = True
 
     def _target(self) -> str:
         # Likes first: the pair benchmark that validates the stated confidence (2,852 same-account, same-topic pairs)
@@ -168,7 +175,15 @@ class Advisor:
         key = "views_q50" if target == "views" else "likes_q50"
         signs = [np.sign(math.log10(a[key] + 1) - math.log10(b[key] + 1)) for a, b in zip(alt.get("members", []), base.get("members", []))]
         agree = all(s == np.sign(diff) for s in signs) if signs else None
-        return {"p_better": p, "predicted_ratio": float(10 ** diff), "members_agree": agree, "members": len(signs)}
+        out = {"p_better": p, "predicted_ratio": float(10 ** diff), "members_agree": agree, "members": len(signs)}
+        if self.selective is not None and target == "likes":
+            from xviral import selective as sel
+
+            va, vb = sel.version_from_report(alt), sel.version_from_report(base)
+            launch = all(((v.get("features") or {}).get("pt_launch") or 0) > 0 for v in (va, vb))
+            d = self.selective.decide(va, vb, kind="launch" if launch else "same_topic", speak=self.speak)
+            out.update({"p_better": d["p_a_better"], "p_scale_only": p, "confidence_method": d["method"], "comparison_kind": d["kind"]})
+        return out
 
     def compare(self, base: dict, alt: dict) -> dict:
         """One version against another on the validated outcome, both taken from the same scoring pass. The pair is
@@ -181,7 +196,7 @@ class Advisor:
         p = cmp["p_better"]
         if p is None:
             return "uncalibrated", "no confidence scale for this outcome"
-        if cmp["members_agree"] is False:
+        if cmp["members_agree"] is False and self.agreement_gate:
             return "no_confident_difference", "the models in the ensemble disagree on the direction"
         if p >= self.speak:
             if not meaning_ok:

@@ -86,7 +86,13 @@ class Service:
                  fast: bool = True, account_cache: int = 256):
         self.scorer, self.posts, self.max_history = scorer, posts, max_history
         self.scorer.fast = fast
-        self.advisor = advise.Advisor(scorer, scales, evidence=evidence)
+        # Per-kind confidence scales (launch pairs need their own; research/tracks/selective/REPORT.md). Ensembles only.
+        rule = None
+        if hasattr(scorer.model, "models") and len(scorer.model.models) > 1 and Path(advise.EVIDENCE_PATH).with_name("selective_rule.json").exists():
+            from xviral.selective import SelectiveRule
+
+            rule = SelectiveRule.load()
+        self.advisor = advise.Advisor(scorer, scales, evidence=evidence, selective=rule)
         self.evidence = self.advisor.evidence
         self.rewriter = None                                        # xviral.rewrite.OpenAIRewriter, set by load() when configured
         data = Path(advise.EVIDENCE_PATH).parent

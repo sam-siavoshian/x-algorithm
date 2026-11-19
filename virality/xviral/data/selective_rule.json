@@ -1,0 +1,236 @@
+{
+ "version": 1,
+ "fitted": "2026-11-19",
+ "source": "research/tracks/selective/REPORT.md",
+ "speak": 0.6,
+ "score": "mean over members of log10(predicted median likes + 1), version a minus version b; P(pick is right) = sigmoid(scale * |gap|)",
+ "note": "Learned deferral models (boosted trees, small network, linear) did not beat the scale on held-out pairs and are not shipped; the loader evaluates them if a later file carries one.",
+ "default_ensemble": "base3",
+ "ensembles": {
+  "base3": {
+   "members": "the three untouched 46-column models (ts46_s1, ts46_s2, compare_v2/full): the product's ensemble",
+   "kinds": {
+    "same_topic": {
+     "model": {
+      "type": "logistic_gap",
+      "scale": 2.7738,
+      "bias": 0.0
+     },
+     "fallback": {
+      "type": "logistic_gap",
+      "scale": 2.7738,
+      "bias": 0.0
+     },
+     "fitted_on": {
+      "set": "development pairs (same link or quoted post), before 2026-04-23",
+      "pairs": 2805,
+      "accounts": 366
+     },
+     "held_out": {
+      "set": "benchmark, 2,852 pairs",
+      "stated_60_plus_on_2x_pairs": {
+       "share": 0.2404,
+       "correct": 0.7029,
+       "ci": [
+        0.6486,
+        0.7489
+       ]
+      },
+      "surest_40pct_of_2x_pairs": {
+       "correct": 0.6761,
+       "ci": [
+        0.6284,
+        0.7177
+       ]
+      }
+     }
+    },
+    "launch": {
+     "model": {
+      "type": "logistic_gap",
+      "scale": 1.8432,
+      "bias": 0.0
+     },
+     "fallback": {
+      "type": "logistic_gap",
+      "scale": 1.8432,
+      "bias": 0.0
+     },
+     "fitted_on": {
+      "set": "launch pairs of one account, before 2026-04-23",
+      "pairs": 3655,
+      "accounts": 628
+     },
+     "held_out": {
+      "set": "launch pairs after the cutoff, 850 pairs",
+      "stated_60_plus_on_2x_pairs": {
+       "share": 0.3468,
+       "correct": 0.7817,
+       "ci": [
+        0.695,
+        0.8566
+       ]
+      },
+      "surest_40pct_of_2x_pairs": {
+       "correct": 0.7753,
+       "ci": [
+        0.6927,
+        0.8475
+       ]
+      }
+     }
+    }
+   }
+  },
+  "start10": {
+   "members": "ten untouched models (replicate track, start10.txt)",
+   "kinds": {
+    "same_topic": {
+     "model": {
+      "type": "logistic_gap",
+      "scale": 3.1411,
+      "bias": 0.0
+     },
+     "fallback": {
+      "type": "logistic_gap",
+      "scale": 3.1411,
+      "bias": 0.0
+     },
+     "fitted_on": {
+      "set": "development pairs (same link or quoted post), before 2026-04-23",
+      "pairs": 2805,
+      "accounts": 366
+     },
+     "held_out": {
+      "set": "benchmark, 2,852 pairs",
+      "stated_60_plus_on_2x_pairs": {
+       "share": 0.2606,
+       "correct": 0.7146,
+       "ci": [
+        0.6604,
+        0.7603
+       ]
+      },
+      "surest_40pct_of_2x_pairs": {
+       "correct": 0.6958,
+       "ci": [
+        0.6467,
+        0.7378
+       ]
+      }
+     }
+    },
+    "launch": {
+     "model": {
+      "type": "logistic_gap",
+      "scale": 1.8432,
+      "bias": 0.0
+     },
+     "fallback": {
+      "type": "logistic_gap",
+      "scale": 1.8432,
+      "bias": 0.0
+     },
+     "fitted_on": {
+      "set": "launch pairs of one account, before 2026-04-23",
+      "pairs": 3655,
+      "accounts": 628
+     },
+     "held_out": {
+      "set": "launch pairs after the cutoff, 850 pairs",
+      "stated_60_plus_on_2x_pairs": {
+       "share": 0.3486,
+       "correct": 0.7727,
+       "ci": [
+        0.6901,
+        0.8465
+       ]
+      },
+      "surest_40pct_of_2x_pairs": {
+       "correct": 0.7709,
+       "ci": [
+        0.6923,
+        0.8448
+       ]
+      }
+     }
+    }
+   }
+  },
+  "ft10": {
+   "members": "ten pair-loss fine-tuned models (replicate track, ft10.txt)",
+   "kinds": {
+    "same_topic": {
+     "model": {
+      "type": "logistic_gap",
+      "scale": 1.7475,
+      "bias": 0.0
+     },
+     "fallback": {
+      "type": "logistic_gap",
+      "scale": 1.7475,
+      "bias": 0.0
+     },
+     "fitted_on": {
+      "set": "development pairs (same link or quoted post), before 2026-04-23",
+      "pairs": 2805,
+      "accounts": 366
+     },
+     "held_out": {
+      "set": "benchmark, 2,852 pairs",
+      "stated_60_plus_on_2x_pairs": {
+       "share": 0.3596,
+       "correct": 0.7342,
+       "ci": [
+        0.6795,
+        0.7767
+       ]
+      },
+      "surest_40pct_of_2x_pairs": {
+       "correct": 0.7254,
+       "ci": [
+        0.6739,
+        0.7668
+       ]
+      }
+     }
+    },
+    "launch": {
+     "model": {
+      "type": "logistic_gap",
+      "scale": 1.5708,
+      "bias": 0.0
+     },
+     "fallback": {
+      "type": "logistic_gap",
+      "scale": 1.5708,
+      "bias": 0.0
+     },
+     "fitted_on": {
+      "set": "launch pairs of one account, before 2026-04-23",
+      "pairs": 3655,
+      "accounts": 628
+     },
+     "held_out": {
+      "set": "launch pairs after the cutoff, 850 pairs",
+      "stated_60_plus_on_2x_pairs": {
+       "share": 0.3486,
+       "correct": 0.7778,
+       "ci": [
+        0.6983,
+        0.8571
+       ]
+      },
+      "surest_40pct_of_2x_pairs": {
+       "correct": 0.7577,
+       "ci": [
+        0.6756,
+        0.8334
+       ]
+      }
+     }
+    }
+   }
+  }
+ }
+}
